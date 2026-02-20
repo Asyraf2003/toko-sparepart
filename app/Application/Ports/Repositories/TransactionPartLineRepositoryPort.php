@@ -12,4 +12,6 @@ interface TransactionPartLineRepositoryPort
         int $qty,
         int $unitSellPriceFrozen,
     ): void;
+
+    public function deleteLine(int $transactionId, int $productId): void;
 }

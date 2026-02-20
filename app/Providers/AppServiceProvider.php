@@ -10,6 +10,7 @@ use App\Application\Ports\Repositories\ProductStockQueryPort;
 use App\Application\Ports\Repositories\StockLedgerRepositoryPort;
 use App\Application\Ports\Repositories\TransactionPartLineRepositoryPort;
 use App\Application\Ports\Repositories\TransactionRepositoryPort;
+use App\Application\Ports\Repositories\TransactionServiceLineRepositoryPort;
 use App\Application\Ports\Services\ClockPort;
 use App\Application\Ports\Services\TransactionManagerPort;
 use App\Infrastructure\Clock\SystemClock;
@@ -20,6 +21,7 @@ use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentProductStockQue
 use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentStockLedgerRepository;
 use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentTransactionPartLineRepository;
 use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentTransactionRepository;
+use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentTransactionServiceLineRepository;
 use Illuminate\Support\ServiceProvider;
 
 final class AppServiceProvider extends ServiceProvider
@@ -34,6 +36,7 @@ final class AppServiceProvider extends ServiceProvider
         $this->app->bind(ProductStockQueryPort::class, EloquentProductStockQuery::class);
         $this->app->bind(TransactionRepositoryPort::class, EloquentTransactionRepository::class);
         $this->app->bind(TransactionPartLineRepositoryPort::class, EloquentTransactionPartLineRepository::class);
+        $this->app->bind(TransactionServiceLineRepositoryPort::class, EloquentTransactionServiceLineRepository::class);
     }
 
     public function boot(): void

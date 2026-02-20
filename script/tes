@@ -1,2 +1,5 @@
 #!/bin/bash
-./vendor/bin/pint && ./vendor/bin/pint --test && php artisan test
+# Path absolut berdasarkan audit data PWD Anda
+/home/asyraf/Code/laravel/bengkel2/app/vendor/bin/pint && \
+/home/asyraf/Code/laravel/bengkel2/app/vendor/bin/pint --test && \
+php /home/asyraf/Code/laravel/bengkel2/app/artisan test

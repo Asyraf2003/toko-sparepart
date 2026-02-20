@@ -37,4 +37,12 @@ final class EloquentTransactionPartLineRepository implements TransactionPartLine
             'line_subtotal' => $lineSubtotal,
         ]);
     }
+
+    public function deleteLine(int $transactionId, int $productId): void
+    {
+        TransactionPartLine::query()
+            ->where('transaction_id', $transactionId)
+            ->where('product_id', $productId)
+            ->delete();
+    }
 }

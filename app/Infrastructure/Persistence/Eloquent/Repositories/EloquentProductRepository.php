@@ -113,4 +113,17 @@ final class EloquentProductRepository implements ProductRepositoryPort
 
         return (int) $price;
     }
+
+    public function getAvgCost(int $productId): int
+    {
+        $cost = \App\Infrastructure\Persistence\Eloquent\Models\Product::query()
+            ->whereKey($productId)
+            ->value('avg_cost');
+
+        if ($cost === null) {
+            throw new \InvalidArgumentException('product not found');
+        }
+
+        return (int) $cost;
+    }
 }
