@@ -100,4 +100,17 @@ final class EloquentProductRepository implements ProductRepositoryPort
 
         return $updated;
     }
+
+    public function getSellingPrice(int $productId): int
+    {
+        $price = \App\Infrastructure\Persistence\Eloquent\Models\Product::query()
+            ->whereKey($productId)
+            ->value('sell_price_current');
+
+        if ($price === null) {
+            throw new \InvalidArgumentException('product not found');
+        }
+
+        return (int) $price;
+    }
 }

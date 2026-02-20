@@ -29,4 +29,6 @@ interface ProductRepositoryPort
     public function setSellingPrice(int $productId, int $sellPriceCurrent): ProductSnapshot;
 
     public function setMinStockThreshold(int $productId, int $minStockThreshold): ProductSnapshot;
+
+    public function getSellingPrice(int $productId): int;
 }
