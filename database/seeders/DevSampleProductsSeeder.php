@@ -35,8 +35,8 @@ final class DevSampleProductsSeeder extends Seeder
             ['sku' => 'OLI-10W40', 'name' => 'Oli 10W-40', 'price' => 45000, 'threshold' => 3, 'active' => true, 'stock' => 12],
             ['sku' => 'BUSI-NGK',  'name' => 'Busi NGK',   'price' => 18000, 'threshold' => 5, 'active' => true, 'stock' => 30],
             ['sku' => 'KAMPAS-R',  'name' => 'Kampas Rem', 'price' => 65000, 'threshold' => 3, 'active' => true, 'stock' => 8],
-            ['sku' => 'RANTAI-428','name' => 'Rantai 428', 'price' => 125000,'threshold' => 2, 'active' => true, 'stock' => 5],
-            ['sku' => 'FILTER-U',  'name' => 'Filter Udara','price' => 22000,'threshold' => 3, 'active' => true, 'stock' => 15],
+            ['sku' => 'RANTAI-428', 'name' => 'Rantai 428', 'price' => 125000, 'threshold' => 2, 'active' => true, 'stock' => 5],
+            ['sku' => 'FILTER-U',  'name' => 'Filter Udara', 'price' => 22000, 'threshold' => 3, 'active' => true, 'stock' => 15],
         ];
 
         foreach ($items as $it) {
@@ -60,8 +60,8 @@ final class DevSampleProductsSeeder extends Seeder
                 qtyDelta: (int) $it['stock'],
                 actorUserId: (int) $adminId,
                 note: 'seed initial stock',
-                refType: 'seed',
-                refId: 'DevSampleProductsSeeder',
+                refType: 'seed:DevSampleProductsSeeder',
+                refId: null,
             ));
         }
     }
