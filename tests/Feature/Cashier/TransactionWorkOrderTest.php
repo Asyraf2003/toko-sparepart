@@ -10,6 +10,7 @@ use App\Application\UseCases\Sales\OpenTransactionRequest;
 use App\Application\UseCases\Sales\OpenTransactionUseCase;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 final class TransactionWorkOrderTest extends TestCase
@@ -29,8 +30,10 @@ final class TransactionWorkOrderTest extends TestCase
         $create = $this->app->make(CreateTransactionUseCase::class);
         $tx = $create->handle(new CreateTransactionRequest(actorUserId: (int) $cashier->id));
 
+        $txNumber = (string) DB::table('transactions')->where('id', (int) $tx->id)->value('transaction_number');
+
         $this->actingAs($cashier)
-            ->get('/cashier/transactions/'.$tx->id.'/work-order')
+            ->get('/cashier/transactions/'.(int) $tx->id.'/work-order')
             ->assertStatus(400);
 
         /** @var OpenTransactionUseCase $open */
@@ -38,9 +41,9 @@ final class TransactionWorkOrderTest extends TestCase
         $open->handle(new OpenTransactionRequest(transactionId: (int) $tx->id, actorUserId: (int) $cashier->id));
 
         $this->actingAs($cashier)
-            ->get('/cashier/transactions/'.$tx->id.'/work-order')
+            ->get('/cashier/transactions/'.(int) $tx->id.'/work-order')
             ->assertOk()
             ->assertSee('WORK ORDER')
-            ->assertSee((string) $tx->transaction_number);
+            ->assertSee($txNumber);
     }
 }
