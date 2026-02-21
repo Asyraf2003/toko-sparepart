@@ -8,6 +8,9 @@ use App\Interfaces\Web\Controllers\Admin\ProductSetThresholdController;
 use App\Interfaces\Web\Controllers\Admin\ProductStockIndexController;
 use App\Interfaces\Web\Controllers\Admin\ProductStoreController;
 use App\Interfaces\Web\Controllers\Admin\ProductUpdateController;
+use App\Interfaces\Web\Controllers\Admin\PurchaseInvoiceCreateController;
+use App\Interfaces\Web\Controllers\Admin\PurchaseInvoiceIndexController;
+use App\Interfaces\Web\Controllers\Admin\PurchaseInvoiceStoreController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'role:ADMIN'])->prefix('admin')->group(function () {
@@ -22,4 +25,8 @@ Route::middleware(['auth', 'role:ADMIN'])->prefix('admin')->group(function () {
     Route::post('/products/{productId}/selling-price', ProductSetPriceController::class);
     Route::post('/products/{productId}/min-threshold', ProductSetThresholdController::class);
     Route::post('/products/{productId}/adjust-stock', ProductAdjustStockController::class);
+
+    Route::get('/purchases', PurchaseInvoiceIndexController::class);
+    Route::get('/purchases/create', PurchaseInvoiceCreateController::class);
+    Route::post('/purchases', PurchaseInvoiceStoreController::class);
 });
