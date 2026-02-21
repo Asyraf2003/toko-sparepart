@@ -1,4 +1,3 @@
-
 # Audit Trail & Reason Rules — V1
 
 Dokumen ini adalah **kontrak audit** untuk semua perubahan sensitif pada V1.
