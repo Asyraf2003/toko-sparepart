@@ -14,6 +14,12 @@ class DatabaseSeeder extends Seeder
             DefaultUsersSeeder::class,
             DefaultEmployeesSeeder::class,
             DevSampleProductsSeeder::class,
+
+            DevSamplePurchasesSeeder::class,
+
+            DevSampleExpensesSeeder::class,
+            DevSampleEmployeeLoansSeeder::class,
+            DevSamplePayrollSeeder::class,
         ]);
     }
 }
