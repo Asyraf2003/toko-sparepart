@@ -12,8 +12,7 @@ final class PurchasingReportSummary
         public readonly int $totalDiskon,
         public readonly int $totalPajak,
         public readonly int $grandTotal,
-    ) {
-    }
+    ) {}
 
     public static function empty(): self
     {

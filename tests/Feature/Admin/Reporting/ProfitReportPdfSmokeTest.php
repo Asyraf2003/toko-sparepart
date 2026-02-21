@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 
 uses(RefreshDatabase::class);
 
-it('can generate sales report pdf (smoke)', function () {
+it('can generate profit report pdf (smoke)', function () {
     if (! app()->bound('dompdf.wrapper')) {
         $this->markTestSkipped('dompdf is not installed/bound (barryvdh/laravel-dompdf).');
     }
@@ -55,25 +55,17 @@ it('can generate sales report pdf (smoke)', function () {
     DB::table('transaction_part_lines')->insert([
         'transaction_id' => $txId,
         'product_id' => $productId,
-        'qty' => 2,
+        'qty' => 1,
         'unit_sell_price_frozen' => 10000,
-        'line_subtotal' => 20000,
+        'line_subtotal' => 10000,
         'unit_cogs_frozen' => 7000,
-        'created_at' => now(),
-        'updated_at' => now(),
-    ]);
-
-    DB::table('transaction_service_lines')->insert([
-        'transaction_id' => $txId,
-        'description' => 'Service A',
-        'price_manual' => 15000,
         'created_at' => now(),
         'updated_at' => now(),
     ]);
 
     $this->withoutMiddleware();
 
-    $resp = $this->get('/admin/reports/sales/pdf?from=2026-02-21&to=2026-02-21');
+    $resp = $this->get('/admin/reports/profit/pdf?from=2026-02-21&to=2026-02-21&granularity=weekly');
     $resp->assertOk();
     $resp->assertHeader('Content-Type', 'application/pdf');
 });

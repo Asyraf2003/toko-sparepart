@@ -20,6 +20,5 @@ final class SalesReportRow
         public readonly int $grandTotal,
         public readonly int $cogsTotal,
         public readonly int $missingCogsQty,
-    ) {
-    }
+    ) {}
 }

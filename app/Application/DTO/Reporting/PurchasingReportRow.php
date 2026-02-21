@@ -15,6 +15,5 @@ final class PurchasingReportRow
         public readonly int $totalDiskon,
         public readonly int $totalPajak,
         public readonly int $grandTotal,
-    ) {
-    }
+    ) {}
 }

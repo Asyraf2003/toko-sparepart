@@ -15,28 +15,51 @@ final class EloquentProfitReportQuery implements ProfitReportQueryPort
 {
     public function aggregate(string $fromDate, string $toDate, string $granularity): ProfitReportResult
     {
-        if (!in_array($granularity, ['weekly', 'monthly'], true)) {
+        if (! in_array($granularity, ['weekly', 'monthly'], true)) {
             $granularity = 'weekly';
         }
 
-        // 1) SALES daily aggregates (COMPLETED only; per ADR stock/cogs freeze happens on completion)
-        $salesDaily = DB::table('transactions as t')
-            ->leftJoin('transaction_part_lines as pl', 'pl.transaction_id', '=', 't.id')
-            ->leftJoin('transaction_service_lines as sl', 'sl.transaction_id', '=', 't.id')
+        // Aggregate per transaction first to avoid join multiplication.
+        $partAgg = DB::table('transaction_part_lines')
+            ->selectRaw('transaction_id')
+            ->selectRaw('SUM(line_subtotal) AS part_subtotal')
+            ->selectRaw('SUM(COALESCE(unit_cogs_frozen, 0) * qty) AS cogs_total')
+            ->selectRaw('SUM(CASE WHEN unit_cogs_frozen IS NULL THEN qty ELSE 0 END) AS missing_cogs_qty')
+            ->groupBy('transaction_id');
+
+        $serviceAgg = DB::table('transaction_service_lines')
+            ->selectRaw('transaction_id')
+            ->selectRaw('SUM(price_manual) AS service_subtotal')
+            ->groupBy('transaction_id');
+
+        $txAgg = DB::table('transactions as t')
+            ->leftJoinSub($partAgg, 'p', fn ($j) => $j->on('p.transaction_id', '=', 't.id'))
+            ->leftJoinSub($serviceAgg, 's', fn ($j) => $j->on('s.transaction_id', '=', 't.id'))
             ->whereBetween('t.business_date', [$fromDate, $toDate])
             ->where('t.status', 'COMPLETED')
-            ->groupBy('t.business_date')
-            ->orderBy('t.business_date')
-            ->get([
+            ->select([
                 't.business_date as d',
-                DB::raw('COALESCE(SUM(DISTINCT t.rounding_amount), 0) as rounding_amount'),
-                DB::raw('COALESCE(SUM(pl.line_subtotal), 0) as revenue_part'),
-                DB::raw('COALESCE(SUM(sl.price_manual), 0) as revenue_service'),
-                DB::raw('COALESCE(SUM(COALESCE(pl.unit_cogs_frozen, 0) * pl.qty), 0) as cogs_total'),
-                DB::raw('COALESCE(SUM(CASE WHEN pl.unit_cogs_frozen IS NULL THEN pl.qty ELSE 0 END), 0) as missing_cogs_qty'),
+                't.id as transaction_id',
+                't.rounding_amount',
+                DB::raw('COALESCE(p.part_subtotal, 0) as revenue_part'),
+                DB::raw('COALESCE(s.service_subtotal, 0) as revenue_service'),
+                DB::raw('COALESCE(p.cogs_total, 0) as cogs_total'),
+                DB::raw('COALESCE(p.missing_cogs_qty, 0) as missing_cogs_qty'),
             ]);
 
-        // 2) EXPENSES daily aggregates
+        $salesDaily = DB::query()
+            ->fromSub($txAgg, 'x')
+            ->groupBy('x.d')
+            ->orderBy('x.d')
+            ->get([
+                'x.d',
+                DB::raw('SUM(x.rounding_amount) as rounding_amount'),
+                DB::raw('SUM(x.revenue_part) as revenue_part'),
+                DB::raw('SUM(x.revenue_service) as revenue_service'),
+                DB::raw('SUM(x.cogs_total) as cogs_total'),
+                DB::raw('SUM(x.missing_cogs_qty) as missing_cogs_qty'),
+            ]);
+
         $expensesDaily = DB::table('expenses')
             ->whereBetween('expense_date', [$fromDate, $toDate])
             ->groupBy('expense_date')
@@ -46,7 +69,8 @@ final class EloquentProfitReportQuery implements ProfitReportQueryPort
                 DB::raw('SUM(amount) as expenses_total'),
             ]);
 
-        // 3) PAYROLL weekly aggregates (payroll_periods.week_end within range)
+        // Payroll is weekly (Mon–Sat). We aggregate by payroll_periods range.
+        // For monthly bucket: current policy = bucket by month(week_end).
         $payrollWeekly = DB::table('payroll_periods as pp')
             ->join('payroll_lines as pl', 'pl.payroll_period_id', '=', 'pp.id')
             ->whereBetween('pp.week_end', [$fromDate, $toDate])
@@ -58,7 +82,6 @@ final class EloquentProfitReportQuery implements ProfitReportQueryPort
                 DB::raw('SUM(pl.gross_pay) as payroll_gross'),
             ]);
 
-        // Convert to maps
         $salesByDate = [];
         foreach ($salesDaily as $r) {
             $salesByDate[(string) $r->d] = [
@@ -75,8 +98,7 @@ final class EloquentProfitReportQuery implements ProfitReportQueryPort
             $expensesByDate[(string) $r->d] = (int) $r->expenses_total;
         }
 
-        // Bucket accumulators
-        $buckets = []; // key => sums
+        $buckets = [];
         $from = CarbonImmutable::parse($fromDate);
         $to = CarbonImmutable::parse($toDate);
 
@@ -92,7 +114,7 @@ final class EloquentProfitReportQuery implements ProfitReportQueryPort
                 $label = $key.' (month)';
             }
 
-            if (!isset($buckets[$key])) {
+            if (! isset($buckets[$key])) {
                 $buckets[$key] = [
                     'label' => $label,
                     'part' => 0,
@@ -117,19 +139,16 @@ final class EloquentProfitReportQuery implements ProfitReportQueryPort
             $buckets[$key]['expenses'] += $expensesByDate[$ds] ?? 0;
         }
 
-        // Payroll: allocate by week_start bucket for weekly; by month of week_end for monthly
         foreach ($payrollWeekly as $p) {
             $weekStart = CarbonImmutable::parse((string) $p->week_start);
             $weekEnd = CarbonImmutable::parse((string) $p->week_end);
             $gross = (int) $p->payroll_gross;
 
-            if ($granularity === 'weekly') {
-                $key = $weekStart->toDateString();
-            } else {
-                $key = $weekEnd->format('Y-m');
-            }
+            $key = $granularity === 'weekly'
+                ? $weekStart->toDateString()
+                : $weekEnd->format('Y-m'); // policy as above
 
-            if (!isset($buckets[$key])) {
+            if (! isset($buckets[$key])) {
                 $buckets[$key] = [
                     'label' => $granularity === 'weekly' ? ($key.' (week)') : ($key.' (month)'),
                     'part' => 0,

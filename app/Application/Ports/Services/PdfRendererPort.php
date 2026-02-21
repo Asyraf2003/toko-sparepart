@@ -9,7 +9,7 @@ interface PdfRendererPort
     /**
      * Render Blade view menjadi bytes PDF.
      *
-     * @param array<string,mixed> $data
+     * @param  array<string,mixed>  $data
      */
     public function renderBlade(
         string $view,

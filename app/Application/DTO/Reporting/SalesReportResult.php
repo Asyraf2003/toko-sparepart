@@ -7,13 +7,12 @@ namespace App\Application\DTO\Reporting;
 final class SalesReportResult
 {
     /**
-     * @param array<int,SalesReportRow> $rows
+     * @param  array<int,SalesReportRow>  $rows
      */
     public function __construct(
         public readonly array $rows,
         public readonly SalesReportSummary $summary,
-    ) {
-    }
+    ) {}
 
     public static function empty(): self
     {

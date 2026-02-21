@@ -39,8 +39,8 @@ final class DevSampleExpensesSeeder extends Seeder
             ['days' => 2,  'cat' => 'alat',     'amount' => 120000, 'note' => 'seed demo expense (m6)'],
             ['days' => 3,  'cat' => 'internet', 'amount' => 95000,  'note' => 'seed demo expense (m6)'],
             ['days' => 5,  'cat' => 'oli',      'amount' => 60000,  'note' => 'seed demo expense (m6)'],
-            ['days' => 7,  'cat' => 'kebersihan','amount' => 45000, 'note' => 'seed demo expense (m6)'],
-            ['days' => 10, 'cat' => 'transport','amount' => 70000,  'note' => 'seed demo expense (m6)'],
+            ['days' => 7,  'cat' => 'kebersihan', 'amount' => 45000, 'note' => 'seed demo expense (m6)'],
+            ['days' => 10, 'cat' => 'transport', 'amount' => 70000,  'note' => 'seed demo expense (m6)'],
         ];
 
         foreach ($items as $it) {

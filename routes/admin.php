@@ -19,17 +19,17 @@ use App\Interfaces\Web\Controllers\Admin\ProductSetThresholdController;
 use App\Interfaces\Web\Controllers\Admin\ProductStockIndexController;
 use App\Interfaces\Web\Controllers\Admin\ProductStoreController;
 use App\Interfaces\Web\Controllers\Admin\ProductUpdateController;
+use App\Interfaces\Web\Controllers\Admin\ProfitReportIndexController;
+use App\Interfaces\Web\Controllers\Admin\ProfitReportPdfController;
 use App\Interfaces\Web\Controllers\Admin\PurchaseInvoiceCreateController;
 use App\Interfaces\Web\Controllers\Admin\PurchaseInvoiceIndexController;
 use App\Interfaces\Web\Controllers\Admin\PurchaseInvoiceStoreController;
-use App\Interfaces\Web\Controllers\Admin\SalesReportIndexController;
-use App\Interfaces\Web\Controllers\Admin\SalesReportPdfController;
 use App\Interfaces\Web\Controllers\Admin\PurchasingReportIndexController;
 use App\Interfaces\Web\Controllers\Admin\PurchasingReportPdfController;
+use App\Interfaces\Web\Controllers\Admin\SalesReportIndexController;
+use App\Interfaces\Web\Controllers\Admin\SalesReportPdfController;
 use App\Interfaces\Web\Controllers\Admin\StockReportIndexController;
 use App\Interfaces\Web\Controllers\Admin\StockReportPdfController;
-use App\Interfaces\Web\Controllers\Admin\ProfitReportIndexController;
-use App\Interfaces\Web\Controllers\Admin\ProfitReportPdfController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'role:ADMIN'])->prefix('admin')->group(function () {

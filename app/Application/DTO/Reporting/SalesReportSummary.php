@@ -14,8 +14,7 @@ final class SalesReportSummary
         public readonly int $grandTotal,
         public readonly int $cogsTotal,
         public readonly int $missingCogsQty,
-    ) {
-    }
+    ) {}
 
     public static function empty(): self
     {

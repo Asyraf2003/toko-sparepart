@@ -16,6 +16,5 @@ final class StockReportRow
         public readonly int $reservedQty,
         public readonly int $availableQty,
         public readonly bool $isLowStock,
-    ) {
-    }
+    ) {}
 }

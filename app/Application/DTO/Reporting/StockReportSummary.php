@@ -9,8 +9,7 @@ final class StockReportSummary
     public function __construct(
         public readonly int $count,
         public readonly int $lowStockCount,
-    ) {
-    }
+    ) {}
 
     public static function empty(): self
     {

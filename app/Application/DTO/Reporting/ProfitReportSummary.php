@@ -16,8 +16,7 @@ final class ProfitReportSummary
         public readonly int $payrollGross,
         public readonly int $netProfit,
         public readonly int $missingCogsQty,
-    ) {
-    }
+    ) {}
 
     public static function empty(): self
     {

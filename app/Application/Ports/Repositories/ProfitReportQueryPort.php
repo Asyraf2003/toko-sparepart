@@ -9,7 +9,7 @@ use App\Application\DTO\Reporting\ProfitReportResult;
 interface ProfitReportQueryPort
 {
     /**
-     * @param 'weekly'|'monthly' $granularity
+     * @param  'weekly'|'monthly'  $granularity
      */
     public function aggregate(
         string $fromDate,

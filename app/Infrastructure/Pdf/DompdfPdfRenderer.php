@@ -11,8 +11,7 @@ final class DompdfPdfRenderer implements PdfRendererPort
 {
     public function __construct(
         private readonly Container $app,
-    ) {
-    }
+    ) {}
 
     public function renderBlade(
         string $view,

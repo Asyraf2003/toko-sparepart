@@ -18,6 +18,5 @@ final class ProfitReportRow
         public readonly int $payrollGross,
         public readonly int $netProfit,
         public readonly int $missingCogsQty,
-    ) {
-    }
+    ) {}
 }

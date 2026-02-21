@@ -7,7 +7,7 @@ namespace App\Application\DTO\Reporting;
 final class ProfitReportResult
 {
     /**
-     * @param array<int,ProfitReportRow> $rows
+     * @param  array<int,ProfitReportRow>  $rows
      */
     public function __construct(
         public readonly array $rows,
@@ -15,6 +15,5 @@ final class ProfitReportResult
         public readonly string $granularity,
         public readonly string $fromDate,
         public readonly string $toDate,
-    ) {
-    }
+    ) {}
 }
