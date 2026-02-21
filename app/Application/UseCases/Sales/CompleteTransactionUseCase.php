@@ -7,6 +7,8 @@ namespace App\Application\UseCases\Sales;
 use App\Application\Ports\Repositories\ProductRepositoryPort;
 use App\Application\Ports\Services\ClockPort;
 use App\Application\Ports\Services\TransactionManagerPort;
+use App\Application\UseCases\Notifications\NotifyLowStockForProductRequest;
+use App\Application\UseCases\Notifications\NotifyLowStockForProductUseCase;
 use Illuminate\Support\Facades\DB;
 
 final readonly class CompleteTransactionUseCase
@@ -15,6 +17,7 @@ final readonly class CompleteTransactionUseCase
         private TransactionManagerPort $tx,
         private ClockPort $clock,
         private ProductRepositoryPort $products,
+        private NotifyLowStockForProductUseCase $lowStock,
     ) {}
 
     public function handle(CompleteTransactionRequest $req): void
@@ -26,7 +29,10 @@ final readonly class CompleteTransactionUseCase
         $now = $this->clock->now();
         $today = $this->clock->todayBusinessDate();
 
-        $this->tx->run(function () use ($req, $now, $today) {
+        /** @var list<int> $productIdsToNotify */
+        $productIdsToNotify = [];
+
+        $this->tx->run(function () use ($req, $now, $today, &$productIdsToNotify) {
             $t = DB::table('transactions')->where('id', $req->transactionId)->lockForUpdate()->first();
             if ($t === null) {
                 throw new \InvalidArgumentException('transaction not found');
@@ -39,7 +45,6 @@ final readonly class CompleteTransactionUseCase
                 throw new \InvalidArgumentException('transaction not completable');
             }
 
-            // enforce: cashier should only complete same business_date (policy layer nanti middleware, tapi aman di usecase)
             if ($businessDate !== $today) {
                 throw new \InvalidArgumentException('cannot complete transaction for different business date');
             }
@@ -61,11 +66,12 @@ final readonly class CompleteTransactionUseCase
                 $roundingAmount = $rounded - $grossTotal;
             }
 
-            // Process sparepart lines: SALE_OUT + RELEASE + freeze COGS
             $lines = DB::table('transaction_part_lines')
                 ->where('transaction_id', $req->transactionId)
                 ->lockForUpdate()
                 ->get(['id', 'product_id', 'qty']);
+
+            $nowStr = $now->format('Y-m-d H:i:s');
 
             foreach ($lines as $line) {
                 $productId = (int) $line->product_id;
@@ -94,14 +100,12 @@ final readonly class CompleteTransactionUseCase
                     throw new \InvalidArgumentException('on hand stock insufficient at completion');
                 }
 
-                // update inventory
                 DB::table('inventory_stocks')->where('product_id', $productId)->update([
                     'on_hand_qty' => $onHand - $qty,
                     'reserved_qty' => $reserved - $qty,
-                    'updated_at' => $now->format('Y-m-d H:i:s'),
+                    'updated_at' => $nowStr,
                 ]);
 
-                // ledger SALE_OUT (-qty)
                 DB::table('stock_ledgers')->insert([
                     'product_id' => $productId,
                     'type' => 'SALE_OUT',
@@ -109,13 +113,12 @@ final readonly class CompleteTransactionUseCase
                     'ref_type' => 'transaction',
                     'ref_id' => $req->transactionId,
                     'actor_user_id' => $req->actorUserId,
-                    'occurred_at' => $now->format('Y-m-d H:i:s'),
+                    'occurred_at' => $nowStr,
                     'note' => 'complete transaction sale out',
-                    'created_at' => $now->format('Y-m-d H:i:s'),
-                    'updated_at' => $now->format('Y-m-d H:i:s'),
+                    'created_at' => $nowStr,
+                    'updated_at' => $nowStr,
                 ]);
 
-                // ledger RELEASE (-qty)
                 DB::table('stock_ledgers')->insert([
                     'product_id' => $productId,
                     'type' => 'RELEASE',
@@ -123,31 +126,41 @@ final readonly class CompleteTransactionUseCase
                     'ref_type' => 'transaction',
                     'ref_id' => $req->transactionId,
                     'actor_user_id' => $req->actorUserId,
-                    'occurred_at' => $now->format('Y-m-d H:i:s'),
+                    'occurred_at' => $nowStr,
                     'note' => 'complete transaction release reserve',
-                    'created_at' => $now->format('Y-m-d H:i:s'),
-                    'updated_at' => $now->format('Y-m-d H:i:s'),
+                    'created_at' => $nowStr,
+                    'updated_at' => $nowStr,
                 ]);
 
-                // freeze COGS
                 $avgCost = $this->products->getAvgCost($productId);
 
                 DB::table('transaction_part_lines')->where('id', (int) $line->id)->update([
                     'unit_cogs_frozen' => $avgCost,
-                    'updated_at' => $now->format('Y-m-d H:i:s'),
+                    'updated_at' => $nowStr,
                 ]);
+
+                $productIdsToNotify[] = $productId;
             }
 
-            // update transaction
             DB::table('transactions')->where('id', $req->transactionId)->update([
                 'status' => 'COMPLETED',
                 'payment_status' => 'PAID',
                 'payment_method' => $req->paymentMethod,
                 'rounding_mode' => 'NEAREST_1000',
                 'rounding_amount' => $roundingAmount,
-                'completed_at' => $now->format('Y-m-d H:i:s'),
-                'updated_at' => $now->format('Y-m-d H:i:s'),
+                'completed_at' => $nowStr,
+                'updated_at' => $nowStr,
             ]);
         });
+
+        // after commit
+        $productIdsToNotify = array_values(array_unique($productIdsToNotify));
+        foreach ($productIdsToNotify as $pid) {
+            $this->lowStock->handle(new NotifyLowStockForProductRequest(
+                productId: $pid,
+                triggerType: 'SALE_OUT',
+                actorUserId: $req->actorUserId,
+            ));
+        }
     }
 }

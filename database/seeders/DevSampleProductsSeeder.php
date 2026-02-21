@@ -73,7 +73,7 @@ final class DevSampleProductsSeeder extends Seeder
 
             // Ensure inventory row exists without overwriting quantities
             $invExists = DB::table('inventory_stocks')->where('product_id', (int) $productId)->exists();
-            if (!$invExists) {
+            if (! $invExists) {
                 DB::table('inventory_stocks')->insert([
                     'product_id' => (int) $productId,
                     'on_hand_qty' => 0,

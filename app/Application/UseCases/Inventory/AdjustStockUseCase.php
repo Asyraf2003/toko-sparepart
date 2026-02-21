@@ -21,7 +21,7 @@ final readonly class AdjustStockUseCase
         private ProductRepositoryPort $products,
         private InventoryStockRepositoryPort $stocks,
         private StockLedgerRepositoryPort $ledger,
-        private NotifyLowStockForProductUseCase $lowStock,
+        private ?NotifyLowStockForProductUseCase $lowStock = null,
     ) {}
 
     public function handle(AdjustStockRequest $req): void
@@ -64,12 +64,16 @@ final readonly class AdjustStockUseCase
                 occurredAt: $this->clock->now(),
                 note: $note,
             ));
-
-            $this->lowStock->handle(new NotifyLowStockForProductRequest(
-                productId: $req->productId,
-                triggerType: 'ADJUSTMENT',
-                actorUserId: $req->actorUserId,
-            ));
         });
+
+        if ($this->lowStock === null) {
+            return;
+        }
+
+        $this->lowStock->handle(new NotifyLowStockForProductRequest(
+            productId: $req->productId,
+            triggerType: 'ADJUSTMENT',
+            actorUserId: $req->actorUserId,
+        ));
     }
 }

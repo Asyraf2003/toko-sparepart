@@ -15,7 +15,7 @@ final readonly class CreatePurchaseInvoiceUseCase
     public function __construct(
         private TransactionManagerPort $tx,
         private ClockPort $clock,
-        private NotifyLowStockForProductUseCase $lowStock,
+        private ?NotifyLowStockForProductUseCase $lowStock = null,
     ) {}
 
     public function handle(CreatePurchaseInvoiceRequest $req): void
@@ -25,8 +25,10 @@ final readonly class CreatePurchaseInvoiceUseCase
         $now = $this->clock->now();
         $nowStr = $now->format('Y-m-d H:i:s');
 
-        $this->tx->run(function () use ($req, $nowStr) {
-            // Validate products exist (fast fail)
+        /** @var list<int> $productIdsToNotify */
+        $productIdsToNotify = [];
+
+        $this->tx->run(function () use ($req, $nowStr, &$productIdsToNotify) {
             $productIds = [];
             foreach ($req->lines as $l) {
                 $productIds[] = $l->productId;
@@ -38,10 +40,8 @@ final readonly class CreatePurchaseInvoiceUseCase
                 throw new \InvalidArgumentException('one or more products not found');
             }
 
-            // Precompute line bruto/net + totals
             $computed = $this->computeLinesAndTotals($req);
 
-            // Insert invoice header
             $invoiceId = (int) DB::table('purchase_invoices')->insertGetId([
                 'supplier_name' => $req->supplierName,
                 'no_faktur' => $req->noFaktur,
@@ -59,7 +59,6 @@ final readonly class CreatePurchaseInvoiceUseCase
                 'updated_at' => $nowStr,
             ]);
 
-            // Insert lines + ledger per line, while aggregating qty & cost per product
             /** @var array<int,array{qty:int,cost:int}> $perProduct */
             $perProduct = [];
 
@@ -73,12 +72,11 @@ final readonly class CreatePurchaseInvoiceUseCase
                     'qty' => $line->qty,
                     'unit_cost' => $line->unitCost,
                     'disc_bps' => $line->discBps,
-                    'line_total' => $row['line_total'], // net after discount, before header tax
+                    'line_total' => $row['line_total'],
                     'created_at' => $nowStr,
                     'updated_at' => $nowStr,
                 ]);
 
-                // Ledger PURCHASE_IN (+qty)
                 DB::table('stock_ledgers')->insert([
                     'product_id' => $line->productId,
                     'type' => 'PURCHASE_IN',
@@ -92,7 +90,6 @@ final readonly class CreatePurchaseInvoiceUseCase
                     'updated_at' => $nowStr,
                 ]);
 
-                // Cost basis includes allocated header tax
                 $totalCostForAvg = (int) ($row['line_total'] + $row['allocated_tax']);
 
                 if (! isset($perProduct[$line->productId])) {
@@ -102,7 +99,6 @@ final readonly class CreatePurchaseInvoiceUseCase
                 $perProduct[$line->productId]['cost'] += $totalCostForAvg;
             }
 
-            // Update inventory + moving average per product (with locks)
             foreach ($perProduct as $productId => $agg) {
                 $qtyIn = (int) $agg['qty'];
                 $costIn = (int) $agg['cost'];
@@ -137,7 +133,6 @@ final readonly class CreatePurchaseInvoiceUseCase
                     throw new \InvalidArgumentException('invalid on hand calculation');
                 }
 
-                // avg_new = ((oldOnHand * oldAvgCost) + costIn) / newOnHand
                 $numerator = ($oldOnHand * $oldAvgCost) + $costIn;
                 $newAvgCost = $this->divRoundHalfUp($numerator, $newOnHand);
 
@@ -151,16 +146,25 @@ final readonly class CreatePurchaseInvoiceUseCase
                     'updated_at' => $nowStr,
                 ]);
 
-                // Low stock check after PURCHASE_IN (recover/reset handled in usecase)
-                $this->lowStock->handle(new NotifyLowStockForProductRequest(
-                    productId: $productId,
-                    triggerType: 'PURCHASE_IN',
-                    actorUserId: $req->actorUserId,
-                ));
+                $productIdsToNotify[] = (int) $productId;
             }
         });
+
+        if ($this->lowStock === null) {
+            return;
+        }
+
+        $productIdsToNotify = array_values(array_unique($productIdsToNotify));
+        foreach ($productIdsToNotify as $pid) {
+            $this->lowStock->handle(new NotifyLowStockForProductRequest(
+                productId: $pid,
+                triggerType: 'PURCHASE_IN',
+                actorUserId: $req->actorUserId,
+            ));
+        }
     }
 
+    // --- methods below unchanged ---
     private function validateRequest(CreatePurchaseInvoiceRequest $req): void
     {
         if ($req->actorUserId <= 0) {
@@ -219,11 +223,8 @@ final readonly class CreatePurchaseInvoiceUseCase
         $totalBruto = 0;
         $totalDiskon = 0;
 
-        /** @var list<int> $lineTotals */
         $lineTotals = [];
-        /** @var list<int> $lineBrutos */
         $lineBrutos = [];
-        /** @var list<int> $lineDiskons */
         $lineDiskons = [];
 
         foreach ($req->lines as $idx => $line) {

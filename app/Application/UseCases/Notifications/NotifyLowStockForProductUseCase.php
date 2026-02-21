@@ -27,11 +27,8 @@ final readonly class NotifyLowStockForProductUseCase
         if (trim($req->triggerType) === '') {
             throw new \InvalidArgumentException('triggerType is required');
         }
-        if ($req->actorUserId <= 0) {
-            throw new \InvalidArgumentException('invalid actor user id');
-        }
 
-        // Jika caller belum ada transaction, jalankan di transaction agar lockForUpdate efektif.
+        // actorUserId boleh null (mis. dari test lama / sistem). Notifikasi tidak membutuhkan actor.
         if (DB::transactionLevel() === 0) {
             $this->tx->run(fn () => $this->handleInTx($req));
 
@@ -58,7 +55,6 @@ final readonly class NotifyLowStockForProductUseCase
             return;
         }
 
-        // Lock stock row (konsisten dengan usecase stok lain).
         $stock = DB::table('inventory_stocks')
             ->where('product_id', $req->productId)
             ->lockForUpdate()
@@ -86,7 +82,6 @@ final readonly class NotifyLowStockForProductUseCase
             return;
         }
 
-        // Ensure + lock throttle state row
         $state = DB::table('low_stock_notification_states')
             ->where('product_id', $req->productId)
             ->lockForUpdate()
@@ -111,7 +106,7 @@ final readonly class NotifyLowStockForProductUseCase
                 ->first(['product_id', 'last_notified_at', 'last_notified_available_qty']);
         }
 
-        $minIntervalSeconds = (int) config('services.telegram_low_stock.min_interval_seconds', 21600); // default 6h
+        $minIntervalSeconds = (int) config('services.telegram_low_stock.min_interval_seconds', 86400);
         if ($minIntervalSeconds < 0) {
             $minIntervalSeconds = 0;
         }
@@ -132,9 +127,7 @@ final readonly class NotifyLowStockForProductUseCase
 
         $moreCritical = ($lastAvail !== null) && ($available < $lastAvail);
 
-        $shouldSend = $canByTime || $moreCritical;
-
-        if (! $shouldSend) {
+        if (! ($canByTime || $moreCritical)) {
             return;
         }
 
@@ -154,7 +147,6 @@ final readonly class NotifyLowStockForProductUseCase
             $this->notifier->notifyLowStock($msg);
             $sent = true;
         } catch (\Throwable) {
-            // Adapter seharusnya sudah fail-safe, tapi double safety: jangan ganggu transaksi.
             $sent = false;
         }
 

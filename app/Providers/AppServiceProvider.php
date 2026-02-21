@@ -16,9 +16,11 @@ use App\Application\Ports\Repositories\TransactionPartLineRepositoryPort;
 use App\Application\Ports\Repositories\TransactionRepositoryPort;
 use App\Application\Ports\Repositories\TransactionServiceLineRepositoryPort;
 use App\Application\Ports\Services\ClockPort;
+use App\Application\Ports\Services\LowStockNotifierPort;
 use App\Application\Ports\Services\PdfRendererPort;
 use App\Application\Ports\Services\TransactionManagerPort;
 use App\Infrastructure\Clock\SystemClock;
+use App\Infrastructure\Notifications\Telegram\TelegramLowStockNotifier;
 use App\Infrastructure\Pdf\DompdfPdfRenderer;
 use App\Infrastructure\Persistence\Eloquent\DatabaseTransactionManager;
 use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentInventoryStockRepository;
@@ -56,6 +58,8 @@ final class AppServiceProvider extends ServiceProvider
         $this->app->bind(ProfitReportQueryPort::class, EloquentProfitReportQuery::class);
 
         $this->app->singleton(PdfRendererPort::class, DompdfPdfRenderer::class);
+
+        $this->app->singleton(LowStockNotifierPort::class, TelegramLowStockNotifier::class);
     }
 
     public function boot(): void

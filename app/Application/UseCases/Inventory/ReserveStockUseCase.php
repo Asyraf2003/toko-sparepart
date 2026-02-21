@@ -21,7 +21,7 @@ final readonly class ReserveStockUseCase
         private ProductRepositoryPort $products,
         private InventoryStockRepositoryPort $stocks,
         private StockLedgerRepositoryPort $ledger,
-        private NotifyLowStockForProductUseCase $lowStock,
+        private ?NotifyLowStockForProductUseCase $lowStock = null,
     ) {}
 
     public function handle(ReserveStockRequest $req): void
@@ -60,13 +60,16 @@ final readonly class ReserveStockUseCase
                 occurredAt: $this->clock->now(),
                 note: $req->note,
             ));
-
-            // Low stock notify check (anti-spam handled by throttle state)
-            $this->lowStock->handle(new NotifyLowStockForProductRequest(
-                productId: $req->productId,
-                triggerType: 'RESERVE',
-                actorUserId: $req->actorUserId,
-            ));
         });
+
+        if ($this->lowStock === null) {
+            return;
+        }
+
+        $this->lowStock->handle(new NotifyLowStockForProductRequest(
+            productId: $req->productId,
+            triggerType: 'RESERVE',
+            actorUserId: $req->actorUserId,
+        ));
     }
 }

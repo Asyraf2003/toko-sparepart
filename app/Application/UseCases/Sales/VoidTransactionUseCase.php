@@ -6,6 +6,8 @@ namespace App\Application\UseCases\Sales;
 
 use App\Application\Ports\Services\ClockPort;
 use App\Application\Ports\Services\TransactionManagerPort;
+use App\Application\UseCases\Notifications\NotifyLowStockForProductRequest;
+use App\Application\UseCases\Notifications\NotifyLowStockForProductUseCase;
 use Illuminate\Support\Facades\DB;
 
 final readonly class VoidTransactionUseCase
@@ -13,6 +15,7 @@ final readonly class VoidTransactionUseCase
     public function __construct(
         private TransactionManagerPort $tx,
         private ClockPort $clock,
+        private NotifyLowStockForProductUseCase $lowStock,
     ) {}
 
     public function handle(VoidTransactionRequest $req): void
@@ -25,7 +28,11 @@ final readonly class VoidTransactionUseCase
         $now = $this->clock->now();
         $today = $this->clock->todayBusinessDate();
 
-        $this->tx->run(function () use ($req, $reason, $now, $today) {
+        /** @var list<int> $productIdsToNotify */
+        $productIdsToNotify = [];
+        $triggerType = null;
+
+        $this->tx->run(function () use ($req, $reason, $now, $today, &$productIdsToNotify, &$triggerType) {
             $t = DB::table('transactions')->where('id', $req->transactionId)->lockForUpdate()->first();
             if ($t === null) {
                 throw new \InvalidArgumentException('transaction not found');
@@ -38,7 +45,6 @@ final readonly class VoidTransactionUseCase
                 throw new \InvalidArgumentException('transaction not voidable');
             }
 
-            // basic policy safety: cashier hanya boleh same-day
             $actorRole = DB::table('users')->where('id', $req->actorUserId)->value('role');
             if ($actorRole === null) {
                 throw new \InvalidArgumentException('actor user not found');
@@ -51,6 +57,8 @@ final readonly class VoidTransactionUseCase
                 ->where('transaction_id', $req->transactionId)
                 ->lockForUpdate()
                 ->get(['product_id', 'qty']);
+
+            $nowStr = $now->format('Y-m-d H:i:s');
 
             foreach ($lines as $line) {
                 $productId = (int) $line->product_id;
@@ -75,7 +83,7 @@ final readonly class VoidTransactionUseCase
                 if ($status === 'COMPLETED') {
                     DB::table('inventory_stocks')->where('product_id', $productId)->update([
                         'on_hand_qty' => $onHand + $qty,
-                        'updated_at' => $now->format('Y-m-d H:i:s'),
+                        'updated_at' => $nowStr,
                     ]);
 
                     DB::table('stock_ledgers')->insert([
@@ -85,23 +93,25 @@ final readonly class VoidTransactionUseCase
                         'ref_type' => 'transaction',
                         'ref_id' => $req->transactionId,
                         'actor_user_id' => $req->actorUserId,
-                        'occurred_at' => $now->format('Y-m-d H:i:s'),
+                        'occurred_at' => $nowStr,
                         'note' => 'void completed transaction',
-                        'created_at' => $now->format('Y-m-d H:i:s'),
-                        'updated_at' => $now->format('Y-m-d H:i:s'),
+                        'created_at' => $nowStr,
+                        'updated_at' => $nowStr,
                     ]);
+
+                    $productIdsToNotify[] = $productId;
+                    $triggerType = 'VOID_IN';
 
                     continue;
                 }
 
-                // DRAFT / OPEN: release reserved
                 if ($reserved < $qty) {
                     throw new \InvalidArgumentException('reserved stock insufficient at void');
                 }
 
                 DB::table('inventory_stocks')->where('product_id', $productId)->update([
                     'reserved_qty' => $reserved - $qty,
-                    'updated_at' => $now->format('Y-m-d H:i:s'),
+                    'updated_at' => $nowStr,
                 ]);
 
                 DB::table('stock_ledgers')->insert([
@@ -111,20 +121,22 @@ final readonly class VoidTransactionUseCase
                     'ref_type' => 'transaction',
                     'ref_id' => $req->transactionId,
                     'actor_user_id' => $req->actorUserId,
-                    'occurred_at' => $now->format('Y-m-d H:i:s'),
+                    'occurred_at' => $nowStr,
                     'note' => 'void draft/open transaction release reserve',
-                    'created_at' => $now->format('Y-m-d H:i:s'),
-                    'updated_at' => $now->format('Y-m-d H:i:s'),
+                    'created_at' => $nowStr,
+                    'updated_at' => $nowStr,
                 ]);
+
+                $productIdsToNotify[] = $productId;
+                $triggerType = 'RELEASE';
             }
 
             $update = [
                 'status' => 'VOID',
-                'voided_at' => $now->format('Y-m-d H:i:s'),
-                'updated_at' => $now->format('Y-m-d H:i:s'),
+                'voided_at' => $nowStr,
+                'updated_at' => $nowStr,
             ];
 
-            // Optional: simpan reason kalau kolom tersedia (tanpa asumsi)
             $schema = DB::getSchemaBuilder();
             if ($schema->hasColumn('transactions', 'void_reason')) {
                 $update['void_reason'] = $reason;
@@ -134,5 +146,19 @@ final readonly class VoidTransactionUseCase
 
             DB::table('transactions')->where('id', $req->transactionId)->update($update);
         });
+
+        // after commit
+        if ($triggerType === null) {
+            return;
+        }
+
+        $productIdsToNotify = array_values(array_unique($productIdsToNotify));
+        foreach ($productIdsToNotify as $pid) {
+            $this->lowStock->handle(new NotifyLowStockForProductRequest(
+                productId: $pid,
+                triggerType: $triggerType,
+                actorUserId: $req->actorUserId,
+            ));
+        }
     }
 }

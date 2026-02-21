@@ -23,4 +23,14 @@ return [
         ],
     ],
 
+    // Telegram low stock alert
+    'telegram_low_stock' => [
+        'enabled' => env('TELEGRAM_LOW_STOCK_ENABLED', false),
+        'bot_token' => env('TELEGRAM_LOW_STOCK_BOT_TOKEN', ''),
+        'chat_ids' => env('TELEGRAM_LOW_STOCK_CHAT_IDS', ''),
+        'min_interval_seconds' => env('TELEGRAM_LOW_STOCK_MIN_INTERVAL_SECONDS', 86400),
+        'reset_on_recover' => env('TELEGRAM_LOW_STOCK_RESET_ON_RECOVER', true),
+        'throttle_on_failure' => env('TELEGRAM_LOW_STOCK_THROTTLE_ON_FAILURE', true),
+    ],
+
 ];

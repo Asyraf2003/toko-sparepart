@@ -21,7 +21,7 @@ final readonly class ReleaseStockUseCase
         private ProductRepositoryPort $products,
         private InventoryStockRepositoryPort $stocks,
         private StockLedgerRepositoryPort $ledger,
-        private NotifyLowStockForProductUseCase $lowStock,
+        private ?NotifyLowStockForProductUseCase $lowStock = null,
     ) {}
 
     public function handle(ReleaseStockRequest $req): void
@@ -59,12 +59,16 @@ final readonly class ReleaseStockUseCase
                 occurredAt: $this->clock->now(),
                 note: $req->note,
             ));
-
-            $this->lowStock->handle(new NotifyLowStockForProductRequest(
-                productId: $req->productId,
-                triggerType: 'RELEASE',
-                actorUserId: $req->actorUserId,
-            ));
         });
+
+        if ($this->lowStock === null) {
+            return;
+        }
+
+        $this->lowStock->handle(new NotifyLowStockForProductRequest(
+            productId: $req->productId,
+            triggerType: 'RELEASE',
+            actorUserId: $req->actorUserId,
+        ));
     }
 }

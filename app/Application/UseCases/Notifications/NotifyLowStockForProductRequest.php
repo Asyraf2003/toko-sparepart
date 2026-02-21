@@ -9,6 +9,6 @@ final readonly class NotifyLowStockForProductRequest
     public function __construct(
         public int $productId,
         public string $triggerType,
-        public int $actorUserId,
+        public ?int $actorUserId,
     ) {}
 }
