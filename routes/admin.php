@@ -1,5 +1,16 @@
 <?php
 
+use App\Interfaces\Web\Controllers\Admin\EmployeeCreateController;
+use App\Interfaces\Web\Controllers\Admin\EmployeeIndexController;
+use App\Interfaces\Web\Controllers\Admin\EmployeeLoanCreateController;
+use App\Interfaces\Web\Controllers\Admin\EmployeeLoanStoreController;
+use App\Interfaces\Web\Controllers\Admin\EmployeeStoreController;
+use App\Interfaces\Web\Controllers\Admin\ExpenseCreateController;
+use App\Interfaces\Web\Controllers\Admin\ExpenseIndexController;
+use App\Interfaces\Web\Controllers\Admin\ExpenseStoreController;
+use App\Interfaces\Web\Controllers\Admin\PayrollPeriodCreateController;
+use App\Interfaces\Web\Controllers\Admin\PayrollPeriodIndexController;
+use App\Interfaces\Web\Controllers\Admin\PayrollPeriodStoreController;
 use App\Interfaces\Web\Controllers\Admin\ProductAdjustStockController;
 use App\Interfaces\Web\Controllers\Admin\ProductCreateController;
 use App\Interfaces\Web\Controllers\Admin\ProductEditController;
@@ -29,4 +40,19 @@ Route::middleware(['auth', 'role:ADMIN'])->prefix('admin')->group(function () {
     Route::get('/purchases', PurchaseInvoiceIndexController::class);
     Route::get('/purchases/create', PurchaseInvoiceCreateController::class);
     Route::post('/purchases', PurchaseInvoiceStoreController::class);
+
+    Route::get('/employees', EmployeeIndexController::class);
+    Route::get('/employees/create', EmployeeCreateController::class);
+    Route::post('/employees', EmployeeStoreController::class);
+
+    Route::get('/employees/{employeeId}/loans/create', EmployeeLoanCreateController::class);
+    Route::post('/employees/{employeeId}/loans', EmployeeLoanStoreController::class);
+
+    Route::get('/expenses', ExpenseIndexController::class);
+    Route::get('/expenses/create', ExpenseCreateController::class);
+    Route::post('/expenses', ExpenseStoreController::class);
+
+    Route::get('/payroll', PayrollPeriodIndexController::class);
+    Route::get('/payroll/create', PayrollPeriodCreateController::class);
+    Route::post('/payroll', PayrollPeriodStoreController::class);
 });
