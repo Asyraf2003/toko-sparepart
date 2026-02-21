@@ -11,5 +11,6 @@ final readonly class AddPartLineRequest
         public int $productId,
         public int $qty,
         public int $actorUserId,
+        public string $reason,
     ) {}
 }

@@ -10,5 +10,6 @@ final readonly class RemovePartLineRequest
         public int $transactionId,
         public int $productId,
         public int $actorUserId,
+        public string $reason,
     ) {}
 }

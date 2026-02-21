@@ -55,6 +55,7 @@ final class ServiceLineUseCaseTest extends TestCase
             description: 'Ganti oli',
             priceManual: 25000,
             actorUserId: (int) $cashier->id,
+            reason: 'test',
         ));
 
         $row = DB::table('transaction_service_lines')->where('id', $lineId)->first();
@@ -71,7 +72,7 @@ final class ServiceLineUseCaseTest extends TestCase
             description: 'Ganti oli + cek rantai',
             priceManual: 30000,
             actorUserId: (int) $cashier->id,
-            reason: null,
+            reason: 'test edit service',
         ));
 
         $row2 = DB::table('transaction_service_lines')->where('id', $lineId)->first();
@@ -112,6 +113,7 @@ final class ServiceLineUseCaseTest extends TestCase
             description: 'Service ringan',
             priceManual: 20000,
             actorUserId: (int) $cashier->id,
+            reason: 'test',
         ));
 
         // mark transaction as completed same-day

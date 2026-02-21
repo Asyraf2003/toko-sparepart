@@ -4,26 +4,21 @@ declare(strict_types=1);
 
 namespace App\Application\UseCases\Sales;
 
-use App\Application\Ports\Repositories\TransactionPartLineRepositoryPort;
 use App\Application\Ports\Services\AuditLoggerPort;
 use App\Application\Ports\Services\ClockPort;
 use App\Application\Ports\Services\TransactionManagerPort;
-use App\Application\UseCases\Inventory\ReleaseStockRequest;
-use App\Application\UseCases\Inventory\ReleaseStockUseCase;
 use App\Domain\Audit\AuditEntry;
 use Illuminate\Support\Facades\DB;
 
-final readonly class RemovePartLineUseCase
+final readonly class DeleteServiceLineUseCase
 {
     public function __construct(
         private TransactionManagerPort $tx,
         private ClockPort $clock,
-        private TransactionPartLineRepositoryPort $partLines,
-        private ReleaseStockUseCase $releaseStock,
         private AuditLoggerPort $audit,
     ) {}
 
-    public function handle(RemovePartLineRequest $req): void
+    public function handle(DeleteServiceLineRequest $req): void
     {
         $reason = trim($req->reason);
         if ($reason === '') {
@@ -32,7 +27,7 @@ final readonly class RemovePartLineUseCase
 
         $today = $this->clock->todayBusinessDate();
 
-        $this->tx->run(function () use ($req, $reason, $today): void {
+        $this->tx->run(function () use ($req, $today, $reason): void {
             $t = DB::table('transactions')->where('id', $req->transactionId)->lockForUpdate()->first();
             if ($t === null) {
                 throw new \InvalidArgumentException('transaction not found');
@@ -44,6 +39,7 @@ final readonly class RemovePartLineUseCase
             if ($status === 'COMPLETED') {
                 throw new \InvalidArgumentException('transaction not editable');
             }
+
             if (! in_array($status, ['DRAFT', 'OPEN'], true)) {
                 throw new \InvalidArgumentException('transaction not editable');
             }
@@ -52,52 +48,31 @@ final readonly class RemovePartLineUseCase
             if ($actorRole === null) {
                 throw new \InvalidArgumentException('actor user not found');
             }
+
             if ((string) $actorRole === 'CASHIER' && $businessDate !== $today) {
                 throw new \InvalidArgumentException('cashier cannot edit different business date');
             }
 
-            $line = DB::table('transaction_part_lines')
+            $line = DB::table('transaction_service_lines')
+                ->where('id', $req->serviceLineId)
                 ->where('transaction_id', $req->transactionId)
-                ->where('product_id', $req->productId)
                 ->lockForUpdate()
                 ->first();
 
             if ($line === null) {
-                throw new \InvalidArgumentException('part line not found');
+                throw new \InvalidArgumentException('service line not found');
             }
-
-            $qty = (int) $line->qty;
-
-            $beforeStock = DB::table('inventory_stocks')->where('product_id', $req->productId)->lockForUpdate()->first();
 
             $before = [
                 'transaction' => (array) $t,
-                'part_line' => (array) $line,
-                'stock' => $beforeStock ? (array) $beforeStock : null,
+                'service_line' => (array) $line,
             ];
 
-            if ($qty > 0) {
-                $this->releaseStock->handle(new ReleaseStockRequest(
-                    productId: $req->productId,
-                    qty: $qty,
-                    actorUserId: $req->actorUserId,
-                    note: 'release for transaction part line removal',
-                    refType: 'transaction',
-                    refId: $req->transactionId,
-                ));
-            }
-
-            $this->partLines->deleteLine(
-                transactionId: $req->transactionId,
-                productId: $req->productId,
-            );
-
-            $afterStock = DB::table('inventory_stocks')->where('product_id', $req->productId)->first();
+            DB::table('transaction_service_lines')->where('id', $req->serviceLineId)->delete();
 
             $after = [
                 'transaction' => (array) $t,
-                'part_line' => null,
-                'stock' => $afterStock ? (array) $afterStock : null,
+                'service_line' => null,
             ];
 
             $this->audit->append(new AuditEntry(
@@ -110,9 +85,8 @@ final readonly class RemovePartLineUseCase
                 before: $before,
                 after: $after,
                 meta: [
-                    'op' => 'part_line_remove',
-                    'product_id' => $req->productId,
-                    'qty' => $qty,
+                    'op' => 'service_line_delete',
+                    'service_line_id' => $req->serviceLineId,
                     'status' => $status,
                     'business_date' => $businessDate,
                 ],

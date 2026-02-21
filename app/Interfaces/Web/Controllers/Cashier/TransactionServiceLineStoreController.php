@@ -23,6 +23,7 @@ final readonly class TransactionServiceLineStoreController
         $data = request()->validate([
             'description' => ['required', 'string', 'min:1', 'max:255'],
             'price_manual' => ['required', 'integer', 'min:0'],
+            'reason' => ['required', 'string', 'min:1', 'max:255'],
         ]);
 
         try {
@@ -31,6 +32,7 @@ final readonly class TransactionServiceLineStoreController
                 description: (string) $data['description'],
                 priceManual: (int) $data['price_manual'],
                 actorUserId: (int) $user->id,
+                reason: (string) $data['reason'],
             ));
         } catch (Throwable $e) {
             return redirect('/cashier/transactions/'.$transactionId)

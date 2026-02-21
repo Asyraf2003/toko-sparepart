@@ -73,6 +73,7 @@ final class CompleteTransactionUseCaseTest extends TestCase
             productId: (int) $p->id,
             qty: 1,
             actorUserId: (int) $cashier->id,
+            reason: 'test',
         ));
 
         // reserve should be 1

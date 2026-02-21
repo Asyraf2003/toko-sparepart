@@ -50,6 +50,7 @@ final class TransactionEditLinesUiTest extends TestCase
         $this->actingAs($cashier)->post('/cashier/transactions/'.$tx->id.'/part-lines', [
             'product_id' => $p->id,
             'qty' => 2,
+            'reason' => 'setup',
         ]);
 
         $line = DB::table('transaction_part_lines')->where('transaction_id', $tx->id)->first();
@@ -106,6 +107,7 @@ final class TransactionEditLinesUiTest extends TestCase
         $this->actingAs($cashier)->post('/cashier/transactions/'.$tx->id.'/part-lines', [
             'product_id' => $p->id,
             'qty' => 4,
+            'reason' => 'setup',
         ]);
 
         $line = DB::table('transaction_part_lines')->where('transaction_id', $tx->id)->first();
@@ -138,6 +140,7 @@ final class TransactionEditLinesUiTest extends TestCase
         $this->actingAs($cashier)->post('/cashier/transactions/'.$tx->id.'/service-lines', [
             'description' => 'Service A',
             'price_manual' => 10000,
+            'reason' => 'setup',
         ]);
 
         $line = DB::table('transaction_service_lines')->where('transaction_id', $tx->id)->first();

@@ -50,6 +50,7 @@ final class TransactionLinesUiTest extends TestCase
             ->post('/cashier/transactions/'.$tx->id.'/part-lines', [
                 'product_id' => $p->id,
                 'qty' => 2,
+                'reason' => 'tambah item',
             ])
             ->assertRedirect('/cashier/transactions/'.$tx->id);
 
@@ -81,6 +82,7 @@ final class TransactionLinesUiTest extends TestCase
             ->post('/cashier/transactions/'.$tx->id.'/service-lines', [
                 'description' => 'Ganti oli',
                 'price_manual' => 25000,
+                'reason' => 'tambah jasa',
             ])
             ->assertRedirect('/cashier/transactions/'.$tx->id);
 

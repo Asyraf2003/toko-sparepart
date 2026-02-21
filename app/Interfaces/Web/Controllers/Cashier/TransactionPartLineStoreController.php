@@ -23,6 +23,7 @@ final readonly class TransactionPartLineStoreController
         $data = request()->validate([
             'product_id' => ['required', 'integer', 'min:1'],
             'qty' => ['required', 'integer', 'min:1'],
+            'reason' => ['required', 'string', 'min:1', 'max:255'],
         ]);
 
         try {
@@ -31,6 +32,7 @@ final readonly class TransactionPartLineStoreController
                 productId: (int) $data['product_id'],
                 qty: (int) $data['qty'],
                 actorUserId: (int) $user->id,
+                reason: (string) $data['reason'],
             ));
         } catch (Throwable $e) {
             return redirect('/cashier/transactions/'.$transactionId)

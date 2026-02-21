@@ -75,6 +75,7 @@ final class VoidTransactionUseCaseTest extends TestCase
             productId: (int) $p->id,
             qty: 3,
             actorUserId: (int) $cashier->id,
+            reason: 'test',
         ));
 
         $stock1 = DB::table('inventory_stocks')->where('product_id', $p->id)->first();
@@ -156,6 +157,7 @@ final class VoidTransactionUseCaseTest extends TestCase
             productId: (int) $p->id,
             qty: 2,
             actorUserId: (int) $cashier->id,
+            reason: 'test',
         ));
 
         /** @var CompleteTransactionUseCase $complete */

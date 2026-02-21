@@ -74,6 +74,7 @@ final class AddPartLineUseCaseTest extends TestCase
             productId: (int) $p->id,
             qty: 3,
             actorUserId: (int) $cashier->id,
+            reason: 'test',
         ));
 
         $stock = DB::table('inventory_stocks')->where('product_id', $p->id)->first();

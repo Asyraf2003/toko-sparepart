@@ -73,6 +73,7 @@ final class RemovePartLineUseCaseTest extends TestCase
             productId: (int) $p->id,
             qty: 4,
             actorUserId: (int) $cashier->id,
+            reason: 'test',
         ));
 
         $stockAfterAdd = DB::table('inventory_stocks')->where('product_id', $p->id)->first();
@@ -84,6 +85,7 @@ final class RemovePartLineUseCaseTest extends TestCase
             transactionId: $tx->id,
             productId: (int) $p->id,
             actorUserId: (int) $cashier->id,
+            reason: 'test',
         ));
 
         $stock = DB::table('inventory_stocks')->where('product_id', $p->id)->first();

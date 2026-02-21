@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Application\UseCases\Sales;
 
-final readonly class AddServiceLineRequest
+final readonly class UpdatePartLineQtyRequest
 {
     public function __construct(
         public int $transactionId,
-        public string $description,
-        public int $priceManual,
+        public int $lineId,
+        public int $newQty,
         public int $actorUserId,
         public string $reason,
     ) {}

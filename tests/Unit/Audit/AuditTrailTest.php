@@ -18,11 +18,14 @@ use App\Application\UseCases\Notifications\NotifyLowStockForProductUseCase;
 use App\Application\UseCases\Sales\VoidTransactionRequest;
 use App\Application\UseCases\Sales\VoidTransactionUseCase;
 use App\Domain\Audit\AuditEntry;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\MockObject\MockObject;
 use Tests\TestCase;
 
 final class AuditTrailTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_audit_logger_saves_before_after(): void
     {
         /** @var AuditLoggerPort $audit */
@@ -50,10 +53,13 @@ final class AuditTrailTest extends TestCase
 
     public function test_void_transaction_without_reason_is_rejected(): void
     {
+        // final class -> jangan dimock
+        $lowStock = app(NotifyLowStockForProductUseCase::class);
+
         $uc = new VoidTransactionUseCase(
             tx: $this->mk(TransactionManagerPort::class),
             clock: $this->mk(ClockPort::class),
-            lowStock: $this->mk(NotifyLowStockForProductUseCase::class),
+            lowStock: $lowStock,
             audit: $this->mk(AuditLoggerPort::class),
         );
 
