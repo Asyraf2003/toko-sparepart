@@ -6,6 +6,8 @@ namespace App\Application\UseCases\Purchasing;
 
 use App\Application\Ports\Services\ClockPort;
 use App\Application\Ports\Services\TransactionManagerPort;
+use App\Application\UseCases\Notifications\NotifyLowStockForProductRequest;
+use App\Application\UseCases\Notifications\NotifyLowStockForProductUseCase;
 use Illuminate\Support\Facades\DB;
 
 final readonly class CreatePurchaseInvoiceUseCase
@@ -13,6 +15,7 @@ final readonly class CreatePurchaseInvoiceUseCase
     public function __construct(
         private TransactionManagerPort $tx,
         private ClockPort $clock,
+        private NotifyLowStockForProductUseCase $lowStock,
     ) {}
 
     public function handle(CreatePurchaseInvoiceRequest $req): void
@@ -75,7 +78,7 @@ final readonly class CreatePurchaseInvoiceUseCase
                     'updated_at' => $nowStr,
                 ]);
 
-                // Ledger PURCHASE_IN (+qty), ref to purchase_invoice_line (D3=B)
+                // Ledger PURCHASE_IN (+qty)
                 DB::table('stock_ledgers')->insert([
                     'product_id' => $line->productId,
                     'type' => 'PURCHASE_IN',
@@ -89,7 +92,7 @@ final readonly class CreatePurchaseInvoiceUseCase
                     'updated_at' => $nowStr,
                 ]);
 
-                // Cost basis includes allocated header tax (D1=B)
+                // Cost basis includes allocated header tax
                 $totalCostForAvg = (int) ($row['line_total'] + $row['allocated_tax']);
 
                 if (! isset($perProduct[$line->productId])) {
@@ -134,7 +137,6 @@ final readonly class CreatePurchaseInvoiceUseCase
                     throw new \InvalidArgumentException('invalid on hand calculation');
                 }
 
-                // Moving average (round half-up to rupiah integer)
                 // avg_new = ((oldOnHand * oldAvgCost) + costIn) / newOnHand
                 $numerator = ($oldOnHand * $oldAvgCost) + $costIn;
                 $newAvgCost = $this->divRoundHalfUp($numerator, $newOnHand);
@@ -148,6 +150,13 @@ final readonly class CreatePurchaseInvoiceUseCase
                     'avg_cost' => $newAvgCost,
                     'updated_at' => $nowStr,
                 ]);
+
+                // Low stock check after PURCHASE_IN (recover/reset handled in usecase)
+                $this->lowStock->handle(new NotifyLowStockForProductRequest(
+                    productId: $productId,
+                    triggerType: 'PURCHASE_IN',
+                    actorUserId: $req->actorUserId,
+                ));
             }
         });
     }
@@ -197,9 +206,6 @@ final readonly class CreatePurchaseInvoiceUseCase
     }
 
     /**
-     * Computes per-line totals, allocates header tax proportionally (largest remainder),
-     * and returns invoice totals (money integer).
-     *
      * @return array{
      *   total_bruto:int,
      *   total_diskon:int,
@@ -222,8 +228,6 @@ final readonly class CreatePurchaseInvoiceUseCase
 
         foreach ($req->lines as $idx => $line) {
             $bruto = $line->qty * $line->unitCost;
-
-            // discount = round_half_up(bruto * discBps / 10000)
             $diskon = $this->divRoundHalfUp($bruto * $line->discBps, 10000);
 
             $net = $bruto - $diskon;
@@ -246,7 +250,6 @@ final readonly class CreatePurchaseInvoiceUseCase
             throw new \InvalidArgumentException('cannot allocate header tax when sum line net is zero');
         }
 
-        // Allocate header tax proportionally to line net totals (largest remainder)
         $allocated = array_fill(0, count($lineTotals), 0);
         $remainders = [];
 
@@ -264,7 +267,6 @@ final readonly class CreatePurchaseInvoiceUseCase
 
             $remaining = $totalPajak - $allocatedSum;
             if ($remaining > 0) {
-                // sort indices by remainder desc, stable by index asc
                 $indices = array_keys($remainders);
                 usort($indices, function (int $a, int $b) use ($remainders): int {
                     $ra = $remainders[$a];

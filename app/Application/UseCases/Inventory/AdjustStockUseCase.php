@@ -10,6 +10,8 @@ use App\Application\Ports\Repositories\ProductRepositoryPort;
 use App\Application\Ports\Repositories\StockLedgerRepositoryPort;
 use App\Application\Ports\Services\ClockPort;
 use App\Application\Ports\Services\TransactionManagerPort;
+use App\Application\UseCases\Notifications\NotifyLowStockForProductRequest;
+use App\Application\UseCases\Notifications\NotifyLowStockForProductUseCase;
 
 final readonly class AdjustStockUseCase
 {
@@ -19,6 +21,7 @@ final readonly class AdjustStockUseCase
         private ProductRepositoryPort $products,
         private InventoryStockRepositoryPort $stocks,
         private StockLedgerRepositoryPort $ledger,
+        private NotifyLowStockForProductUseCase $lowStock,
     ) {}
 
     public function handle(AdjustStockRequest $req): void
@@ -60,6 +63,12 @@ final readonly class AdjustStockUseCase
                 actorUserId: $req->actorUserId,
                 occurredAt: $this->clock->now(),
                 note: $note,
+            ));
+
+            $this->lowStock->handle(new NotifyLowStockForProductRequest(
+                productId: $req->productId,
+                triggerType: 'ADJUSTMENT',
+                actorUserId: $req->actorUserId,
             ));
         });
     }

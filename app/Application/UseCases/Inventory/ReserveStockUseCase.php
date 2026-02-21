@@ -10,6 +10,8 @@ use App\Application\Ports\Repositories\ProductRepositoryPort;
 use App\Application\Ports\Repositories\StockLedgerRepositoryPort;
 use App\Application\Ports\Services\ClockPort;
 use App\Application\Ports\Services\TransactionManagerPort;
+use App\Application\UseCases\Notifications\NotifyLowStockForProductRequest;
+use App\Application\UseCases\Notifications\NotifyLowStockForProductUseCase;
 
 final readonly class ReserveStockUseCase
 {
@@ -19,6 +21,7 @@ final readonly class ReserveStockUseCase
         private ProductRepositoryPort $products,
         private InventoryStockRepositoryPort $stocks,
         private StockLedgerRepositoryPort $ledger,
+        private NotifyLowStockForProductUseCase $lowStock,
     ) {}
 
     public function handle(ReserveStockRequest $req): void
@@ -56,6 +59,13 @@ final readonly class ReserveStockUseCase
                 actorUserId: $req->actorUserId,
                 occurredAt: $this->clock->now(),
                 note: $req->note,
+            ));
+
+            // Low stock notify check (anti-spam handled by throttle state)
+            $this->lowStock->handle(new NotifyLowStockForProductRequest(
+                productId: $req->productId,
+                triggerType: 'RESERVE',
+                actorUserId: $req->actorUserId,
             ));
         });
     }
