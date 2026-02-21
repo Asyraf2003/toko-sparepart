@@ -22,6 +22,8 @@ use App\Interfaces\Web\Controllers\Admin\ProductUpdateController;
 use App\Interfaces\Web\Controllers\Admin\PurchaseInvoiceCreateController;
 use App\Interfaces\Web\Controllers\Admin\PurchaseInvoiceIndexController;
 use App\Interfaces\Web\Controllers\Admin\PurchaseInvoiceStoreController;
+use App\Interfaces\Web\Controllers\Admin\SalesReportIndexController;
+use App\Interfaces\Web\Controllers\Admin\SalesReportPdfController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'role:ADMIN'])->prefix('admin')->group(function () {
@@ -55,4 +57,7 @@ Route::middleware(['auth', 'role:ADMIN'])->prefix('admin')->group(function () {
     Route::get('/payroll', PayrollPeriodIndexController::class);
     Route::get('/payroll/create', PayrollPeriodCreateController::class);
     Route::post('/payroll', PayrollPeriodStoreController::class);
+
+    Route::get('/reports/sales', SalesReportIndexController::class);
+    Route::get('/reports/sales/pdf', SalesReportPdfController::class);
 });
