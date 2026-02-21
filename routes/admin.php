@@ -1,5 +1,7 @@
 <?php
 
+use App\Interfaces\Web\Controllers\Admin\AuditLogIndexController;
+use App\Interfaces\Web\Controllers\Admin\AuditLogShowController;
 use App\Interfaces\Web\Controllers\Admin\EmployeeCreateController;
 use App\Interfaces\Web\Controllers\Admin\EmployeeIndexController;
 use App\Interfaces\Web\Controllers\Admin\EmployeeLoanCreateController;
@@ -75,4 +77,7 @@ Route::middleware(['auth', 'role:ADMIN'])->prefix('admin')->group(function () {
 
     Route::get('/reports/profit', ProfitReportIndexController::class);
     Route::get('/reports/profit/pdf', ProfitReportPdfController::class);
+
+    Route::get('/audit-logs', AuditLogIndexController::class);
+    Route::get('/audit-logs/{auditLogId}', AuditLogShowController::class);
 });

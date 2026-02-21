@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Application\Ports\Repositories\AuditLogQueryPort;
 use App\Application\Ports\Repositories\InventoryStockRepositoryPort;
 use App\Application\Ports\Repositories\ProductRepositoryPort;
 use App\Application\Ports\Repositories\ProductStockQueryPort;
@@ -15,6 +16,7 @@ use App\Application\Ports\Repositories\StockReportQueryPort;
 use App\Application\Ports\Repositories\TransactionPartLineRepositoryPort;
 use App\Application\Ports\Repositories\TransactionRepositoryPort;
 use App\Application\Ports\Repositories\TransactionServiceLineRepositoryPort;
+use App\Application\Ports\Services\AuditLoggerPort;
 use App\Application\Ports\Services\ClockPort;
 use App\Application\Ports\Services\LowStockNotifierPort;
 use App\Application\Ports\Services\PdfRendererPort;
@@ -23,6 +25,8 @@ use App\Infrastructure\Clock\SystemClock;
 use App\Infrastructure\Notifications\Telegram\TelegramLowStockNotifier;
 use App\Infrastructure\Pdf\DompdfPdfRenderer;
 use App\Infrastructure\Persistence\Eloquent\DatabaseTransactionManager;
+use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentAuditLogger;
+use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentAuditLogQuery;
 use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentInventoryStockRepository;
 use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentProductRepository;
 use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentProductStockQuery;
@@ -58,8 +62,10 @@ final class AppServiceProvider extends ServiceProvider
         $this->app->bind(ProfitReportQueryPort::class, EloquentProfitReportQuery::class);
 
         $this->app->singleton(PdfRendererPort::class, DompdfPdfRenderer::class);
-
         $this->app->singleton(LowStockNotifierPort::class, TelegramLowStockNotifier::class);
+        $this->app->singleton(AuditLoggerPort::class, EloquentAuditLogger::class);
+
+        $this->app->singleton(AuditLogQueryPort::class, EloquentAuditLogQuery::class);
     }
 
     public function boot(): void

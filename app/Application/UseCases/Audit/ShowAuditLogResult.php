@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Audit;
+namespace App\Application\UseCases\Audit;
 
-final readonly class AuditEntry
+final readonly class ShowAuditLogResult
 {
     /**
      * @param  array<string, mixed>|null  $before
@@ -12,14 +12,18 @@ final readonly class AuditEntry
      * @param  array<string, mixed>|null  $meta
      */
     public function __construct(
+        public int $id,
         public ?int $actorId,
         public ?string $actorRole,
+        public ?string $actorName,
+        public ?string $actorEmail,
+        public string $action,
         public string $entityType,
         public ?int $entityId,
-        public string $action,
         public string $reason,
         public ?array $before,
         public ?array $after,
-        public ?array $meta = null,
+        public ?array $meta,
+        public string $createdAt,
     ) {}
 }

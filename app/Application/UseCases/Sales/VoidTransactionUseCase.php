@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Application\UseCases\Sales;
 
+use App\Application\Ports\Services\AuditLoggerPort;
 use App\Application\Ports\Services\ClockPort;
 use App\Application\Ports\Services\TransactionManagerPort;
 use App\Application\UseCases\Notifications\NotifyLowStockForProductRequest;
 use App\Application\UseCases\Notifications\NotifyLowStockForProductUseCase;
+use App\Domain\Audit\AuditEntry;
 use Illuminate\Support\Facades\DB;
 
 final readonly class VoidTransactionUseCase
@@ -16,6 +18,7 @@ final readonly class VoidTransactionUseCase
         private TransactionManagerPort $tx,
         private ClockPort $clock,
         private NotifyLowStockForProductUseCase $lowStock,
+        private AuditLoggerPort $audit,
     ) {}
 
     public function handle(VoidTransactionRequest $req): void
@@ -53,6 +56,21 @@ final readonly class VoidTransactionUseCase
                 throw new \InvalidArgumentException('cashier cannot void different business date');
             }
 
+            // BEFORE snapshots
+            $beforePartLines = DB::table('transaction_part_lines')
+                ->where('transaction_id', $req->transactionId)
+                ->lockForUpdate()
+                ->get()
+                ->all();
+
+            $beforeServiceLines = DB::table('transaction_service_lines')
+                ->where('transaction_id', $req->transactionId)
+                ->lockForUpdate()
+                ->get()
+                ->all();
+
+            $beforeStocks = [];
+
             $lines = DB::table('transaction_part_lines')
                 ->where('transaction_id', $req->transactionId)
                 ->lockForUpdate()
@@ -76,6 +94,8 @@ final readonly class VoidTransactionUseCase
                 if ($stock === null) {
                     throw new \InvalidArgumentException('inventory stock not found');
                 }
+
+                $beforeStocks[(string) $productId] = (array) $stock;
 
                 $onHand = (int) $stock->on_hand_qty;
                 $reserved = (int) $stock->reserved_qty;
@@ -145,6 +165,59 @@ final readonly class VoidTransactionUseCase
             }
 
             DB::table('transactions')->where('id', $req->transactionId)->update($update);
+
+            // AFTER snapshots
+            $tAfter = DB::table('transactions')->where('id', $req->transactionId)->first();
+            $afterPartLines = DB::table('transaction_part_lines')
+                ->where('transaction_id', $req->transactionId)
+                ->get()
+                ->all();
+
+            $afterServiceLines = DB::table('transaction_service_lines')
+                ->where('transaction_id', $req->transactionId)
+                ->get()
+                ->all();
+
+            $afterStocks = [];
+            $pids = array_values(array_unique(array_map(
+                static fn ($r) => (int) $r->product_id,
+                $lines->all()
+            )));
+            if (count($pids) > 0) {
+                $stocksAfterRows = DB::table('inventory_stocks')->whereIn('product_id', $pids)->get()->all();
+                foreach ($stocksAfterRows as $row) {
+                    $afterStocks[(string) ((int) $row->product_id)] = (array) $row;
+                }
+            }
+
+            $before = [
+                'transaction' => (array) $t,
+                'part_lines' => array_map(static fn ($r) => (array) $r, $beforePartLines),
+                'service_lines' => array_map(static fn ($r) => (array) $r, $beforeServiceLines),
+                'stocks' => $beforeStocks,
+            ];
+
+            $after = [
+                'transaction' => $tAfter ? (array) $tAfter : null,
+                'part_lines' => array_map(static fn ($r) => (array) $r, $afterPartLines),
+                'service_lines' => array_map(static fn ($r) => (array) $r, $afterServiceLines),
+                'stocks' => $afterStocks,
+            ];
+
+            $this->audit->append(new AuditEntry(
+                actorId: $req->actorUserId,
+                actorRole: (string) $actorRole,
+                entityType: 'Transaction',
+                entityId: $req->transactionId,
+                action: 'VOID',
+                reason: $reason,
+                before: $before,
+                after: $after,
+                meta: [
+                    'business_date' => $businessDate,
+                    'status_before' => $status,
+                ],
+            ));
         });
 
         // after commit
