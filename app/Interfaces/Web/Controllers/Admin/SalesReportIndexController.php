@@ -26,7 +26,6 @@ final class SalesReportIndexController
         $to = $validated['to'] ?? null;
 
         $result = null;
-
         if ($from !== null && $to !== null) {
             $result = $query->list(
                 fromDate: $from,
@@ -49,7 +48,7 @@ final class SalesReportIndexController
                 'cashier_user_id' => $validated['cashier_user_id'] ?? null,
                 'limit' => $validated['limit'] ?? 200,
             ],
-            'result' => $result, // null jika periode belum diisi
+            'result' => $result,
         ]);
     }
 }

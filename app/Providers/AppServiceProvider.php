@@ -7,8 +7,11 @@ namespace App\Providers;
 use App\Application\Ports\Repositories\InventoryStockRepositoryPort;
 use App\Application\Ports\Repositories\ProductRepositoryPort;
 use App\Application\Ports\Repositories\ProductStockQueryPort;
+use App\Application\Ports\Repositories\ProfitReportQueryPort;
+use App\Application\Ports\Repositories\PurchasingReportQueryPort;
 use App\Application\Ports\Repositories\SalesReportQueryPort;
 use App\Application\Ports\Repositories\StockLedgerRepositoryPort;
+use App\Application\Ports\Repositories\StockReportQueryPort;
 use App\Application\Ports\Repositories\TransactionPartLineRepositoryPort;
 use App\Application\Ports\Repositories\TransactionRepositoryPort;
 use App\Application\Ports\Repositories\TransactionServiceLineRepositoryPort;
@@ -21,8 +24,11 @@ use App\Infrastructure\Persistence\Eloquent\DatabaseTransactionManager;
 use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentInventoryStockRepository;
 use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentProductRepository;
 use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentProductStockQuery;
+use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentProfitReportQuery;
+use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentPurchasingReportQuery;
 use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentSalesReportQuery;
 use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentStockLedgerRepository;
+use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentStockReportQuery;
 use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentTransactionPartLineRepository;
 use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentTransactionRepository;
 use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentTransactionServiceLineRepository;
@@ -45,6 +51,10 @@ final class AppServiceProvider extends ServiceProvider
         $this->app->bind(TransactionServiceLineRepositoryPort::class, EloquentTransactionServiceLineRepository::class);
 
         $this->app->bind(SalesReportQueryPort::class, EloquentSalesReportQuery::class);
+        $this->app->bind(PurchasingReportQueryPort::class, EloquentPurchasingReportQuery::class);
+        $this->app->bind(StockReportQueryPort::class, EloquentStockReportQuery::class);
+        $this->app->bind(ProfitReportQueryPort::class, EloquentProfitReportQuery::class);
+
         $this->app->singleton(PdfRendererPort::class, DompdfPdfRenderer::class);
     }
 

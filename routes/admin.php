@@ -24,6 +24,12 @@ use App\Interfaces\Web\Controllers\Admin\PurchaseInvoiceIndexController;
 use App\Interfaces\Web\Controllers\Admin\PurchaseInvoiceStoreController;
 use App\Interfaces\Web\Controllers\Admin\SalesReportIndexController;
 use App\Interfaces\Web\Controllers\Admin\SalesReportPdfController;
+use App\Interfaces\Web\Controllers\Admin\PurchasingReportIndexController;
+use App\Interfaces\Web\Controllers\Admin\PurchasingReportPdfController;
+use App\Interfaces\Web\Controllers\Admin\StockReportIndexController;
+use App\Interfaces\Web\Controllers\Admin\StockReportPdfController;
+use App\Interfaces\Web\Controllers\Admin\ProfitReportIndexController;
+use App\Interfaces\Web\Controllers\Admin\ProfitReportPdfController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'role:ADMIN'])->prefix('admin')->group(function () {
@@ -60,4 +66,13 @@ Route::middleware(['auth', 'role:ADMIN'])->prefix('admin')->group(function () {
 
     Route::get('/reports/sales', SalesReportIndexController::class);
     Route::get('/reports/sales/pdf', SalesReportPdfController::class);
+
+    Route::get('/reports/purchasing', PurchasingReportIndexController::class);
+    Route::get('/reports/purchasing/pdf', PurchasingReportPdfController::class);
+
+    Route::get('/reports/stock', StockReportIndexController::class);
+    Route::get('/reports/stock/pdf', StockReportPdfController::class);
+
+    Route::get('/reports/profit', ProfitReportIndexController::class);
+    Route::get('/reports/profit/pdf', ProfitReportPdfController::class);
 });
