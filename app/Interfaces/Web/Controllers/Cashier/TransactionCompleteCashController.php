@@ -20,11 +20,18 @@ final readonly class TransactionCompleteCashController
             return redirect('/login');
         }
 
+        $data = request()->validate([
+            'cash_received' => ['nullable', 'integer', 'min:0'],
+        ]);
+
+        $cashReceived = isset($data['cash_received']) ? (int) $data['cash_received'] : null;
+
         try {
             $this->useCase->handle(new CompleteTransactionRequest(
                 transactionId: $transactionId,
                 paymentMethod: 'CASH',
                 actorUserId: (int) $user->id,
+                cashReceived: $cashReceived,
             ));
         } catch (Throwable $e) {
             return redirect('/cashier/transactions/'.$transactionId)->with('error', $e->getMessage());

@@ -10,5 +10,7 @@ final readonly class CompleteTransactionRequest
         public int $transactionId,
         public string $paymentMethod, // CASH|TRANSFER
         public int $actorUserId,
+
+        public ?int $cashReceived = null,
     ) {}
 }

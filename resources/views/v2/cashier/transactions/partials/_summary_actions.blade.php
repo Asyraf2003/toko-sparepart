@@ -15,8 +15,8 @@
 
                 {{-- SIMPAN --}}
                 <form method="post"
-                    action="{{ url('/cashier/transactions/'.$tx->id.'/open') }}"
-                    class="flex-fill m-0">
+                      action="{{ url('/cashier/transactions/'.$tx->id.'/open') }}"
+                      class="flex-fill m-0">
                     @csrf
                     <button type="submit"
                             class="btn icon icon-left btn-light w-100 h-100 d-flex align-items-center justify-content-center">
@@ -25,13 +25,18 @@
                     </button>
                 </form>
 
-                {{-- COMPLETE CASH --}}
+                {{-- COMPLETE CASH (kalkulator mode: kirim cash_received) --}}
                 <form method="post"
-                    action="{{ url('/cashier/transactions/'.$tx->id.'/complete-cash') }}"
-                    class="flex-fill m-0">
+                      action="{{ url('/cashier/transactions/'.$tx->id.'/complete-cash') }}"
+                      class="flex-fill m-0"
+                      id="form_complete_cash_calc">
                     @csrf
+                    <input type="hidden" name="cash_received" id="cash_received_hidden" value="0">
+
                     <button type="submit"
-                            class="btn icon icon-left btn-success w-100 h-100 d-flex align-items-center justify-content-center">
+                            id="btn_complete_cash_calc"
+                            class="btn icon icon-left btn-success w-100 h-100 d-flex align-items-center justify-content-center"
+                            disabled>
                         <i data-feather="dollar-sign"></i>
                         <span>Complete Cash</span>
                     </button>
@@ -39,8 +44,8 @@
 
                 {{-- COMPLETE TRANSFER --}}
                 <form method="post"
-                    action="{{ url('/cashier/transactions/'.$tx->id.'/complete-transfer') }}"
-                    class="flex-fill m-0">
+                      action="{{ url('/cashier/transactions/'.$tx->id.'/complete-transfer') }}"
+                      class="flex-fill m-0">
                     @csrf
                     <button type="submit"
                             class="btn icon icon-left btn-info w-100 h-100 d-flex align-items-center justify-content-center">
@@ -50,6 +55,19 @@
                 </form>
 
             </div>
+
+            {{-- QUICK CASH (uang pas) - default hidden (feature flag OFF) --}}
+            @if (config('cashier.cash_quick_pay'))
+                <div class="mt-2">
+                    <form method="post" action="{{ url('/cashier/transactions/'.$tx->id.'/complete-cash') }}" class="m-0">
+                        @csrf
+                        <button type="submit" class="btn icon icon-left btn-light">
+                            <i data-feather="check-circle"></i>
+                            <span>Cash Uang Pas</span>
+                        </button>
+                    </form>
+                </div>
+            @endif
 
             <form method="post" action="{{ url('/cashier/transactions/'.$tx->id.'/void') }}" class="mt-3 row g-2 align-items-end">
                 @csrf

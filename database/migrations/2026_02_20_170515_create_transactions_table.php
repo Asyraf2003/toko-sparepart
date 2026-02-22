@@ -22,6 +22,9 @@ return new class extends Migration
             $table->string('rounding_mode', 32)->nullable(); // NEAREST_1000
             $table->integer('rounding_amount')->default(0);
 
+            $table->integer('cash_received')->nullable();
+            $table->integer('cash_change')->nullable();
+
             $table->string('customer_name')->nullable();
             $table->string('customer_phone')->nullable();
             $table->string('vehicle_plate')->nullable();

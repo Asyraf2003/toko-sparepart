@@ -66,6 +66,23 @@ final readonly class CompleteTransactionUseCase
                 $roundingAmount = $rounded - $grossTotal;
             }
 
+            $requiredCashTotal = $grossTotal + $roundingAmount;
+
+            // cash fields (enterprise)
+            $cashReceived = null;
+            $cashChange = null;
+
+            if ($req->paymentMethod === 'CASH') {
+                // null => quick cash uang pas
+                $cashReceived = $req->cashReceived ?? $requiredCashTotal;
+
+                if ($cashReceived < $requiredCashTotal) {
+                    throw new \InvalidArgumentException('cash received insufficient');
+                }
+
+                $cashChange = $cashReceived - $requiredCashTotal;
+            }
+
             $lines = DB::table('transaction_part_lines')
                 ->where('transaction_id', $req->transactionId)
                 ->lockForUpdate()
@@ -148,12 +165,16 @@ final readonly class CompleteTransactionUseCase
                 'payment_method' => $req->paymentMethod,
                 'rounding_mode' => 'NEAREST_1000',
                 'rounding_amount' => $roundingAmount,
+
+                // enterprise cash fields
+                'cash_received' => $cashReceived, // null untuk TRANSFER
+                'cash_change' => $cashChange,     // null untuk TRANSFER
+
                 'completed_at' => $nowStr,
                 'updated_at' => $nowStr,
             ]);
         });
 
-        // after commit
         $productIdsToNotify = array_values(array_unique($productIdsToNotify));
         foreach ($productIdsToNotify as $pid) {
             $this->lowStock->handle(new NotifyLowStockForProductRequest(
