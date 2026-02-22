@@ -75,7 +75,7 @@ final class TransactionActionsUiTest extends TestCase
 
         $this->actingAs($cashier)
             ->post('/cashier/transactions/'.$tx->id.'/complete-cash')
-            ->assertRedirect('/cashier/transactions/'.$tx->id);
+            ->assertRedirect('/cashier/transactions/today');
 
         $row = DB::table('transactions')->where('id', $tx->id)->first();
         $this->assertSame('COMPLETED', (string) $row->status);

@@ -14,7 +14,7 @@ final class DevSampleEmployeeLoansSeeder extends Seeder
 {
     public function run(): void
     {
-        // idempotency: if any seeded note exists, skip
+        // idempotency
         if (DB::table('employee_loans')->where('note', 'seed demo loan (m6)')->exists()) {
             return;
         }
@@ -31,10 +31,11 @@ final class DevSampleEmployeeLoansSeeder extends Seeder
         /** @var CreateEmployeeLoanUseCase $uc */
         $uc = app(CreateEmployeeLoanUseCase::class);
 
+        // sekarang employees 10, ambil 5 untuk variasi
         $employees = DB::table('employees')
             ->where('is_active', true)
             ->orderBy('id')
-            ->limit(3)
+            ->limit(5)
             ->get(['id']);
 
         if ($employees->count() === 0) {
@@ -46,20 +47,20 @@ final class DevSampleEmployeeLoansSeeder extends Seeder
         foreach ($employees as $idx => $e) {
             $employeeId = (int) $e->id;
 
-            // Two loans each employee (to show FIFO)
+            // 2 loans per employee
             $uc->handle(new CreateEmployeeLoanRequest(
                 actorUserId: (int) $adminId,
                 employeeId: $employeeId,
-                loanDate: $base->copy()->subDays(20 + ($idx * 2))->format('Y-m-d'),
-                amount: 200000 + ($idx * 50000),
+                loanDate: $base->copy()->subDays(25 + ($idx * 2))->format('Y-m-d'),
+                amount: 100000 + ($idx * 25000),
                 note: 'seed demo loan (m6)',
             ));
 
             $uc->handle(new CreateEmployeeLoanRequest(
                 actorUserId: (int) $adminId,
                 employeeId: $employeeId,
-                loanDate: $base->copy()->subDays(10 + ($idx * 2))->format('Y-m-d'),
-                amount: 150000 + ($idx * 25000),
+                loanDate: $base->copy()->subDays(12 + ($idx * 2))->format('Y-m-d'),
+                amount: 75000 + ($idx * 15000),
                 note: 'seed demo loan (m6)',
             ));
         }

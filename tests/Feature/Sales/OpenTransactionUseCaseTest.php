@@ -62,7 +62,7 @@ final class OpenTransactionUseCaseTest extends TestCase
         $this->assertSame('2026-02-20 09:00:00', (string) $row->opened_at);
     }
 
-    public function test_open_rejects_if_not_draft(): void
+    public function test_open_allows_patching_fields_if_already_open(): void
     {
         $this->app->instance(ClockPort::class, new class implements ClockPort
         {
@@ -88,17 +88,33 @@ final class OpenTransactionUseCaseTest extends TestCase
         $create = $this->app->make(CreateTransactionUseCase::class);
         $tx = $create->handle(new CreateTransactionRequest(actorUserId: (int) $cashier->id));
 
-        DB::table('transactions')->where('id', $tx->id)->update(['status' => 'OPEN']);
+        // Simulasikan transaksi sudah OPEN (misal dari request sebelumnya)
+        DB::table('transactions')->where('id', $tx->id)->update([
+            'status' => 'OPEN',
+            'customer_name' => 'Lama',
+            'customer_phone' => '0000',
+        ]);
 
         /** @var OpenTransactionUseCase $open */
         $open = $this->app->make(OpenTransactionUseCase::class);
 
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('only DRAFT can be opened');
-
+        // Eksekusi handle dengan data baru (Patch)
         $open->handle(new OpenTransactionRequest(
             transactionId: $tx->id,
             actorUserId: (int) $cashier->id,
+            fields: [
+                'customer_name' => 'Budi',
+                'customer_phone' => '081234',
+            ]
         ));
+
+        // Audit Data dari Database
+        $row = DB::table('transactions')->where('id', $tx->id)->first();
+
+        // Assertions
+        $this->assertNotNull($row);
+        $this->assertSame('OPEN', (string) $row->status, 'Status harus tetap OPEN');
+        $this->assertSame('Budi', (string) ($row->customer_name ?? ''), 'Field customer_name harus terupdate');
+        $this->assertSame('081234', (string) ($row->customer_phone ?? ''), 'Field customer_phone harus terupdate');
     }
 }

@@ -16,18 +16,17 @@ final class DevSamplePayrollSeeder extends Seeder
 {
     public function run(): void
     {
-        // Determine current payroll week (Mon-Sat)
         $tz = (string) config('app.timezone', 'UTC');
         $today = CarbonImmutable::now($tz);
 
-        // Monday of current week
+        // Mon-Sat
         $weekStart = $today->startOfWeek(CarbonImmutable::MONDAY);
-        $weekEnd = $weekStart->addDays(5); // Saturday
+        $weekEnd = $weekStart->addDays(5);
 
         $weekStartStr = $weekStart->format('Y-m-d');
         $weekEndStr = $weekEnd->format('Y-m-d');
 
-        // idempotency: skip if this period exists
+        // idempotency
         if (DB::table('payroll_periods')->where('week_start', $weekStartStr)->where('week_end', $weekEndStr)->exists()) {
             return;
         }
@@ -44,10 +43,11 @@ final class DevSamplePayrollSeeder extends Seeder
         /** @var CreatePayrollPeriodUseCase $uc */
         $uc = app(CreatePayrollPeriodUseCase::class);
 
+        // sekarang employees 10 -> pakai semua biar UI payroll penuh
         $employees = DB::table('employees')
             ->where('is_active', true)
             ->orderBy('id')
-            ->limit(5)
+            ->limit(10)
             ->get(['id', 'name']);
 
         if ($employees->count() === 0) {
@@ -66,14 +66,14 @@ final class DevSamplePayrollSeeder extends Seeder
         foreach ($employees as $i => $e) {
             $employeeId = (int) $e->id;
 
-            $gross = 350000 + ($i * 25000);
+            // gross bertingkat
+            $gross = 300000 + ($i * 25000);
 
-            // Deduct only for first 2 employees (if they have outstanding)
+            // Deduct untuk 4 employee pertama kalau ada outstanding
             $out = (int) ($outstanding[$employeeId] ?? 0);
             $deduction = 0;
 
-            if ($i < 2 && $out > 0) {
-                // K3 policy: must not exceed outstanding
+            if ($i < 4 && $out > 0) {
                 $deduction = min(150000, $out);
             }
 

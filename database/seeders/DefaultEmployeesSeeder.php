@@ -17,13 +17,29 @@ final class DefaultEmployeesSeeder extends Seeder
             'Bima',
             'Fajar',
             'Sandi',
+            'Dimas',
+            'Rudi',
+            'Wahyu',
+            'Agus',
+            'Putra',
         ];
 
         foreach ($names as $name) {
-            DB::table('employees')->insert([
-                'name' => $name,
+            $exists = DB::table('employees')->where('name', $name)->exists();
+
+            if (! $exists) {
+                DB::table('employees')->insert([
+                    'name' => $name,
+                    'is_active' => 1,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+
+                continue;
+            }
+
+            DB::table('employees')->where('name', $name)->update([
                 'is_active' => 1,
-                'created_at' => now(),
                 'updated_at' => now(),
             ]);
         }

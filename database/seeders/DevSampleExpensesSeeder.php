@@ -14,7 +14,7 @@ final class DevSampleExpensesSeeder extends Seeder
 {
     public function run(): void
     {
-        // idempotency: if a known seed row exists, skip
+        // idempotency: jika seed note ada, skip
         if (DB::table('expenses')->where('note', 'seed demo expense (m6)')->exists()) {
             return;
         }
@@ -32,26 +32,36 @@ final class DevSampleExpensesSeeder extends Seeder
         $uc = app(CreateExpenseUseCase::class);
 
         $base = now();
-        $items = [
-            ['days' => 0,  'cat' => 'listrik',  'amount' => 150000, 'note' => 'seed demo expense (m6)'],
-            ['days' => 0,  'cat' => 'konsumsi', 'amount' => 80000,  'note' => 'seed demo expense (m6)'],
-            ['days' => 1,  'cat' => 'sewa',     'amount' => 500000, 'note' => 'seed demo expense (m6)'],
-            ['days' => 2,  'cat' => 'alat',     'amount' => 120000, 'note' => 'seed demo expense (m6)'],
-            ['days' => 3,  'cat' => 'internet', 'amount' => 95000,  'note' => 'seed demo expense (m6)'],
-            ['days' => 5,  'cat' => 'oli',      'amount' => 60000,  'note' => 'seed demo expense (m6)'],
-            ['days' => 7,  'cat' => 'kebersihan', 'amount' => 45000, 'note' => 'seed demo expense (m6)'],
-            ['days' => 10, 'cat' => 'transport', 'amount' => 70000,  'note' => 'seed demo expense (m6)'],
+
+        $categories = [
+            'listrik',
+            'konsumsi',
+            'sewa',
+            'alat',
+            'internet',
+            'transport',
+            'kebersihan',
+            'oli',
+            'air',
+            'parkir',
         ];
 
-        foreach ($items as $it) {
-            $date = $base->copy()->subDays((int) $it['days'])->format('Y-m-d');
+        // 25 expense acak dalam 21 hari terakhir
+        for ($i = 0; $i < 25; $i++) {
+            $days = random_int(0, 21);
+            $date = $base->copy()->subDays($days)->format('Y-m-d');
+
+            $cat = $categories[array_rand($categories)];
+            $amount = random_int(20000, 50000);
+            // rapihin kelipatan 1000
+            $amount = (int) (round($amount / 1000) * 1000);
 
             $uc->handle(new CreateExpenseRequest(
                 actorUserId: (int) $adminId,
                 expenseDate: $date,
-                category: (string) $it['cat'],
-                amount: (int) $it['amount'],
-                note: (string) $it['note'],
+                category: (string) $cat,
+                amount: (int) $amount,
+                note: 'seed demo expense (m6)',
             ));
         }
     }

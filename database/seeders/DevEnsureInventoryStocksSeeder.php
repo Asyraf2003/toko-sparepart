@@ -14,13 +14,15 @@ final class DevEnsureInventoryStocksSeeder extends Seeder
         $productIds = DB::table('products')->orderBy('id')->pluck('id')->all();
 
         foreach ($productIds as $productId) {
+            $productId = (int) $productId;
+
             $exists = DB::table('inventory_stocks')->where('product_id', $productId)->exists();
             if ($exists) {
                 continue;
             }
 
             DB::table('inventory_stocks')->insert([
-                'product_id' => (int) $productId,
+                'product_id' => $productId,
                 'on_hand_qty' => 0,
                 'reserved_qty' => 0,
                 'created_at' => now(),

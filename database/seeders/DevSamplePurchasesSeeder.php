@@ -15,8 +15,8 @@ final class DevSamplePurchasesSeeder extends Seeder
 {
     public function run(): void
     {
-        // idempotency: if seed invoice exists, skip
-        if (DB::table('purchase_invoices')->where('no_faktur', 'FAK-SEED-0001')->exists()) {
+        // idempotency: jika ada invoice seed, skip
+        if (DB::table('purchase_invoices')->where('no_faktur', 'like', 'FAK-SEED-%')->exists()) {
             return;
         }
 
@@ -32,54 +32,103 @@ final class DevSamplePurchasesSeeder extends Seeder
         /** @var CreatePurchaseInvoiceUseCase $uc */
         $uc = app(CreatePurchaseInvoiceUseCase::class);
 
-        $products = DB::table('products')->orderBy('id')->limit(5)->get(['id', 'sku']);
-        if ($products->count() < 2) {
-            throw new \RuntimeException('Need at least 2 products to seed purchases.');
+        // pakai banyak produk biar avg_cost & stok lebih “real”
+        $products = DB::table('products')->orderBy('id')->get(['id', 'sku', 'sell_price_current']);
+        if ($products->count() < 10) {
+            throw new \RuntimeException('Need at least 10 products to seed purchases. Run DevSampleProductsSeeder (50 items) first.');
         }
 
-        $today = now()->format('Y-m-d');
-        $yesterday = now()->subDay()->format('Y-m-d');
+        $supplierNames = [
+            'Supplier Demo A',
+            'Supplier Demo B',
+            'Supplier Demo C',
+            'Supplier Demo D',
+        ];
 
-        // Invoice 1: mixed discount + header tax
-        $p1 = (int) $products[0]->id;
-        $p2 = (int) $products[1]->id;
+        $salesNames = [
+            'Sales A',
+            'Sales B',
+            'Sales C',
+            'Sales D',
+        ];
 
-        $uc->handle(new CreatePurchaseInvoiceRequest(
-            actorUserId: (int) $adminId,
-            supplierName: 'Supplier Demo A',
-            noFaktur: 'FAK-SEED-0001',
-            tglKirim: $today,
-            kepada: 'ADMIN',
-            noPesanan: 'PO-SEED-001',
-            namaSales: 'Sales A',
-            totalPajak: 15000,
-            note: 'seed demo purchase (m5)',
-            lines: [
-                // disc 5.00% => 500 bps
-                new CreatePurchaseInvoiceLine(productId: $p1, qty: 10, unitCost: 30000, discBps: 500),
-                new CreatePurchaseInvoiceLine(productId: $p2, qty: 5, unitCost: 12000, discBps: 0),
-            ],
-        ));
+        $base = now();
 
-        // Invoice 2: decimal discount + different header tax
-        $p3 = (int) ($products[2]->id ?? $p1);
+        // 8 invoice, masing-masing 5 lines => 40 purchase lines (cukup untuk UI & report)
+        $invoiceCount = 8;
+        $linesPerInvoice = 5;
 
-        $uc->handle(new CreatePurchaseInvoiceRequest(
-            actorUserId: (int) $adminId,
-            supplierName: 'Supplier Demo B',
-            noFaktur: 'FAK-SEED-0002',
-            tglKirim: $yesterday,
-            kepada: 'ADMIN',
-            noPesanan: 'PO-SEED-002',
-            namaSales: 'Sales B',
-            totalPajak: 8000,
-            note: 'seed demo purchase (m5)',
-            lines: [
-                // disc 2.50% => 250 bps
-                new CreatePurchaseInvoiceLine(productId: $p2, qty: 7, unitCost: 11000, discBps: 250),
-                // disc 12.75% => 1275 bps
-                new CreatePurchaseInvoiceLine(productId: $p3, qty: 3, unitCost: 90000, discBps: 1275),
-            ],
-        ));
+        // buat pool product id agar variasi lebih merata
+        $pool = $products->pluck('id')->all();
+        shuffle($pool);
+
+        $poolIdx = 0;
+
+        for ($i = 1; $i <= $invoiceCount; $i++) {
+            $noFaktur = sprintf('FAK-SEED-%04d', $i);
+            $tglKirim = $base->copy()->subDays(random_int(0, 10))->format('Y-m-d');
+
+            $supplier = $supplierNames[array_rand($supplierNames)];
+            $sales = $salesNames[array_rand($salesNames)];
+
+            $lines = [];
+
+            for ($j = 0; $j < $linesPerInvoice; $j++) {
+                if ($poolIdx >= count($pool)) {
+                    $poolIdx = 0;
+                    shuffle($pool);
+                }
+
+                $productId = (int) $pool[$poolIdx++];
+                $p = $products->firstWhere('id', $productId);
+
+                if ($p === null) {
+                    continue;
+                }
+
+                $sell = (int) ($p->sell_price_current ?? 0);
+                if ($sell <= 0) {
+                    $sell = 10000;
+                }
+
+                // cost kira-kira 55% - 85% dari harga jual
+                $cost = (int) round($sell * (random_int(55, 85) / 100));
+                // rapihin ke kelipatan 100 (biar realistis)
+                $cost = (int) (round($cost / 100) * 100);
+                if ($cost <= 0) {
+                    $cost = 5000;
+                }
+
+                $qty = random_int(2, 30);
+
+                // discount bps (0% / 2.5% / 5% / 10% / 12.75%)
+                $discOptions = [0, 250, 500, 1000, 1275];
+                $discBps = (int) $discOptions[array_rand($discOptions)];
+
+                $lines[] = new CreatePurchaseInvoiceLine(
+                    productId: $productId,
+                    qty: $qty,
+                    unitCost: $cost,
+                    discBps: $discBps,
+                );
+            }
+
+            if ($lines === []) {
+                continue;
+            }
+
+            $uc->handle(new CreatePurchaseInvoiceRequest(
+                actorUserId: (int) $adminId,
+                supplierName: $supplier,
+                noFaktur: $noFaktur,
+                tglKirim: $tglKirim,
+                kepada: 'ADMIN',
+                noPesanan: sprintf('PO-SEED-%03d', $i),
+                namaSales: $sales,
+                totalPajak: random_int(0, 20000),
+                note: 'seed demo purchase (m5)',
+                lines: $lines,
+            ));
+        }
     }
 }
