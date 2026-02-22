@@ -24,8 +24,8 @@
                             <td>{{ $l->sku }}</td>
                             <td>{{ $l->name }}</td>
                             <td>{{ $l->qty }}</td>
-                            <td>{{ $l->unit_sell_price_frozen }}</td>
-                            <td>{{ $l->line_subtotal }}</td>
+                            <td><x-ui.rupiah :value="$l->unit_sell_price_frozen" /></td>
+                            <td><x-ui.rupiah :value="$l->line_subtotal" /></td>
                             <td style="min-width: 240px;">
                                 <div class="d-flex align-items-center gap-2">
 

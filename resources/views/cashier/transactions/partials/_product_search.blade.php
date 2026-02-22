@@ -2,7 +2,9 @@
     $initial = (string) request()->query('pq', '');
     $initialTrim = trim($initial);
     $canServerSearch = mb_strlen($initialTrim) >= 2;
+
     $rows = $productRows ?? collect();
+    $txId = (int) ($tx->id ?? 0);
 @endphp
 
 <div class="card mt-3">
@@ -11,25 +13,42 @@
     </div>
 
     <div class="card-body">
-        <div class="row g-2 align-items-end">
-            <div class="col-12 col-md-11">
+        {{-- Fallback NON-JS: submit GET ke halaman transaksi yang sama (pakai pq) --}}
+        <form method="get"
+              action="{{ url('/cashier/transactions/'.$txId) }}"
+              class="row g-2 align-items-end"
+              id="product_search_form">
+            <div class="col-12 col-md-10">
                 <label class="form-label">Cari (SKU/Nama)</label>
-                <input id="product_search_q"
+                <input id="product_search_pq"
+                       name="pq"
                        type="text"
                        class="form-control"
                        value="{{ $initial }}"
                        placeholder="Ketik SKU / Nama...">
             </div>
 
-            <div class="col-12 col-md-1">
-                <button id="product_search_clear" type="button" class="btn btn-light w-100">
-                    Reset
+            <div class="col-6 col-md-1">
+                <button id="product_search_submit" type="submit" class="btn btn-primary w-100">
+                    Cari
                 </button>
             </div>
-        </div>
 
-        <div class="mt-3" id="product_search_hint" class="text-muted">
-            Minimal 2 karakter untuk mencari.
+            <div class="col-6 col-md-1">
+                <a id="product_search_reset"
+                   href="{{ url('/cashier/transactions/'.$txId) }}"
+                   class="btn btn-light w-100">
+                    Reset
+                </a>
+            </div>
+        </form>
+
+        <div class="mt-3 text-muted" id="product_search_hint">
+            @if (!$canServerSearch)
+                Minimal 2 karakter untuk mencari.
+            @else
+                Hasil: {{ $rows->count() }} item
+            @endif
         </div>
 
         <div class="table-responsive mt-2">
@@ -46,52 +65,31 @@
                 </tr>
                 </thead>
                 <tbody id="product_search_rows">
-                    @if (!$canServerSearch)
-                        <tr>
-                            <td colspan="7" class="text-muted">Belum ada hasil.</td>
-                        </tr>
-                    @else
-                        @if ($rows->count() === 0)
-                            <tr>
-                                <td colspan="7" class="text-muted">Tidak ada hasil.</td>
-                            </tr>
-                        @else
-                            @foreach ($rows as $p)
-                                <tr>
-                                    <td>{{ $p->sku }}</td>
-                                    <td>{{ $p->name }}</td>
-                                    <td>{{ $p->sell_price_current }}</td>
-                                    <td>{{ $p->on_hand_qty }}</td>
-                                    <td>{{ $p->reserved_qty }}</td>
-                                    <td>{{ $p->available_qty }}</td>
-                                    <td style="min-width: 160px;">
-                                        <button type="button"
-                                                class="btn btn-sm icon icon-left btn-success w-100 d-flex align-items-center justify-content-center"
-                                                data-add="{{ $p->id }}"
-                                                data-sku="{{ $p->sku }}">
-                                            <i data-feather="plus-circle"></i>
-                                            Tambah
-                                        </button>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        @endif
-                    @endif
+                    @include('cashier.products.partials._rows', [
+                        'rows' => $rows,
+                        'canSearch' => $canServerSearch,
+                        'txId' => $txId,
+                    ])
                 </tbody>
             </table>
         </div>
     </div>
 </div>
 
+@push('scripts')
 <script>
 (function () {
-    const txId = {{ (int) $tx->id }};
-    const input = document.getElementById('product_search_q');
-    const btnClear = document.getElementById('product_search_clear');
+    const txId = {{ (int) $txId }};
+    const form = document.getElementById('product_search_form');
+    const input = document.getElementById('product_search_pq');
     const tbody = document.getElementById('product_search_rows');
     const hint = document.getElementById('product_search_hint');
 
     let timer = null;
+
+    function setHint(text) {
+        if (hint) hint.textContent = text;
+    }
 
     function setUrlPQ(val) {
         const u = new URL(window.location.href);
@@ -100,45 +98,14 @@
         window.history.replaceState({}, '', u.toString());
     }
 
-    function esc(s) {
-        return String(s)
-            .replaceAll('&', '&amp;')
-            .replaceAll('<', '&lt;')
-            .replaceAll('>', '&gt;')
-            .replaceAll('"', '&quot;')
-            .replaceAll("'", '&#039;');
-    }
+    async function fetchRowsHTML(q) {
+        const url = `/cashier/products/search?pq=${encodeURIComponent(q)}&tx_id=${encodeURIComponent(String(txId))}&fragment=rows`;
+        const res = await fetch(url, { headers: { 'Accept': 'text/html' } });
+        if (!res.ok) throw new Error('fetch rows failed');
 
-    function renderEmpty(msg) {
-        tbody.innerHTML = '<tr><td colspan="7" class="text-muted">' + esc(msg) + '</td></tr>';
-    }
-
-    function render(items) {
-        if (!items || items.length === 0) {
-            renderEmpty('Tidak ada hasil.');
-            return;
-        }
-
-        tbody.innerHTML = items.map((p) => {
-            return `
-<tr>
-  <td>${esc(p.sku)}</td>
-  <td>${esc(p.name)}</td>
-  <td>${esc(p.sell_price_current)}</td>
-  <td>${esc(p.on_hand_qty)}</td>
-  <td>${esc(p.reserved_qty)}</td>
-  <td>${esc(p.available_qty)}</td>
-  <td style="min-width: 160px;">
-    <button type="button"
-            class="btn btn-sm icon icon-left btn-success w-100 d-flex align-items-center justify-content-center"
-            data-add="${esc(p.id)}"
-            data-sku="${esc(p.sku)}">
-        <i data-feather="plus-circle"></i>
-        Tambah
-    </button>
-  </td>
-</tr>`;
-        }).join('');
+        const html = await res.text();
+        const count = res.headers.get('X-Items-Count');
+        return { html, count };
     }
 
     async function searchNow() {
@@ -146,28 +113,18 @@
         setUrlPQ(q);
 
         if (q.length < 2) {
-            hint.textContent = 'Minimal 2 karakter untuk mencari.';
-            renderEmpty('Belum ada hasil.');
+            setHint('Minimal 2 karakter untuk mencari.');
+            tbody.innerHTML = '<tr><td colspan="7" class="text-muted">Belum ada hasil.</td></tr>';
             return;
         }
 
-        hint.textContent = 'Mencari...';
-
-        const url = `/cashier/products/search?q=${encodeURIComponent(q)}`;
-        const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
-
-        if (!res.ok) {
-            hint.textContent = 'Gagal mengambil data.';
-            renderEmpty('Gagal mencari.');
-            return;
-        }
-
-        const data = await res.json();
-        hint.textContent = `Hasil: ${(data.items || []).length} item`;
-        render(data.items || []);
-
-        if (window.feather && typeof window.feather.replace === 'function') {
-            window.feather.replace();
+        try {
+            setHint('Mencari...');
+            const out = await fetchRowsHTML(q);
+            tbody.innerHTML = out.html;
+            setHint(`Hasil: ${out.count ?? '-'} item`);
+        } catch (e) {
+            setHint('Gagal mengambil data.');
         }
     }
 
@@ -176,57 +133,52 @@
         timer = setTimeout(searchNow, 250);
     }
 
-    // Add click handler (event delegation)
-    tbody.addEventListener('click', async (e) => {
-        const btn = e.target.closest('[data-add]');
-        if (!btn) return;
-
-        const productId = btn.getAttribute('data-add');
-        const sku = btn.getAttribute('data-sku') || '';
-        const qty = '1';
-
-        // reason default (required di controller)
-        const reason = `Tambah sparepart ${sku}`;
-
-        const postUrl = `/cashier/transactions/${txId}/part-lines`;
-        const body = new URLSearchParams();
-        body.set('product_id', productId);
-        body.set('qty', qty);
-        body.set('reason', reason);
-
-        const res = await fetch(postUrl, {
-            method: 'POST',
-            headers: {
-                'Accept': 'text/html',
-                'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
-                'X-CSRF-TOKEN': {{ \Illuminate\Support\Js::from(csrf_token()) }},
-            },
-            body: body.toString(),
-        });
-
-        // Setelah add, reload halaman agar part lines/service lines ter-update.
-        // pq dipertahankan via URL param yang kita set lewat history.replaceState.
-        if (res.ok) {
-            window.location.reload();
-            return;
+    // Progressive enhancement:
+    // - Dengan JS: submit form menjadi fetch HTML (tanpa reload)
+    // - Tanpa JS: form submit normal tetap jalan
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        try {
+            await searchNow();
+        } catch (_) {
+            // fallback terakhir: submit normal
+            form.submit();
         }
-
-        alert('Gagal menambah sparepart. Cek validasi/server.');
     });
 
     input.addEventListener('input', debounceSearch);
 
-    btnClear.addEventListener('click', () => {
-        input.value = '';
-        setUrlPQ('');
-        hint.textContent = 'Minimal 2 karakter untuk mencari.';
-        renderEmpty('Belum ada hasil.');
-        input.focus();
-    });
+    // Add part: fallback-nya sudah <form method="post"> di rows partial.
+    // Dengan JS, kita intercept submit supaya UX cepat, lalu reload untuk sinkron summary/lines.
+    tbody.addEventListener('submit', async (e) => {
+        const f = e.target;
+        if (!f || !f.matches('form[data-add-part-form="1"]')) return;
 
-    // auto-search bila ada pq di URL
-    if ((input.value || '').trim().length >= 2) {
-        searchNow();
-    }
+        e.preventDefault();
+
+        const fd = new FormData(f);
+        const body = new URLSearchParams(fd);
+
+        try {
+            const res = await fetch(f.action, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'text/html',
+                    'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+                },
+                body: body.toString(),
+            });
+
+            if (res.ok) {
+                window.location.reload();
+                return;
+            }
+
+            alert('Gagal menambah sparepart. Cek validasi/server.');
+        } catch (_) {
+            alert('Gagal menambah sparepart (network).');
+        }
+    });
 })();
 </script>
+@endpush

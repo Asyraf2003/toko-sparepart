@@ -13,7 +13,7 @@ final readonly class TransactionTodayController
 {
     public function __construct(private ClockPort $clock) {}
 
-    public function __invoke(): View
+    public function __invoke(): View|\Illuminate\Http\Response
     {
         $today = $this->clock->todayBusinessDate();
 
@@ -43,14 +43,27 @@ final readonly class TransactionTodayController
             $select[] = 'vehicle_plate';
         }
 
+        // penting: jangan ikutkan fragment/page ke link pagination
+        $appends = request()->except(['page', 'fragment']);
+
         $rows = DB::table('transactions')
             ->where('business_date', $today)
             ->when($status !== '', fn ($qq) => $qq->where('status', $status))
             ->when($q !== '', fn ($qq) => $qq->where('transaction_number', 'like', '%'.$q.'%'))
-            ->orderByDesc('id')
-            ->limit(200)
-            ->get($select);
+            ->orderByDesc('id') // terbaru -> lama
+            ->paginate(10, $select)
+            ->appends($appends);
 
+        // Fragment response (untuk JS)
+        if ((string) request()->query('fragment', '') === '1') {
+            return response()->view('cashier.transactions.partials._today_list', [
+                'rows' => $rows,
+                'hasCustomerName' => $hasCustomerName,
+                'hasVehiclePlate' => $hasVehiclePlate,
+            ]);
+        }
+
+        // Full page
         return view('cashier.transactions.today', [
             'today' => $today,
             'rows' => $rows,
