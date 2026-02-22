@@ -38,7 +38,9 @@ use App\Interfaces\Web\Controllers\Admin\StockReportPdfController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'role:ADMIN'])->prefix('admin')->group(function (): void {
-    Route::get('/', AdminDashboardController::class);
+    Route::get('/', fn () => redirect('/admin/dashboard'));
+
+    Route::get('/dashboard', AdminDashboardController::class);
 
     Route::get('/audit-logs', AuditLogIndexController::class);
     Route::get('/audit-logs/{auditLogId}', AuditLogShowController::class);
