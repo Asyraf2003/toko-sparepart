@@ -50,10 +50,6 @@
                               class="form-control"
                               rows="3">{{ old('note', $tx->note ?? '') }}</textarea>
                 </div>
-
-                <button type="submit" class="btn btn-light">
-                    Simpan Data Pembeli
-                </button>
             </form>
         @endif
     </div>

@@ -4,14 +4,11 @@
 
 @section('page_heading')
     <div class="page-heading d-flex justify-content-between align-items-center">
-
-        {{-- KIRI: Judul --}}
         <div>
             <h3 class="mb-0">Detail Nota</h3>
             <div class="text-muted">{{ $tx->transaction_number ?? '' }}</div>
         </div>
 
-        {{-- KANAN: Tombol --}}
         <div>
             <a href="{{ url('/cashier/transactions/today') }}"
                class="btn btn-light d-inline-flex align-items-center gap-1">
@@ -19,30 +16,36 @@
                 Kembali
             </a>
         </div>
-
     </div>
 @endsection
 
 @section('content')
-    <section class="section">
+    <section class="section" id="tx_show_root" data-tx-id="{{ (int) $tx->id }}">
         <div class="row">
 
-            {{-- KIRI: DETAIL + INPUT BARANG/JASA --}}
             <div class="col-12 col-lg-8 order-1 order-lg-1">
-
+                {{-- search area tidak kita fragment-kan (biar JS search tetap stabil) --}}
                 @include('cashier.transactions.partials._product_search')
-                @include('cashier.transactions.partials._part_lines')
-                @include('cashier.transactions.partials._service_lines')
+
+                <div id="tx_alerts">
+                    @include('cashier.transactions.partials._alerts')
+                </div>
+
+                <div id="tx_part_lines">
+                    @include('cashier.transactions.partials._part_lines')
+                </div>
+
+                <div id="tx_service_lines">
+                    @include('cashier.transactions.partials._service_lines')
+                </div>
             </div>
 
-            {{-- KANAN: PEMBAYARAN (info + customer + cash calculator + actions) --}}
             <div class="col-12 col-lg-4 order-2 order-lg-2">
                 <div class="card">
                     <div class="card-header">
                         <h4 class="card-title mb-0">Informasi Nota</h4>
                     </div>
                     <div class="card-body">
-
                         <div>
                             <p><b>ID:</b> {{ $tx->id }}</p>
                             <p><b>No:</b> {{ $tx->transaction_number }}</p>
@@ -70,11 +73,23 @@
                     </div>
                 </div>
 
-                @include('cashier.transactions.partials._customer_form')
-                @include('cashier.transactions.partials._cash_calculator')
-                @include('cashier.transactions.partials._summary_actions')
+                <div id="tx_customer_form">
+                    @include('cashier.transactions.partials._customer_form')
+                </div>
+
+                <div id="tx_cash_calculator">
+                    @include('cashier.transactions.partials._cash_calculator')
+                </div>
+
+                <div id="tx_summary_actions">
+                    @include('cashier.transactions.partials._summary_actions')
+                </div>
             </div>
 
         </div>
     </section>
 @endsection
+
+@push('scripts')
+    @include('cashier.transactions.partials._show_scripts')
+@endpush

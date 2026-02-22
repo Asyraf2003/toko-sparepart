@@ -34,6 +34,7 @@ final readonly class TransactionVoidController
             return redirect('/cashier/transactions/'.$transactionId)->with('error', $e->getMessage());
         }
 
-        return redirect('/cashier/transactions/'.$transactionId);
+        return redirect('/cashier/transactions/today')
+            ->with('success', 'Transaksi berhasil di-VOID.');
     }
 }

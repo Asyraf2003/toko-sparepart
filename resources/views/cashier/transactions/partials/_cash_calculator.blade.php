@@ -3,10 +3,7 @@
     $paymentStatus = (string) ($tx->payment_status ?? '');
     $paymentMethod = (string) ($tx->payment_method ?? '');
 
-    // Paid/completed => jangan tampil kalkulator input.
     $isPaid = ($status === 'COMPLETED') || ($paymentStatus === 'PAID');
-
-    // Payable hanya saat OPEN dan belum paid.
     $isPayable = (!$isPaid) && ($status === 'OPEN');
 
     $cashReceived = $tx->cash_received ?? null;
@@ -18,14 +15,13 @@
     }
 @endphp
 
-<div class="card mt-3">
+<div class="card mt-3" id="cash_calc_root" data-rounded-total="{{ (int) ($roundedCashTotal ?? 0) }}">
     <div class="card-header">
         <h4>Pembayaran</h4>
     </div>
 
     <div class="card-body">
         @if ($isPaid)
-            {{-- PAID/COMPLETED: ringkasan --}}
             <div class="mb-2">
                 <div>Status: <b>{{ $tx->payment_status ?? '-' }}</b></div>
                 <div>Metode: <b>{{ $tx->payment_method ?? '-' }}</b></div>
@@ -48,7 +44,6 @@
             </div>
 
         @elseif (! $isPayable)
-            {{-- DRAFT (atau state lain selain OPEN): jangan tampil kalkulator --}}
             <div class="mb-2">
                 <div>Status Transaksi: <b>{{ $tx->status ?? '-' }}</b></div>
             </div>
@@ -66,7 +61,6 @@
             </div>
 
         @else
-            {{-- OPEN dan belum paid: kalkulator aktif --}}
             <div>
                 <div>Grand Total: <b><x-ui.rupiah :value="$grossTotal" /></b></div>
                 <div>
@@ -94,52 +88,3 @@
         @endif
     </div>
 </div>
-
-@if ($isPayable)
-<script>
-(function () {
-    var total = {{ (int) ($roundedCashTotal ?? 0) }};
-    var input = document.getElementById('cash_received');
-    var out = document.getElementById('cash_change');
-
-    var shortWrap = document.getElementById('cash_short_wrap');
-    var shortOut = document.getElementById('cash_short');
-
-    function formatRupiahInt(n) {
-        n = parseInt(String(n || '0'), 10);
-        if (isNaN(n)) n = 0;
-
-        var sign = n < 0 ? '-' : '';
-        var s = String(Math.abs(n));
-        var outStr = s.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-        return sign + outStr;
-    }
-
-    function calc() {
-        var received = parseInt(input.value || '0', 10);
-        if (isNaN(received)) received = 0;
-
-        var change = received - total;
-
-        if (change < 0) {
-            out.textContent = '0';
-            if (shortWrap) shortWrap.classList.remove('d-none');
-            if (shortOut) shortOut.textContent = formatRupiahInt(Math.abs(change));
-        } else {
-            out.textContent = formatRupiahInt(change);
-            if (shortWrap) shortWrap.classList.add('d-none');
-            if (shortOut) shortOut.textContent = '0';
-        }
-
-        var hidden = document.getElementById('cash_received_hidden');
-        if (hidden) hidden.value = String(received);
-
-        var btn = document.getElementById('btn_complete_cash_calc');
-        if (btn) btn.disabled = received < total;
-    }
-
-    input.addEventListener('input', calc);
-    document.addEventListener('DOMContentLoaded', calc);
-})();
-</script>
-@endif

@@ -69,9 +69,5 @@
                 </tbody>
             </table>
         </div>
-
-        <div class="mt-3">
-            {{ $rows->links('vendor.pagination.mazer') }}
-        </div>
     @endif
 </div>

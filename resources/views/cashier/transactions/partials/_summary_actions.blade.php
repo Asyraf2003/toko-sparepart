@@ -1,7 +1,9 @@
 @php
     $status = (string) ($tx->status ?? '');
     $paymentStatus = (string) ($tx->payment_status ?? '');
+
     $isPaid = ($status === 'COMPLETED') || ($paymentStatus === 'PAID');
+    $canVoid = ($status !== 'VOID');
 @endphp
 
 <div class="card mt-3">
@@ -19,16 +21,16 @@
             </div>
         </div>
 
-        @if ($tx->status !== 'VOID')
+        @if ($status !== 'VOID')
             @if ($isPaid)
-                <div class="alert alert-light mb-0">
+                <div class="alert alert-light">
                     Transaksi sudah selesai dibayar. Aksi pembayaran dinonaktifkan.
                 </div>
             @else
                 <div class="d-flex gap-2 flex-wrap flex-md-nowrap align-items-stretch">
 
-                    {{-- SIMPAN / OPEN: hanya masuk akal untuk DRAFT --}}
-                    @if (($tx->status ?? '') === 'DRAFT')
+                    {{-- SIMPAN / OPEN: hanya untuk DRAFT --}}
+                    @if ($status === 'DRAFT')
                         <form method="post"
                               action="{{ url('/cashier/transactions/'.$tx->id.'/open') }}"
                               class="flex-fill m-0">
@@ -41,8 +43,8 @@
                         </form>
                     @endif
 
-                    {{-- COMPLETE: hanya masuk akal untuk OPEN --}}
-                    @if (($tx->status ?? '') === 'OPEN')
+                    {{-- COMPLETE: hanya untuk OPEN --}}
+                    @if ($status === 'OPEN')
                         <form method="post"
                               action="{{ url('/cashier/transactions/'.$tx->id.'/complete-cash') }}"
                               class="flex-fill m-0"
@@ -70,11 +72,14 @@
                             </button>
                         </form>
                     @endif
-
                 </div>
+            @endif
 
-                {{-- VOID: tetap tersedia selama bukan VOID dan belum paid --}}
-                <form method="post" action="{{ url('/cashier/transactions/'.$tx->id.'/void') }}" class="mt-3 row g-2 align-items-end">
+            {{-- VOID: tetap tampil untuk DRAFT/OPEN/COMPLETED, selama belum VOID --}}
+            @if ($canVoid)
+                <form method="post"
+                      action="{{ url('/cashier/transactions/'.$tx->id.'/void') }}"
+                      class="mt-3 row g-2 align-items-end">
                     @csrf
                     <div class="col-12 col-md-5">
                         <label class="form-label">Reason VOID</label>
@@ -87,7 +92,7 @@
             @endif
         @endif
 
-        @if (($tx->status ?? '') === 'OPEN')
+        @if ($status === 'OPEN')
             <div class="mt-3">
                 <a class="btn btn-light"
                    href="{{ url('/cashier/transactions/'.$tx->id.'/work-order') }}"

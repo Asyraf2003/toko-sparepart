@@ -170,7 +170,15 @@
             });
 
             if (res.ok) {
-                window.location.reload();
+                if (window.APPKASIR_TX && typeof window.APPKASIR_TX.refresh === 'function') {
+                    await window.APPKASIR_TX.refresh();
+                } else {
+                    window.location.reload();
+                    return;
+                }
+
+                // optional: refresh hasil pencarian agar stok/reserved ikut update
+                await searchNow();
                 return;
             }
 

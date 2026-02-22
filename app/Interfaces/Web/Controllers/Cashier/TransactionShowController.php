@@ -12,7 +12,7 @@ final readonly class TransactionShowController
 {
     public function __construct(private ClockPort $clock) {}
 
-    public function __invoke(int $transactionId): View
+    public function __invoke(int $transactionId): View|\Illuminate\Http\Response
     {
         $today = $this->clock->todayBusinessDate();
 
@@ -106,7 +106,7 @@ final readonly class TransactionShowController
                 \Illuminate\Support\Facades\DB::raw('(inventory_stocks.on_hand_qty - inventory_stocks.reserved_qty) as available_qty'),
             ]);
 
-        return view('cashier.transactions.show', [
+        $payload = [
             'today' => $today,
             'tx' => $tx,
             'partLines' => $partLines,
@@ -119,6 +119,12 @@ final readonly class TransactionShowController
             'grossTotal' => $grossTotal,
             'roundedCashTotal' => $roundedCashTotal,
             'cashRoundingAmount' => $cashRoundingAmount,
-        ]);
+        ];
+
+        if ((string) request()->query('fragment', '') === '1') {
+            return response()->view('cashier.transactions.partials._show_fragments', $payload);
+        }
+
+        return view('cashier.transactions.show', $payload);
     }
 }
