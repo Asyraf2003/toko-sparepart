@@ -14,6 +14,10 @@ final class SalesReportSummary
         public readonly int $grandTotal,
         public readonly int $cogsTotal,
         public readonly int $missingCogsQty,
+
+        public readonly int $cashReceivedTotal,
+        public readonly int $cashChangeTotal,
+        public readonly int $cashNetTotal,
     ) {}
 
     public static function empty(): self
@@ -26,6 +30,9 @@ final class SalesReportSummary
             grandTotal: 0,
             cogsTotal: 0,
             missingCogsQty: 0,
+            cashReceivedTotal: 0,
+            cashChangeTotal: 0,
+            cashNetTotal: 0,
         );
     }
 }

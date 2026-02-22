@@ -1,58 +1,232 @@
-<hr>
-<h3>Cari Sparepart</h3>
-
 @php
-    $pqValue = $pq ?? $search ?? $q ?? '';
-    $rows = $productRows ?? $products ?? collect();
+    $initial = (string) request()->query('pq', '');
+    $initialTrim = trim($initial);
+    $canServerSearch = mb_strlen($initialTrim) >= 2;
+    $rows = $productRows ?? collect();
 @endphp
 
-<form method="get" action="/cashier/transactions/{{ $tx->id }}">
-    <label>Cari (SKU/Nama):</label>
-    <input type="text" name="pq" value="{{ $pqValue }}">
-    {{-- compatibility kalau controller lama masih baca ?q= --}}
-    <input type="hidden" name="q" value="{{ $pqValue }}">
-    <button type="submit">Search</button>
-</form>
+<div class="card mt-3">
+    <div class="card-header">
+        <h4>Cari Sparepart</h4>
+    </div>
 
-@if($rows->count() > 0)
-    <table border="1" cellpadding="6" cellspacing="0" width="100%" style="margin-top:10px;">
-        <thead>
-        <tr>
-            <th>SKU</th>
-            <th>Nama</th>
-            <th>Harga</th>
-            <th>OnHand</th>
-            <th>Reserved</th>
-            <th>Available</th>
-            <th>Tambah</th>
-        </tr>
-        </thead>
-        <tbody>
-        @foreach($rows as $p)
-            @php
-                $onHand = isset($p->on_hand_qty) ? (int) $p->on_hand_qty : 0;
-                $reserved = isset($p->reserved_qty) ? (int) $p->reserved_qty : 0;
-                $avail = isset($p->available_qty) ? (int) $p->available_qty : ($onHand - $reserved);
-            @endphp
-            <tr>
-                <td>{{ $p->sku }}</td>
-                <td>{{ $p->name }}</td>
-                <td>{{ $p->sell_price_current }}</td>
-                <td>{{ $onHand }}</td>
-                <td>{{ $reserved }}</td>
-                <td>{{ $avail }}</td>
-                <td>
-                    <form method="post" action="/cashier/transactions/{{ $tx->id }}/part-lines">
-                        @csrf
-                        <input type="hidden" name="product_id" value="{{ $p->id }}">
-                        <input type="number" name="qty" value="1" min="1" style="width:70px;">
-                        <button type="submit">Tambah</button>
-                    </form>
-                </td>
-            </tr>
-        @endforeach
-        </tbody>
-    </table>
-@else
-    <p style="margin-top:10px;">Tidak ada hasil (atau belum ada produk).</p>
-@endif
+    <div class="card-body">
+        <div class="row g-2 align-items-end">
+            <div class="col-12 col-md-11">
+                <label class="form-label">Cari (SKU/Nama)</label>
+                <input id="product_search_q"
+                       type="text"
+                       class="form-control"
+                       value="{{ $initial }}"
+                       placeholder="Ketik SKU / Nama...">
+            </div>
+
+            <div class="col-12 col-md-1">
+                <button id="product_search_clear" type="button" class="btn btn-light w-100">
+                    Reset
+                </button>
+            </div>
+        </div>
+
+        <div class="mt-3" id="product_search_hint" class="text-muted">
+            Minimal 2 karakter untuk mencari.
+        </div>
+
+        <div class="table-responsive mt-2">
+            <table class="table table-hover table-lg mb-0">
+                <thead>
+                <tr>
+                    <th>SKU</th>
+                    <th>Nama</th>
+                    <th>Harga</th>
+                    <th>Stok</th>
+                    <th>Dipakai</th>
+                    <th>Tersedia</th>
+                    <th>Aksi</th>
+                </tr>
+                </thead>
+                <tbody id="product_search_rows">
+                    @if (!$canServerSearch)
+                        <tr>
+                            <td colspan="7" class="text-muted">Belum ada hasil.</td>
+                        </tr>
+                    @else
+                        @if ($rows->count() === 0)
+                            <tr>
+                                <td colspan="7" class="text-muted">Tidak ada hasil.</td>
+                            </tr>
+                        @else
+                            @foreach ($rows as $p)
+                                <tr>
+                                    <td>{{ $p->sku }}</td>
+                                    <td>{{ $p->name }}</td>
+                                    <td>{{ $p->sell_price_current }}</td>
+                                    <td>{{ $p->on_hand_qty }}</td>
+                                    <td>{{ $p->reserved_qty }}</td>
+                                    <td>{{ $p->available_qty }}</td>
+                                    <td style="min-width: 160px;">
+                                        <button type="button"
+                                                class="btn btn-sm icon icon-left btn-success w-100 d-flex align-items-center justify-content-center"
+                                                data-add="{{ $p->id }}"
+                                                data-sku="{{ $p->sku }}">
+                                            <i data-feather="plus-circle"></i>
+                                            Tambah
+                                        </button>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        @endif
+                    @endif
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    const txId = {{ (int) $tx->id }};
+    const input = document.getElementById('product_search_q');
+    const btnClear = document.getElementById('product_search_clear');
+    const tbody = document.getElementById('product_search_rows');
+    const hint = document.getElementById('product_search_hint');
+
+    let timer = null;
+
+    function setUrlPQ(val) {
+        const u = new URL(window.location.href);
+        if (val && val.trim() !== '') u.searchParams.set('pq', val.trim());
+        else u.searchParams.delete('pq');
+        window.history.replaceState({}, '', u.toString());
+    }
+
+    function esc(s) {
+        return String(s)
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;')
+            .replaceAll("'", '&#039;');
+    }
+
+    function renderEmpty(msg) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-muted">' + esc(msg) + '</td></tr>';
+    }
+
+    function render(items) {
+        if (!items || items.length === 0) {
+            renderEmpty('Tidak ada hasil.');
+            return;
+        }
+
+        tbody.innerHTML = items.map((p) => {
+            return `
+<tr>
+  <td>${esc(p.sku)}</td>
+  <td>${esc(p.name)}</td>
+  <td>${esc(p.sell_price_current)}</td>
+  <td>${esc(p.on_hand_qty)}</td>
+  <td>${esc(p.reserved_qty)}</td>
+  <td>${esc(p.available_qty)}</td>
+  <td style="min-width: 160px;">
+    <button type="button"
+            class="btn btn-sm icon icon-left btn-success w-100 d-flex align-items-center justify-content-center"
+            data-add="${esc(p.id)}"
+            data-sku="${esc(p.sku)}">
+        <i data-feather="plus-circle"></i>
+        Tambah
+    </button>
+  </td>
+</tr>`;
+        }).join('');
+    }
+
+    async function searchNow() {
+        const q = (input.value || '').trim();
+        setUrlPQ(q);
+
+        if (q.length < 2) {
+            hint.textContent = 'Minimal 2 karakter untuk mencari.';
+            renderEmpty('Belum ada hasil.');
+            return;
+        }
+
+        hint.textContent = 'Mencari...';
+
+        const url = `/cashier/products/search?q=${encodeURIComponent(q)}`;
+        const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+
+        if (!res.ok) {
+            hint.textContent = 'Gagal mengambil data.';
+            renderEmpty('Gagal mencari.');
+            return;
+        }
+
+        const data = await res.json();
+        hint.textContent = `Hasil: ${(data.items || []).length} item`;
+        render(data.items || []);
+
+        if (window.feather && typeof window.feather.replace === 'function') {
+            window.feather.replace();
+        }
+    }
+
+    function debounceSearch() {
+        clearTimeout(timer);
+        timer = setTimeout(searchNow, 250);
+    }
+
+    // Add click handler (event delegation)
+    tbody.addEventListener('click', async (e) => {
+        const btn = e.target.closest('[data-add]');
+        if (!btn) return;
+
+        const productId = btn.getAttribute('data-add');
+        const sku = btn.getAttribute('data-sku') || '';
+        const qty = '1';
+
+        // reason default (required di controller)
+        const reason = `Tambah sparepart ${sku}`;
+
+        const postUrl = `/cashier/transactions/${txId}/part-lines`;
+        const body = new URLSearchParams();
+        body.set('product_id', productId);
+        body.set('qty', qty);
+        body.set('reason', reason);
+
+        const res = await fetch(postUrl, {
+            method: 'POST',
+            headers: {
+                'Accept': 'text/html',
+                'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+                'X-CSRF-TOKEN': {{ \Illuminate\Support\Js::from(csrf_token()) }},
+            },
+            body: body.toString(),
+        });
+
+        // Setelah add, reload halaman agar part lines/service lines ter-update.
+        // pq dipertahankan via URL param yang kita set lewat history.replaceState.
+        if (res.ok) {
+            window.location.reload();
+            return;
+        }
+
+        alert('Gagal menambah sparepart. Cek validasi/server.');
+    });
+
+    input.addEventListener('input', debounceSearch);
+
+    btnClear.addEventListener('click', () => {
+        input.value = '';
+        setUrlPQ('');
+        hint.textContent = 'Minimal 2 karakter untuk mencari.';
+        renderEmpty('Belum ada hasil.');
+        input.focus();
+    });
+
+    // auto-search bila ada pq di URL
+    if ((input.value || '').trim().length >= 2) {
+        searchNow();
+    }
+})();
+</script>

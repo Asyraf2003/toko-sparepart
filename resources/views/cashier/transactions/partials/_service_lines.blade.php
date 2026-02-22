@@ -1,51 +1,94 @@
-<hr>
-<h2>Service Lines</h2>
+<div class="card mt-3">
+    <div class="card-header">
+        <h4>Service Lines</h4>
+    </div>
+    <div class="card-body">
+        <h6>Tambah Service</h6>
 
-<h3>Tambah Service</h3>
-<form method="post" action="/cashier/transactions/{{ $tx->id }}/service-lines">
-    @csrf
-    <label>Deskripsi:</label>
-    <input type="text" name="description" value="{{ old('description') }}" required>
+        <form method="post" action="{{ url('/cashier/transactions/'.$tx->id.'/service-lines') }}" class="row g-2 align-items-end">
+            @csrf
 
-    <label>Harga:</label>
-    <input type="number" name="price_manual" min="0" value="{{ old('price_manual', 0) }}" required>
+            {{-- ✅ default reason, kasir tidak perlu isi --}}
+            <input type="hidden" name="reason" value="Tambah service">
 
-    <button type="submit">Tambah</button>
-</form>
+            <div class="col-12 col-md-6">
+                <label class="form-label">Deskripsi</label>
+                <input type="text" name="description" value="{{ old('description') }}" class="form-control" required>
+            </div>
 
-@if($serviceLines->count() === 0)
-    <p>-</p>
-@else
-    <table border="1" cellpadding="6" cellspacing="0" width="100%" style="margin-top:10px;">
-        <thead>
-        <tr>
-            <th>Deskripsi</th>
-            <th>Harga</th>
-            <th>Aksi</th>
-        </tr>
-        </thead>
-        <tbody>
-        @foreach($serviceLines as $s)
-            <tr>
-                <td>{{ $s->description }}</td>
-                <td>{{ $s->price_manual }}</td>
-                <td>
-                    <form method="post" action="/cashier/transactions/{{ $tx->id }}/service-lines/{{ $s->id }}/update">
-                        @csrf
-                        <input type="text" name="description" value="{{ $s->description }}" required>
-                        <input type="number" name="price_manual" min="0" value="{{ $s->price_manual }}" required>
-                        <input type="text" name="reason" placeholder="reason" required>
-                        <button type="submit">Update</button>
-                    </form>
+            <div class="col-12 col-md-3">
+                <label class="form-label">Harga</label>
+                <input type="number" name="price_manual" min="0" value="{{ old('price_manual', 0) }}" class="form-control" required>
+            </div>
 
-                    <form method="post" action="/cashier/transactions/{{ $tx->id }}/service-lines/{{ $s->id }}/delete" style="margin-top:4px;">
-                        @csrf
-                        <input type="text" name="reason" placeholder="reason" required>
-                        <button type="submit">Hapus</button>
-                    </form>
-                </td>
-            </tr>
-        @endforeach
-        </tbody>
-    </table>
-@endif
+            <div class="col-12 col-md-auto">
+                <button type="submit" class="btn btn-outline-primary">Tambah</button>
+            </div>
+        </form>
+
+        <hr>
+
+        @if($serviceLines->count() === 0)
+            <p class="mb-0">-</p>
+        @else
+            <div class="table-responsive">
+                <table class="table table-hover table-lg">
+                    <thead>
+                    <tr>
+                        <th>Deskripsi</th>
+                        <th>Harga</th>
+                        <th>Aksi</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @foreach($serviceLines as $s)
+                        <tr>
+                            <td>{{ $s->description }}</td>
+                            <td>{{ $s->price_manual }}</td>
+                            <td style="min-width: 380px;">
+                                {{-- UPDATE --}}
+                                <form method="post"
+                                      action="{{ url('/cashier/transactions/'.$tx->id.'/service-lines/'.$s->id.'/update') }}"
+                                      class="row g-2 align-items-end">
+                                    @csrf
+
+                                    {{-- ✅ default reason --}}
+                                    <input type="hidden" name="reason" value="Update service #{{ $s->id }}">
+
+                                    <div class="col-6">
+                                        <label class="form-label">Deskripsi</label>
+                                        <input type="text" name="description" value="{{ $s->description }}" class="form-control form-control-sm" required>
+                                    </div>
+
+                                    <div class="col-3">
+                                        <label class="form-label">Harga</label>
+                                        <input type="number" name="price_manual" min="0" value="{{ $s->price_manual }}" class="form-control form-control-sm" required>
+                                    </div>
+
+                                    <div class="col-3">
+                                        <button type="submit" class="btn btn-sm btn-outline-primary w-100">Update</button>
+                                    </div>
+                                </form>
+
+                                {{-- DELETE --}}
+                                <form method="post"
+                                      action="{{ url('/cashier/transactions/'.$tx->id.'/service-lines/'.$s->id.'/delete') }}"
+                                      class="row g-2 align-items-end mt-2">
+                                    @csrf
+
+                                    {{-- ✅ default reason --}}
+                                    <input type="hidden" name="reason" value="Hapus service #{{ $s->id }}">
+
+                                    <div class="col-12">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger w-100">Hapus</button>
+                                    </div>
+                                </form>
+                            </td>
+                        </tr>
+                    @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @endif
+    </div>
+</div>

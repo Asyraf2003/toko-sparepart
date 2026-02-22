@@ -11,6 +11,17 @@
     $fmt = function (int $v): string {
         return number_format($v, 0, ',', '.');
     };
+
+    $fmtN = function (?int $v) use ($fmt): string {
+        return $v === null ? '-' : $fmt($v);
+    };
+
+    $fmtNet = function (?int $received, ?int $change) use ($fmt): string {
+        if ($received === null || $change === null) {
+            return '-';
+        }
+        return $fmt($received - $change);
+    };
 @endphp
 
 <form method="get" action="/admin/reports/sales">
@@ -91,6 +102,11 @@
         <li>Revenue Service: {{ $fmt($result->summary->serviceSubtotal) }}</li>
         <li>Rounding: {{ $fmt($result->summary->roundingAmount) }}</li>
         <li><b>Grand Total: {{ $fmt($result->summary->grandTotal) }}</b></li>
+
+        <li><b>Cash Received Total: {{ $fmt($result->summary->cashReceivedTotal) }}</b></li>
+        <li><b>Cash Change Total: {{ $fmt($result->summary->cashChangeTotal) }}</b></li>
+        <li><b>Cash Net Total: {{ $fmt($result->summary->cashNetTotal) }}</b></li>
+
         <li>COGS Total: {{ $fmt($result->summary->cogsTotal) }}</li>
         <li>Missing COGS Qty: {{ $result->summary->missingCogsQty }}</li>
     </ul>
@@ -109,6 +125,9 @@
             <th>Service</th>
             <th>Rounding</th>
             <th>Grand</th>
+            <th>Cash Received</th>
+            <th>Cash Change</th>
+            <th>Cash Net</th>
             <th>COGS</th>
             <th>Missing COGS Qty</th>
         </tr>
@@ -126,6 +145,9 @@
                 <td>{{ $fmt($r->serviceSubtotal) }}</td>
                 <td>{{ $fmt($r->roundingAmount) }}</td>
                 <td><b>{{ $fmt($r->grandTotal) }}</b></td>
+                <td>{{ $fmtN($r->cashReceived) }}</td>
+                <td>{{ $fmtN($r->cashChange) }}</td>
+                <td>{{ $fmtNet($r->cashReceived, $r->cashChange) }}</td>
                 <td>{{ $fmt($r->cogsTotal) }}</td>
                 <td>{{ $r->missingCogsQty }}</td>
             </tr>

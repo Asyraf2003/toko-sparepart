@@ -51,7 +51,7 @@ final readonly class TransactionTodayController
             ->limit(200)
             ->get($select);
 
-        return view('v2.cashier.transactions.today', [
+        return view('cashier.transactions.today', [
             'today' => $today,
             'rows' => $rows,
             'status' => $status,

@@ -1,4 +1,4 @@
-@extends('v2.shared.layouts.base')
+@extends('shared.layouts.base')
 
 @section('body')
     <div id="app">
@@ -28,7 +28,7 @@
                 <div class="sidebar-menu">
                     <ul class="menu">
                         <li class="sidebar-title">Menu</li>
-                        @include('v2.cashier.partials._sidebar_menu')
+                        @include('cashier.partials._sidebar_menu')
                     </ul>
                 </div>
             </div>
@@ -44,11 +44,11 @@
             @yield('page_heading')
 
             <div class="page-content">
-                @include('v2.shared.partials._flash')
+                @include('shared.partials._flash')
                 @yield('content')
             </div>
 
-            @include('v2.shared.partials._footer')
+            @include('shared.partials._footer')
         </div>
     </div>
 @endsection

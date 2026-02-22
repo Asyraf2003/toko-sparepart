@@ -1,6 +1,7 @@
 <?php
 
 use App\Interfaces\Web\Controllers\Cashier\CashierDashboardController;
+use App\Interfaces\Web\Controllers\Cashier\ProductSearchController;
 use App\Interfaces\Web\Controllers\Cashier\TransactionCompleteCashController;
 use App\Interfaces\Web\Controllers\Cashier\TransactionCompleteTransferController;
 use App\Interfaces\Web\Controllers\Cashier\TransactionCreateController;
@@ -9,7 +10,6 @@ use App\Interfaces\Web\Controllers\Cashier\TransactionPartLineDeleteController;
 use App\Interfaces\Web\Controllers\Cashier\TransactionPartLineStoreController;
 use App\Interfaces\Web\Controllers\Cashier\TransactionPartLineUpdateQtyController;
 use App\Interfaces\Web\Controllers\Cashier\TransactionServiceLineDeleteController;
-use App\Interfaces\Web\Controllers\Cashier\ProductSearchController;
 use App\Interfaces\Web\Controllers\Cashier\TransactionServiceLineStoreController;
 use App\Interfaces\Web\Controllers\Cashier\TransactionServiceLineUpdateController;
 use App\Interfaces\Web\Controllers\Cashier\TransactionShowController;
@@ -23,7 +23,7 @@ Route::middleware(['auth', 'role:CASHIER'])->prefix('cashier')->group(function (
 
     Route::get('/dashboard', CashierDashboardController::class);
     Route::get('/transactions/today', TransactionTodayController::class);
-    
+
     Route::post('/transactions', TransactionCreateController::class);
     Route::get('/transactions/{transactionId}', TransactionShowController::class);
     Route::get('/products/search', ProductSearchController::class);

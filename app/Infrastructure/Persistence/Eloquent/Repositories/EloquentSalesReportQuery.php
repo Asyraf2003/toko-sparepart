@@ -9,6 +9,7 @@ use App\Application\DTO\Reporting\SalesReportRow;
 use App\Application\DTO\Reporting\SalesReportSummary;
 use App\Application\Ports\Repositories\SalesReportQueryPort;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 final class EloquentSalesReportQuery implements SalesReportQueryPort
 {
@@ -56,7 +57,11 @@ final class EloquentSalesReportQuery implements SalesReportQueryPort
             $qb->where('t.created_by_user_id', $cashierUserId);
         }
 
-        $rowsDb = $qb->limit($limit)->get([
+        // kompatibilitas: kalau migration cash belum dijalankan, jangan bikin query error
+        $hasCashReceived = Schema::hasColumn('transactions', 'cash_received');
+        $hasCashChange = Schema::hasColumn('transactions', 'cash_change');
+
+        $select = [
             't.id',
             't.transaction_number',
             't.business_date',
@@ -70,7 +75,21 @@ final class EloquentSalesReportQuery implements SalesReportQueryPort
             DB::raw('(COALESCE(p.part_subtotal, 0) + COALESCE(s.service_subtotal, 0) + t.rounding_amount) AS grand_total'),
             DB::raw('COALESCE(p.part_cogs, 0) AS cogs_total'),
             DB::raw('COALESCE(p.missing_cogs_qty, 0) AS missing_cogs_qty'),
-        ]);
+        ];
+
+        if ($hasCashReceived) {
+            $select[] = 't.cash_received';
+        } else {
+            $select[] = DB::raw('NULL AS cash_received');
+        }
+
+        if ($hasCashChange) {
+            $select[] = 't.cash_change';
+        } else {
+            $select[] = DB::raw('NULL AS cash_change');
+        }
+
+        $rowsDb = $qb->limit($limit)->get($select);
 
         $rows = [];
         $sumCount = 0;
@@ -81,7 +100,14 @@ final class EloquentSalesReportQuery implements SalesReportQueryPort
         $sumCogs = 0;
         $sumMissingCogsQty = 0;
 
+        $sumCashReceived = 0;
+        $sumCashChange = 0;
+        $sumCashNet = 0;
+
         foreach ($rowsDb as $r) {
+            $cashReceived = $r->cash_received !== null ? (int) $r->cash_received : null;
+            $cashChange = $r->cash_change !== null ? (int) $r->cash_change : null;
+
             $row = new SalesReportRow(
                 id: (int) $r->id,
                 transactionNumber: (string) $r->transaction_number,
@@ -96,6 +122,8 @@ final class EloquentSalesReportQuery implements SalesReportQueryPort
                 grandTotal: (int) $r->grand_total,
                 cogsTotal: (int) $r->cogs_total,
                 missingCogsQty: (int) $r->missing_cogs_qty,
+                cashReceived: $cashReceived,
+                cashChange: $cashChange,
             );
 
             $rows[] = $row;
@@ -107,6 +135,18 @@ final class EloquentSalesReportQuery implements SalesReportQueryPort
             $sumGrand += $row->grandTotal;
             $sumCogs += $row->cogsTotal;
             $sumMissingCogsQty += $row->missingCogsQty;
+
+            if ($row->cashReceived !== null) {
+                $sumCashReceived += $row->cashReceived;
+            }
+
+            if ($row->cashChange !== null) {
+                $sumCashChange += $row->cashChange;
+            }
+
+            if ($row->cashReceived !== null && $row->cashChange !== null) {
+                $sumCashNet += ($row->cashReceived - $row->cashChange);
+            }
         }
 
         $summary = new SalesReportSummary(
@@ -117,6 +157,9 @@ final class EloquentSalesReportQuery implements SalesReportQueryPort
             grandTotal: $sumGrand,
             cogsTotal: $sumCogs,
             missingCogsQty: $sumMissingCogsQty,
+            cashReceivedTotal: $sumCashReceived,
+            cashChangeTotal: $sumCashChange,
+            cashNetTotal: $sumCashNet,
         );
 
         return new SalesReportResult(rows: $rows, summary: $summary);

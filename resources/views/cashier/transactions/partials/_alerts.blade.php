@@ -1,16 +1,16 @@
 @if (session('error'))
-    <div style="border:1px solid #999;padding:8px;margin:10px 0;">
+    <x-ui.alert type="danger">
         <b>Error:</b> {{ session('error') }}
-    </div>
+    </x-ui.alert>
 @endif
 
 @if ($errors->any())
-    <div style="border:1px solid #999;padding:8px;margin:10px 0;">
+    <x-ui.alert type="danger">
         <b>Validation:</b>
-        <ul>
+        <ul class="mb-0">
             @foreach ($errors->all() as $err)
                 <li>{{ $err }}</li>
             @endforeach
         </ul>
-    </div>
+    </x-ui.alert>
 @endif

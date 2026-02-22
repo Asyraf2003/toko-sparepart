@@ -1,4 +1,4 @@
-@extends('v2.cashier.layouts.app')
+@extends('cashier.layouts.app')
 
 @section('title', 'Kasir - Dashboard')
 

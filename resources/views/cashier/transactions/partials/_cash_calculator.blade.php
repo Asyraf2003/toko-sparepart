@@ -1,18 +1,25 @@
-<hr>
-<h3>Pembayaran CASH</h3>
+<div class="card mt-3">
+    <div class="card-header">
+        <h4>Pembayaran CASH</h4>
+    </div>
+    <div class="card-body">
+        <div>
+            <div>Grand Total: <b>{{ $grossTotal }}</b></div>
+            <div>Cash Rounded Total: <b>{{ $roundedCashTotal }}</b> (rounding: {{ $cashRoundingAmount }})</div>
+        </div>
 
-<div>
-    <div>Grand Total: <b>{{ $grossTotal }}</b></div>
-    <div>Cash Rounded Total: <b>{{ $roundedCashTotal }}</b> (rounding: {{ $cashRoundingAmount }})</div>
-</div>
+        <div class="mt-3" style="max-width: 260px;">
+            <label class="form-label">Cash diterima</label>
+            <input id="cash_received" type="number" min="0" value="0" class="form-control">
+        </div>
 
-<div style="margin-top:8px;">
-    <label>Cash diterima:</label>
-    <input id="cash_received" type="number" min="0" value="0" style="width:140px;">
-</div>
-
-<div style="margin-top:8px;">
-    <div>Kembalian (pakai rounded total): <b id="cash_change">0</b></div>
+        <div class="mt-4">
+            <div class="text-muted">Kembalian</div>
+            <div class="fw-bold" style="font-size: 42px; line-height: 1.1;">
+                <span id="cash_change">0</span>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -21,11 +28,20 @@
     var input = document.getElementById('cash_received');
     var out = document.getElementById('cash_change');
 
+    var btn = document.getElementById('btn_complete_cash_calc');
+    var hidden = document.getElementById('cash_received_hidden');
+
     function calc() {
         var received = parseInt(input.value || '0', 10);
         if (isNaN(received)) received = 0;
+
         var change = received - total;
         out.textContent = String(change);
+
+        if (hidden) hidden.value = String(received);
+
+        // enterprise UX: tidak bisa complete cash jika uang kurang
+        if (btn) btn.disabled = received < total;
     }
 
     input.addEventListener('input', calc);

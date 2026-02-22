@@ -20,5 +20,8 @@ final class SalesReportRow
         public readonly int $grandTotal,
         public readonly int $cogsTotal,
         public readonly int $missingCogsQty,
+
+        public readonly ?int $cashReceived,
+        public readonly ?int $cashChange,
     ) {}
 }
