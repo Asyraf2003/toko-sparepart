@@ -20,10 +20,20 @@ final readonly class TransactionOpenController
             return redirect('/login');
         }
 
+        // Patch fields: hanya key yang dikirim request yang akan masuk ke $fields.
+        // Jika form lain (Simpan Nota) tidak mengirim field customer, maka $fields kosong -> tidak overwrite.
+        $fields = request()->validate([
+            'customer_name' => ['nullable', 'string', 'max:255'],
+            'customer_phone' => ['nullable', 'string', 'max:255'],
+            'vehicle_plate' => ['nullable', 'string', 'max:255'],
+            'note' => ['nullable', 'string'],
+        ]);
+
         try {
             $this->useCase->handle(new OpenTransactionRequest(
                 transactionId: $transactionId,
                 actorUserId: (int) $user->id,
+                fields: $fields,
             ));
         } catch (Throwable $e) {
             return redirect('/cashier/transactions/'.$transactionId)->with('error', $e->getMessage());

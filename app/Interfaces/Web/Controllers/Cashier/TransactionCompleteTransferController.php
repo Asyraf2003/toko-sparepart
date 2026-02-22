@@ -30,6 +30,6 @@ final readonly class TransactionCompleteTransferController
             return redirect('/cashier/transactions/'.$transactionId)->with('error', $e->getMessage());
         }
 
-        return redirect('/cashier/transactions/'.$transactionId);
+        return redirect('/cashier/transactions/today');
     }
 }

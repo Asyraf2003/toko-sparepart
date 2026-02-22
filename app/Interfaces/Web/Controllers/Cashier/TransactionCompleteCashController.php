@@ -37,6 +37,6 @@ final readonly class TransactionCompleteCashController
             return redirect('/cashier/transactions/'.$transactionId)->with('error', $e->getMessage());
         }
 
-        return redirect('/cashier/transactions/'.$transactionId);
+        return redirect('/cashier/transactions/today');
     }
 }
