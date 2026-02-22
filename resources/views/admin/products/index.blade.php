@@ -10,7 +10,7 @@
     <h1>Produk dan Stok</h1>
 
     <p><a href="/admin/products/create">Tambah Produk</a></p>
-
+    @include('admin.partials._sidebar_menu')
     <form method="get" action="/admin/products">
         <label>
             Cari (SKU/Nama):
