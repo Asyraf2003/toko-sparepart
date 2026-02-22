@@ -40,7 +40,7 @@ final readonly class TransactionWorkOrderController
                 'description',
             ]);
 
-        return view('cashier.transactions.work_order', [
+        return view('v2.cashier.transactions.work_order', [
             'tx' => $tx,
             'parts' => $parts,
             'services' => $services,

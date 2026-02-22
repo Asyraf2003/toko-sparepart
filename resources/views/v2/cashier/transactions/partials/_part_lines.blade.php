@@ -15,7 +15,6 @@
                         <th>Qty</th>
                         <th>Harga</th>
                         <th>Subtotal</th>
-                        <th>COGS Frozen</th>
                         <th>Aksi</th>
                     </tr>
                     </thead>
@@ -27,33 +26,56 @@
                             <td>{{ $l->qty }}</td>
                             <td>{{ $l->unit_sell_price_frozen }}</td>
                             <td>{{ $l->line_subtotal }}</td>
-                            <td>{{ $l->unit_cogs_frozen ?? '-' }}</td>
-                            <td style="min-width: 320px;">
-                                <form method="post" action="{{ url('/cashier/transactions/'.$tx->id.'/part-lines/'.$l->id.'/qty') }}" class="row g-2 align-items-end">
-                                    @csrf
-                                    <div class="col-4">
-                                        <label class="form-label">Qty</label>
-                                        <input type="number" name="qty" min="1" value="{{ $l->qty }}" class="form-control form-control-sm" required>
-                                    </div>
-                                    <div class="col-5">
-                                        <label class="form-label">Reason</label>
-                                        <input type="text" name="reason" class="form-control form-control-sm" placeholder="reason" required>
-                                    </div>
-                                    <div class="col-3">
-                                        <button type="submit" class="btn btn-sm btn-outline-primary w-100">Update</button>
-                                    </div>
-                                </form>
+                            <td style="min-width: 240px;">
+                                <div class="d-flex align-items-center gap-2">
 
-                                <form method="post" action="{{ url('/cashier/transactions/'.$tx->id.'/part-lines/'.$l->id.'/delete') }}" class="row g-2 align-items-end mt-2">
-                                    @csrf
-                                    <div class="col-9">
-                                        <label class="form-label">Reason</label>
-                                        <input type="text" name="reason" class="form-control form-control-sm" placeholder="reason" required>
-                                    </div>
-                                    <div class="col-3">
-                                        <button type="submit" class="btn btn-sm btn-outline-danger w-100">Hapus</button>
-                                    </div>
-                                </form>
+                                    {{-- QTY --}}
+                                    <input type="number"
+                                        name="qty"
+                                        min="1"
+                                        value="{{ $l->qty }}"
+                                        class="form-control form-control-sm"
+                                        style="width: 90px;"
+                                        form="partline-qty-{{ $l->id }}"
+                                        aria-label="Qty"
+                                        required>
+
+                                    {{-- UPDATE --}}
+                                    <form id="partline-qty-{{ $l->id }}"
+                                        method="post"
+                                        action="{{ url('/cashier/transactions/'.$tx->id.'/part-lines/'.$l->id.'/qty') }}"
+                                        class="m-0 p-0">
+                                        @csrf
+                                        <input type="hidden" name="reason" value="Update qty {{ $l->sku }}">
+
+                                        <button type="submit"
+                                                class="btn btn-sm btn-warning p-0 d-flex align-items-center justify-content-center"
+                                                style="width: 30px; height: 30px;"
+                                                title="Update Qty"
+                                                aria-label="Update Qty">
+                                            <i class="bi bi-pencil-square"
+                                            style="font-size: 18px; line-height: 1;"></i>
+                                        </button>
+                                    </form>
+
+                                    {{-- DELETE --}}
+                                    <form method="post"
+                                        action="{{ url('/cashier/transactions/'.$tx->id.'/part-lines/'.$l->id.'/delete') }}"
+                                        class="m-0 p-0">
+                                        @csrf
+                                        <input type="hidden" name="reason" value="Hapus line {{ $l->sku }}">
+
+                                        <button type="submit"
+                                                class="btn btn-sm btn-danger p-0 d-flex align-items-center justify-content-center"
+                                                style="width: 30px; height: 30px;"
+                                                title="Hapus"
+                                                aria-label="Hapus">
+                                            <i class="bi bi-trash"
+                                            style="font-size: 18px; line-height: 1;"></i>
+                                        </button>
+                                    </form>
+
+                                </div>
                             </td>
                         </tr>
                     @endforeach

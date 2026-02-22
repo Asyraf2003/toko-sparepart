@@ -106,7 +106,7 @@ final readonly class TransactionShowController
                 \Illuminate\Support\Facades\DB::raw('(inventory_stocks.on_hand_qty - inventory_stocks.reserved_qty) as available_qty'),
             ]);
 
-        return view('cashier.transactions.show', [
+        return view('v2.cashier.transactions.show', [
             'today' => $today,
             'tx' => $tx,
             'partLines' => $partLines,

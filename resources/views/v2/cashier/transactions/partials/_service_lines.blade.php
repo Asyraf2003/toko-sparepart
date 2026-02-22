@@ -7,6 +7,10 @@
 
         <form method="post" action="{{ url('/cashier/transactions/'.$tx->id.'/service-lines') }}" class="row g-2 align-items-end">
             @csrf
+
+            {{-- ✅ default reason, kasir tidak perlu isi --}}
+            <input type="hidden" name="reason" value="Tambah service">
+
             <div class="col-12 col-md-6">
                 <label class="form-label">Deskripsi</label>
                 <input type="text" name="description" value="{{ old('description') }}" class="form-control" required>
@@ -42,32 +46,40 @@
                             <td>{{ $s->description }}</td>
                             <td>{{ $s->price_manual }}</td>
                             <td style="min-width: 380px;">
-                                <form method="post" action="{{ url('/cashier/transactions/'.$tx->id.'/service-lines/'.$s->id.'/update') }}" class="row g-2 align-items-end">
+                                {{-- UPDATE --}}
+                                <form method="post"
+                                      action="{{ url('/cashier/transactions/'.$tx->id.'/service-lines/'.$s->id.'/update') }}"
+                                      class="row g-2 align-items-end">
                                     @csrf
-                                    <div class="col-5">
+
+                                    {{-- ✅ default reason --}}
+                                    <input type="hidden" name="reason" value="Update service #{{ $s->id }}">
+
+                                    <div class="col-6">
                                         <label class="form-label">Deskripsi</label>
                                         <input type="text" name="description" value="{{ $s->description }}" class="form-control form-control-sm" required>
                                     </div>
+
                                     <div class="col-3">
                                         <label class="form-label">Harga</label>
                                         <input type="number" name="price_manual" min="0" value="{{ $s->price_manual }}" class="form-control form-control-sm" required>
                                     </div>
-                                    <div class="col-4">
-                                        <label class="form-label">Reason</label>
-                                        <input type="text" name="reason" class="form-control form-control-sm" placeholder="reason" required>
-                                    </div>
-                                    <div class="col-12">
-                                        <button type="submit" class="btn btn-sm btn-outline-primary">Update</button>
+
+                                    <div class="col-3">
+                                        <button type="submit" class="btn btn-sm btn-outline-primary w-100">Update</button>
                                     </div>
                                 </form>
 
-                                <form method="post" action="{{ url('/cashier/transactions/'.$tx->id.'/service-lines/'.$s->id.'/delete') }}" class="row g-2 align-items-end mt-2">
+                                {{-- DELETE --}}
+                                <form method="post"
+                                      action="{{ url('/cashier/transactions/'.$tx->id.'/service-lines/'.$s->id.'/delete') }}"
+                                      class="row g-2 align-items-end mt-2">
                                     @csrf
-                                    <div class="col-8">
-                                        <label class="form-label">Reason</label>
-                                        <input type="text" name="reason" class="form-control form-control-sm" placeholder="reason" required>
-                                    </div>
-                                    <div class="col-4">
+
+                                    {{-- ✅ default reason --}}
+                                    <input type="hidden" name="reason" value="Hapus service #{{ $s->id }}">
+
+                                    <div class="col-12">
                                         <button type="submit" class="btn btn-sm btn-outline-danger w-100">Hapus</button>
                                     </div>
                                 </form>

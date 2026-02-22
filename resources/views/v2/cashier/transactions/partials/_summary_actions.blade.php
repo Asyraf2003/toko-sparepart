@@ -7,25 +7,48 @@
             <div>Total Sparepart: {{ $partsTotal }}</div>
             <div>Total Service: {{ $serviceTotal }}</div>
             <div>Grand Total: {{ $grossTotal }}</div>
-            <div>Cash Rounded Total: {{ $roundedCashTotal }} (rounding: {{ $cashRoundingAmount }})</div>
+            <div class="d-none">Cash Rounded Total: {{ $roundedCashTotal }} (rounding: {{ $cashRoundingAmount }})</div>
         </div>
 
         @if ($tx->status !== 'VOID')
-            <div class="d-flex gap-2 flex-wrap">
-                <form method="post" action="{{ url('/cashier/transactions/'.$tx->id.'/open') }}">
+            <div class="d-flex gap-2 flex-wrap flex-md-nowrap align-items-stretch">
+
+                {{-- SIMPAN --}}
+                <form method="post"
+                    action="{{ url('/cashier/transactions/'.$tx->id.'/open') }}"
+                    class="flex-fill m-0">
                     @csrf
-                    <button type="submit" class="btn btn-outline-primary">SIMPAN OPEN (UNPAID)</button>
+                    <button type="submit"
+                            class="btn icon icon-left btn-light w-100 h-100 d-flex align-items-center justify-content-center">
+                        <i data-feather="save"></i>
+                        <span>Simpan Nota</span>
+                    </button>
                 </form>
 
-                <form method="post" action="{{ url('/cashier/transactions/'.$tx->id.'/complete-cash') }}">
+                {{-- COMPLETE CASH --}}
+                <form method="post"
+                    action="{{ url('/cashier/transactions/'.$tx->id.'/complete-cash') }}"
+                    class="flex-fill m-0">
                     @csrf
-                    <button type="submit" class="btn btn-primary">COMPLETE CASH</button>
+                    <button type="submit"
+                            class="btn icon icon-left btn-success w-100 h-100 d-flex align-items-center justify-content-center">
+                        <i data-feather="dollar-sign"></i>
+                        <span>Complete Cash</span>
+                    </button>
                 </form>
 
-                <form method="post" action="{{ url('/cashier/transactions/'.$tx->id.'/complete-transfer') }}">
+                {{-- COMPLETE TRANSFER --}}
+                <form method="post"
+                    action="{{ url('/cashier/transactions/'.$tx->id.'/complete-transfer') }}"
+                    class="flex-fill m-0">
                     @csrf
-                    <button type="submit" class="btn btn-primary">COMPLETE TRANSFER</button>
+                    <button type="submit"
+                            class="btn icon icon-left btn-info w-100 h-100 d-flex align-items-center justify-content-center">
+                        <i data-feather="credit-card"></i>
+                        <span>Complete Transfer</span>
+                    </button>
                 </form>
+
             </div>
 
             <form method="post" action="{{ url('/cashier/transactions/'.$tx->id.'/void') }}" class="mt-3 row g-2 align-items-end">

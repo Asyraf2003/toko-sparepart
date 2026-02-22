@@ -8,13 +8,16 @@
             <div>Cash Rounded Total: <b>{{ $roundedCashTotal }}</b> (rounding: {{ $cashRoundingAmount }})</div>
         </div>
 
-        <div class="mt-3" style="max-width: 220px;">
+        <div class="mt-3" style="max-width: 260px;">
             <label class="form-label">Cash diterima</label>
             <input id="cash_received" type="number" min="0" value="0" class="form-control">
         </div>
 
-        <div class="mt-3">
-            <div>Kembalian (pakai rounded total): <b id="cash_change">0</b></div>
+        <div class="mt-4">
+            <div class="text-muted">Kembalian</div>
+            <div class="fw-bold" style="font-size: 42px; line-height: 1.1;">
+                <span id="cash_change">0</span>
+            </div>
         </div>
     </div>
 </div>
