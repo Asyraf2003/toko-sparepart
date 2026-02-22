@@ -1,5 +1,8 @@
 <?php
 
+declare(strict_types=1);
+
+use App\Interfaces\Web\Controllers\Admin\AdminDashboardController;
 use App\Interfaces\Web\Controllers\Admin\AuditLogIndexController;
 use App\Interfaces\Web\Controllers\Admin\AuditLogShowController;
 use App\Interfaces\Web\Controllers\Admin\EmployeeCreateController;
@@ -34,37 +37,38 @@ use App\Interfaces\Web\Controllers\Admin\StockReportIndexController;
 use App\Interfaces\Web\Controllers\Admin\StockReportPdfController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth', 'role:ADMIN'])->prefix('admin')->group(function () {
-    Route::get('/', fn () => redirect('/admin/products'));
+Route::middleware(['auth', 'role:ADMIN'])->prefix('admin')->group(function (): void {
+    Route::get('/', AdminDashboardController::class);
 
-    Route::get('/products', ProductStockIndexController::class);
-    Route::get('/products/create', ProductCreateController::class);
-    Route::post('/products', ProductStoreController::class);
-
-    Route::get('/products/{productId}/edit', ProductEditController::class);
-    Route::post('/products/{productId}', ProductUpdateController::class);
-    Route::post('/products/{productId}/selling-price', ProductSetPriceController::class);
-    Route::post('/products/{productId}/min-threshold', ProductSetThresholdController::class);
-    Route::post('/products/{productId}/adjust-stock', ProductAdjustStockController::class);
-
-    Route::get('/purchases', PurchaseInvoiceIndexController::class);
-    Route::get('/purchases/create', PurchaseInvoiceCreateController::class);
-    Route::post('/purchases', PurchaseInvoiceStoreController::class);
+    Route::get('/audit-logs', AuditLogIndexController::class);
+    Route::get('/audit-logs/{auditLogId}', AuditLogShowController::class);
 
     Route::get('/employees', EmployeeIndexController::class);
-    Route::get('/employees/create', EmployeeCreateController::class);
     Route::post('/employees', EmployeeStoreController::class);
-
+    Route::get('/employees/create', EmployeeCreateController::class);
     Route::get('/employees/{employeeId}/loans/create', EmployeeLoanCreateController::class);
     Route::post('/employees/{employeeId}/loans', EmployeeLoanStoreController::class);
 
     Route::get('/expenses', ExpenseIndexController::class);
-    Route::get('/expenses/create', ExpenseCreateController::class);
     Route::post('/expenses', ExpenseStoreController::class);
+    Route::get('/expenses/create', ExpenseCreateController::class);
 
     Route::get('/payroll', PayrollPeriodIndexController::class);
-    Route::get('/payroll/create', PayrollPeriodCreateController::class);
     Route::post('/payroll', PayrollPeriodStoreController::class);
+    Route::get('/payroll/create', PayrollPeriodCreateController::class);
+
+    Route::get('/products', ProductStockIndexController::class);
+    Route::post('/products', ProductStoreController::class);
+    Route::get('/products/create', ProductCreateController::class);
+    Route::get('/products/{productId}/edit', ProductEditController::class);
+    Route::post('/products/{productId}', ProductUpdateController::class);
+    Route::post('/products/{productId}/adjust-stock', ProductAdjustStockController::class);
+    Route::post('/products/{productId}/min-threshold', ProductSetThresholdController::class);
+    Route::post('/products/{productId}/selling-price', ProductSetPriceController::class);
+
+    Route::get('/purchases', PurchaseInvoiceIndexController::class);
+    Route::post('/purchases', PurchaseInvoiceStoreController::class);
+    Route::get('/purchases/create', PurchaseInvoiceCreateController::class);
 
     Route::get('/reports/sales', SalesReportIndexController::class);
     Route::get('/reports/sales/pdf', SalesReportPdfController::class);
@@ -77,7 +81,4 @@ Route::middleware(['auth', 'role:ADMIN'])->prefix('admin')->group(function () {
 
     Route::get('/reports/profit', ProfitReportIndexController::class);
     Route::get('/reports/profit/pdf', ProfitReportPdfController::class);
-
-    Route::get('/audit-logs', AuditLogIndexController::class);
-    Route::get('/audit-logs/{auditLogId}', AuditLogShowController::class);
 });

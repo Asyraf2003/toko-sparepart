@@ -21,7 +21,7 @@ final readonly class ProductSearchController
 
         // ===== JSON mode (dipertahankan untuk kompatibilitas) =====
         if (request()->expectsJson()) {
-            if (!$canSearch) {
+            if (! $canSearch) {
                 return response()->json(['items' => []]);
             }
 
