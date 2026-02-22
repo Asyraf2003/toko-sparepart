@@ -80,7 +80,7 @@ final readonly class TransactionShowController
         $serviceTotal = (int) \DB::table('transaction_service_lines')->where('transaction_id', $tx->id)->sum('price_manual');
         $grossTotal = $partsTotal + $serviceTotal;
 
-        $roundedCashTotal = (int) (round($grossTotal / 1000) * 1000);
+        $roundedCashTotal = (int) (round($grossTotal / 1000, 0, PHP_ROUND_HALF_UP) * 1000);
         $cashRoundingAmount = $roundedCashTotal - $grossTotal;
 
         $pq = trim((string) request()->query('pq', ''));

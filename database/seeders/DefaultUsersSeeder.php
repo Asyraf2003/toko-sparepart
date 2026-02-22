@@ -13,7 +13,7 @@ final class DefaultUsersSeeder extends Seeder
     public function run(): void
     {
         User::updateOrCreate(
-            ['email' => 'admin@local.test'],
+            ['email' => 'a@a.a'],
             [
                 'name' => 'Admin',
                 'role' => User::ROLE_ADMIN,
@@ -22,7 +22,7 @@ final class DefaultUsersSeeder extends Seeder
         );
 
         User::updateOrCreate(
-            ['email' => 'cashier@local.test'],
+            ['email' => 'c@c.c'],
             [
                 'name' => 'Cashier',
                 'role' => User::ROLE_CASHIER,

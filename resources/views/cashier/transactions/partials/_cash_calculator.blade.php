@@ -28,9 +28,6 @@
     var input = document.getElementById('cash_received');
     var out = document.getElementById('cash_change');
 
-    var btn = document.getElementById('btn_complete_cash_calc');
-    var hidden = document.getElementById('cash_received_hidden');
-
     function calc() {
         var received = parseInt(input.value || '0', 10);
         if (isNaN(received)) received = 0;
@@ -38,13 +35,14 @@
         var change = received - total;
         out.textContent = String(change);
 
+        var hidden = document.getElementById('cash_received_hidden');
         if (hidden) hidden.value = String(received);
 
-        // enterprise UX: tidak bisa complete cash jika uang kurang
+        var btn = document.getElementById('btn_complete_cash_calc');
         if (btn) btn.disabled = received < total;
     }
 
     input.addEventListener('input', calc);
-    calc();
+    document.addEventListener('DOMContentLoaded', calc);
 })();
 </script>
