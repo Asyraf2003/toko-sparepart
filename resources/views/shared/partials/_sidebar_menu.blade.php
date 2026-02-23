@@ -147,7 +147,7 @@
             'title' => 'AKUN',
             'items' => [
                 [
-                    'kind' => 'Keluar',
+                    'kind' => 'logout',
                     'label' => 'Keluar',
                     'url' => url('/logout'),
                     'icon' => 'bi bi-box-arrow-right',

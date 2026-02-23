@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="utf-8">
-    <title>Profit Report</title>
+    <title>Laporan Laba</title>
     <style>
         @page { size: A4 landscape; margin: 14mm 12mm; }
 
@@ -61,45 +61,45 @@
 @endphp
 
 <div class="header">
-    <h1>Profit Report</h1>
-    <div class="muted">APP KASIR · Laporan Profit</div>
+    <h1>Laporan Laba</h1>
+    <div class="muted">APP KASIR · Laporan Laba</div>
 </div>
 
 <div class="meta">
     <table class="meta-grid">
-        <tr><td>Generated at</td><td>: <b>{{ $generated_at }}</b></td></tr>
+        <tr><td>Dibuat pada</td><td>: <b>{{ $generated_at }}</b></td></tr>
         <tr><td>Periode</td><td>: <b>{{ $filters['from'] }}</b> s/d <b>{{ $filters['to'] }}</b></td></tr>
-        <tr><td>Granularity</td><td>: <span class="badge">{{ $filters['granularity'] }}</span></td></tr>
+        <tr><td>Granularitas</td><td>: <span class="badge">{{ $filters['granularity'] }}</span></td></tr>
     </table>
 </div>
 
 <h2>Ringkasan</h2>
 <table class="summary-grid">
-    <tr><td class="label">Revenue Part</td><td class="val">{{ $fmt($result->summary->revenuePart) }}</td></tr>
-    <tr><td class="label">Revenue Service</td><td class="val">{{ $fmt($result->summary->revenueService) }}</td></tr>
-    <tr><td class="label">Rounding</td><td class="val">{{ $fmt($result->summary->roundingAmount) }}</td></tr>
-    <tr class="total"><td class="label">Revenue Total</td><td class="val">{{ $fmt($result->summary->revenueTotal) }}</td></tr>
-    <tr><td class="label">COGS Total</td><td class="val">{{ $fmt($result->summary->cogsTotal) }}</td></tr>
-    <tr><td class="label">Expenses Total</td><td class="val">{{ $fmt($result->summary->expensesTotal) }}</td></tr>
-    <tr><td class="label">Payroll Gross</td><td class="val">{{ $fmt($result->summary->payrollGross) }}</td></tr>
-    <tr class="total"><td class="label">Net Profit</td><td class="val">{{ $fmt($result->summary->netProfit) }}</td></tr>
-    <tr><td class="label">Missing COGS Qty</td><td class="val">{{ $result->summary->missingCogsQty }}</td></tr>
+    <tr><td class="label">Pendapatan Part</td><td class="val">{{ $fmt($result->summary->revenuePart) }}</td></tr>
+    <tr><td class="label">Pendapatan Jasa</td><td class="val">{{ $fmt($result->summary->revenueService) }}</td></tr>
+    <tr><td class="label">Pembulatan</td><td class="val">{{ $fmt($result->summary->roundingAmount) }}</td></tr>
+    <tr class="total"><td class="label">Total Pendapatan</td><td class="val">{{ $fmt($result->summary->revenueTotal) }}</td></tr>
+    <tr><td class="label">Total HPP</td><td class="val">{{ $fmt($result->summary->cogsTotal) }}</td></tr>
+    <tr><td class="label">Total Operasional</td><td class="val">{{ $fmt($result->summary->expensesTotal) }}</td></tr>
+    <tr><td class="label">Total Payroll (Kotor)</td><td class="val">{{ $fmt($result->summary->payrollGross) }}</td></tr>
+    <tr class="total"><td class="label">Laba Bersih</td><td class="val">{{ $fmt($result->summary->netProfit) }}</td></tr>
+    <tr><td class="label">Qty HPP Hilang</td><td class="val">{{ $result->summary->missingCogsQty }}</td></tr>
 </table>
 
 <h2>Detail ({{ $result->granularity }})</h2>
 <table class="report">
     <thead>
     <tr>
-        <th style="width: 14%;">Period</th>
+        <th style="width: 14%;">Periode</th>
         <th class="num" style="width: 9%;">Part</th>
-        <th class="num" style="width: 9%;">Service</th>
-        <th class="num" style="width: 7%;">Round</th>
-        <th class="num" style="width: 10%;">Revenue</th>
-        <th class="num" style="width: 9%;">COGS</th>
-        <th class="num" style="width: 9%;">Expenses</th>
+        <th class="num" style="width: 9%;">Jasa</th>
+        <th class="num" style="width: 7%;">Pembulatan</th>
+        <th class="num" style="width: 10%;">Pendapatan</th>
+        <th class="num" style="width: 9%;">HPP</th>
+        <th class="num" style="width: 9%;">Operasional</th>
         <th class="num" style="width: 9%;">Payroll</th>
-        <th class="num" style="width: 10%;">Net</th>
-        <th class="num" style="width: 4%;">Miss</th>
+        <th class="num" style="width: 10%;">Bersih</th>
+        <th class="num" style="width: 4%;">Hilang</th>
     </tr>
     </thead>
     <tbody>
@@ -120,6 +120,6 @@
     </tbody>
 </table>
 
-<div class="footer">Dicetak dari APP KASIR · Profit Report</div>
+<div class="footer">Dicetak dari APP KASIR · Laporan Laba</div>
 </body>
 </html>

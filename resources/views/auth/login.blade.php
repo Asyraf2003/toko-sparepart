@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Mazer Admin Dashboard</title>
+    <title>Masuk - Dashboard Arbicon</title>
     
     <link rel="shortcut icon" href="{{ asset('assets/compiled/svg/favicon.svg') }}" type="image/x-icon">
     <link rel="stylesheet" href="{{ asset('assets/compiled/css/app.css') }}">
@@ -32,7 +32,7 @@
                     <div class="auth-logo">
                         <a href="/"><img src="{{ asset('assets/compiled/svg/logo.svg') }}" alt="Logo"></a>
                     </div>
-                    <h1 class="auth-title" style="font-size: 2.5rem;">Log in.</h1>
+                    <h1 class="auth-title" style="font-size: 2.5rem;">Masuk.</h1>
                     <p class="auth-subtitle mb-5">Masuk dengan data yang Anda gunakan saat registrasi.</p>
 
                     @if ($errors->any())
@@ -58,7 +58,7 @@
 
                         <div class="form-group position-relative has-icon-left mb-4">
                             <input type="password" name="password" class="form-control form-control-xl" 
-                                   placeholder="Password" required>
+                                   placeholder="Kata Sandi" required>
                             <div class="form-control-icon">
                                 <i class="bi bi-shield-lock"></i>
                             </div>

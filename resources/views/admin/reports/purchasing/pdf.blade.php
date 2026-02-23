@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="utf-8">
-    <title>Purchasing Report</title>
+    <title>Laporan Pembelian</title>
     <style>
         @page { margin: 18mm 14mm; }
         body { font-family: DejaVu Sans, system-ui, -apple-system, Segoe UI, Roboto, sans-serif; font-size: 12px; color: #111827; }
@@ -35,25 +35,25 @@
 @endphp
 
 <div class="header">
-    <h1>Purchasing Report</h1>
+    <h1>Laporan Pembelian</h1>
     <div class="muted">APP KASIR · Laporan Pembelian Supplier</div>
 </div>
 
 <div class="meta">
     <table class="meta-grid">
-        <tr><td>Generated at</td><td>: <b>{{ $generated_at }}</b></td></tr>
+        <tr><td>Dibuat pada</td><td>: <b>{{ $generated_at }}</b></td></tr>
         <tr><td>Periode</td><td>: <b>{{ $filters['from'] }}</b> s/d <b>{{ $filters['to'] }}</b></td></tr>
-        <tr><td>No Faktur</td><td>: <span class="badge">{{ $filters['no_faktur'] ?? '(all)' }}</span></td></tr>
+        <tr><td>No Faktur</td><td>: <span class="badge">{{ $filters['no_faktur'] ?? '(semua)' }}</span></td></tr>
     </table>
 </div>
 
 <h2>Ringkasan</h2>
 <table class="summary-grid">
-    <tr><td class="label">Count</td><td class="val">{{ $result->summary->count }}</td></tr>
+    <tr><td class="label">Jumlah</td><td class="val">{{ $result->summary->count }}</td></tr>
     <tr><td class="label">Total Bruto</td><td class="val">{{ $fmt($result->summary->totalBruto) }}</td></tr>
     <tr><td class="label">Total Diskon</td><td class="val">{{ $fmt($result->summary->totalDiskon) }}</td></tr>
     <tr><td class="label">Total Pajak</td><td class="val">{{ $fmt($result->summary->totalPajak) }}</td></tr>
-    <tr class="total"><td class="label">Grand Total</td><td class="val">{{ $fmt($result->summary->grandTotal) }}</td></tr>
+    <tr class="total"><td class="label">Total Akhir</td><td class="val">{{ $fmt($result->summary->grandTotal) }}</td></tr>
 </table>
 
 <h2>Detail</h2>
@@ -66,7 +66,7 @@
         <th class="num">Total Bruto</th>
         <th class="num">Total Diskon</th>
         <th class="num">Total Pajak</th>
-        <th class="num">Grand Total</th>
+        <th class="num">Total Akhir</th>
     </tr>
     </thead>
     <tbody>
@@ -85,7 +85,7 @@
 </table>
 
 <div class="footer">
-    Dicetak dari APP KASIR · Purchasing Report
+    Dicetak dari APP KASIR · Laporan Pembelian
 </div>
 
 </body>

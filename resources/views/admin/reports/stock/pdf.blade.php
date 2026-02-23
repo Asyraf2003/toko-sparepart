@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="utf-8">
-    <title>Stock Report</title>
+    <title>Laporan Stok</title>
     <style>
         @page { size: A4 portrait; margin: 14mm 12mm; }
 
@@ -53,18 +53,18 @@
 </head>
 <body>
 <div class="header">
-    <h1>Stock Report</h1>
+    <h1>Laporan Stok</h1>
     <div class="muted">APP KASIR · Laporan Stok</div>
 </div>
 
 <div class="meta">
     <table class="meta-grid">
-        <tr><td>Generated at</td><td>: <b>{{ $generated_at }}</b></td></tr>
+        <tr><td>Dibuat pada</td><td>: <b>{{ $generated_at }}</b></td></tr>
         <tr>
             <td>Filter</td>
             <td>:
                 <span class="badge">q={{ $filters['q'] ?? '' }}</span>
-                <span class="badge">only_active={{ $filters['only_active'] ?? '1' }}</span>
+                <span class="badge">hanya_aktif={{ $filters['only_active'] ?? '1' }}</span>
             </td>
         </tr>
     </table>
@@ -72,8 +72,8 @@
 
 <h2>Ringkasan</h2>
 <table class="summary-grid">
-    <tr><td class="label">Count</td><td class="val">{{ $result->summary->count }}</td></tr>
-    <tr><td class="label">Low Stock Count (available &lt;= threshold)</td><td class="val">{{ $result->summary->lowStockCount }}</td></tr>
+    <tr><td class="label">Jumlah</td><td class="val">{{ $result->summary->count }}</td></tr>
+    <tr><td class="label">Jumlah Stok Menipis (tersedia &lt;= ambang)</td><td class="val">{{ $result->summary->lowStockCount }}</td></tr>
 </table>
 
 <h2>Detail</h2>
@@ -82,12 +82,12 @@
     <tr>
         <th style="width: 16%;">SKU</th>
         <th style="width: 30%;">Nama</th>
-        <th style="width: 8%;">Act</th>
-        <th class="num" style="width: 10%;">Thr</th>
-        <th class="num" style="width: 10%;">On</th>
-        <th class="num" style="width: 10%;">Res</th>
-        <th class="num" style="width: 10%;">Avail</th>
-        <th style="width: 6%;">Low</th>
+        <th style="width: 8%;">Akt</th>
+        <th class="num" style="width: 10%;">Amb</th>
+        <th class="num" style="width: 10%;">Tangan</th>
+        <th class="num" style="width: 10%;">Cad</th>
+        <th class="num" style="width: 10%;">Ters</th>
+        <th style="width: 6%;">Min</th>
     </tr>
     </thead>
     <tbody>
@@ -95,17 +95,17 @@
         <tr>
             <td><b>{{ $r->sku }}</b></td>
             <td>{{ $r->name }}</td>
-            <td>{{ $r->isActive ? 'Y' : 'N' }}</td>
+            <td>{{ $r->isActive ? 'YA' : 'TIDAK' }}</td>
             <td class="num">{{ $r->minStockThreshold }}</td>
             <td class="num">{{ $r->onHandQty }}</td>
             <td class="num">{{ $r->reservedQty }}</td>
             <td class="num"><b>{{ $r->availableQty }}</b></td>
-            <td>{{ $r->isLowStock ? 'Y' : 'N' }}</td>
+            <td>{{ $r->isLowStock ? 'YA' : 'TIDAK' }}</td>
         </tr>
     @endforeach
     </tbody>
 </table>
 
-<div class="footer">Dicetak dari APP KASIR · Stock Report</div>
+<div class="footer">Dicetak dari APP KASIR · Laporan Stok</div>
 </body>
 </html>
