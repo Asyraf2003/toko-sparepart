@@ -18,12 +18,12 @@
 @section('content')
     <div class="alert alert-warning">
         <div class="fw-bold">Catatan Kebijakan</div>
-        <div>Edit hanya untuk <span class="fw-semibold">header</span> (metadata). Line (qty/unit_cost/diskon) tidak diedit agar stok & avg_cost tetap konsisten.</div>
+        <div>Edit hanya untuk <span class="fw-semibold">header</span> (metadata). Baris (qty/harga_satuan/diskon) tidak diedit agar stok & avg_cost tetap konsisten.</div>
     </div>
 
     @if ($errors->any())
         <div class="alert alert-danger">
-            <div class="fw-bold mb-2">Validasi error</div>
+            <div class="fw-bold mb-2">Terjadi kesalahan validasi</div>
             <ul class="mb-0">
                 @foreach ($errors->all() as $e)
                     <li>{{ $e }}</li>
@@ -39,7 +39,7 @@
 
                 <div class="row g-3">
                     <div class="col-12 col-md-6">
-                        <label class="form-label">Supplier Name</label>
+                        <label class="form-label">Nama Supplier</label>
                         <input class="form-control" type="text" name="supplier_name" value="{{ old('supplier_name', $invoice->supplier_name) }}">
                     </div>
 
@@ -69,7 +69,7 @@
                     </div>
 
                     <div class="col-12 col-md-6">
-                        <label class="form-label">Note (opsional)</label>
+                        <label class="form-label">Catatan (opsional)</label>
                         <input class="form-control" type="text" name="note" value="{{ old('note', $invoice->note) }}">
                     </div>
 

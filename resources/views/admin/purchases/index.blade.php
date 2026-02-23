@@ -67,7 +67,7 @@
                         <th class="text-end">Bruto</th>
                         <th class="text-end">Diskon</th>
                         <th class="text-end">Pajak</th>
-                        <th class="text-end">Grand Total</th>
+                        <th class="text-end">Total Akhir</th>
                         <th style="width: 110px;">Aksi</th>
                     </tr>
                     </thead>

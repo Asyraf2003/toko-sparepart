@@ -19,7 +19,7 @@
 @section('content')
     @if ($errors->any())
         <div class="alert alert-danger">
-            <div class="fw-bold mb-2">Validasi error</div>
+            <div class="fw-bold mb-2">Terjadi kesalahan validasi</div>
             <ul class="mb-0">
                 @foreach ($errors->all() as $e)
                     <li>{{ $e }}</li>
@@ -40,7 +40,7 @@
 
                         <div class="row g-3">
                             <div class="col-12 col-md-6">
-                                <label class="form-label">Supplier Name</label>
+                                <label class="form-label">Nama Supplier</label>
                                 <input class="form-control" type="text" name="supplier_name" value="{{ old('supplier_name') }}">
                             </div>
 
@@ -70,13 +70,13 @@
                             </div>
 
                             <div class="col-12 col-md-6">
-                                <label class="form-label">Total Pajak (Rupiah integer, header-level)</label>
+                                <label class="form-label">Total Pajak (rupiah integer, level header)</label>
                                 <input class="form-control" type="number" name="total_pajak" min="0" step="1"
                                        value="{{ old('total_pajak', '0') }}">
                             </div>
 
                             <div class="col-12">
-                                <label class="form-label">Note (opsional)</label>
+                                <label class="form-label">Catatan (opsional)</label>
                                 <input class="form-control" type="text" name="note" value="{{ old('note') }}">
                             </div>
                         </div>
@@ -88,15 +88,15 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
-                        <div class="fw-bold mb-2">Lines (isi minimal 1)</div>
+                        <div class="fw-bold mb-2">Baris (isi minimal 1)</div>
 
                         <div class="table-responsive">
                             <table class="table table-striped table-hover align-middle mb-0">
                                 <thead>
                                 <tr>
-                                    <th style="min-width: 320px;">Product</th>
+                                    <th style="min-width: 320px;">Produk</th>
                                     <th style="width: 120px;" class="text-end">Qty</th>
-                                    <th style="width: 180px;" class="text-end">Unit Cost</th>
+                                    <th style="width: 180px;" class="text-end">Harga Satuan</th>
                                     <th style="width: 160px;" class="text-end">Diskon (%)</th>
                                 </tr>
                                 </thead>

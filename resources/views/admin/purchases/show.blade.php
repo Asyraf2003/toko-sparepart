@@ -43,7 +43,7 @@
                             <tr><th>Kepada</th><td>{{ $invoice->kepada ?? '-' }}</td></tr>
                             <tr><th>No Pesanan</th><td>{{ $invoice->no_pesanan ?? '-' }}</td></tr>
                             <tr><th>Nama Sales</th><td>{{ $invoice->nama_sales ?? '-' }}</td></tr>
-                            <tr><th>Note</th><td>{{ $invoice->note ?? '-' }}</td></tr>
+                            <tr><th>Catatan</th><td>{{ $invoice->note ?? '-' }}</td></tr>
                             <tr><th>Dibuat</th><td>{{ $invoice->created_at }} · {{ $createdBy }}</td></tr>
                             </tbody>
                         </table>
@@ -62,7 +62,7 @@
                             <tr><th style="width:180px;">Bruto</th><td class="text-end">{{ $fmt($invoice->total_bruto) }}</td></tr>
                             <tr><th>Diskon</th><td class="text-end">{{ $fmt($invoice->total_diskon) }}</td></tr>
                             <tr><th>Pajak</th><td class="text-end">{{ $fmt($invoice->total_pajak) }}</td></tr>
-                            <tr><th>Grand Total</th><td class="text-end fw-semibold">{{ $fmt($invoice->grand_total) }}</td></tr>
+                            <tr><th>Total Akhir</th><td class="text-end fw-semibold">{{ $fmt($invoice->grand_total) }}</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -74,7 +74,7 @@
         <div class="col-12 col-lg-7">
             <div class="card">
                 <div class="card-body">
-                    <div class="fw-bold mb-2">Lines</div>
+                    <div class="fw-bold mb-2">Baris</div>
 
                     <div class="table-responsive">
                         <table class="table table-striped table-hover align-middle mb-0">
@@ -83,9 +83,9 @@
                                 <th style="width:90px;">SKU</th>
                                 <th>Nama</th>
                                 <th class="text-end" style="width:90px;">Qty</th>
-                                <th class="text-end" style="width:150px;">Unit Cost</th>
+                                <th class="text-end" style="width:150px;">Harga Satuan</th>
                                 <th class="text-end" style="width:120px;">Diskon (%)</th>
-                                <th class="text-end" style="width:160px;">Line Total</th>
+                                <th class="text-end" style="width:160px;">Total Baris</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -103,7 +103,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="text-muted">Tidak ada line</td>
+                                    <td colspan="6" class="text-muted">Tidak ada baris</td>
                                 </tr>
                             @endforelse
                             </tbody>
@@ -111,7 +111,7 @@
                     </div>
 
                     <div class="text-muted mt-2">
-                        Catatan: pajak disimpan di header (total_pajak). Alokasi pajak per-line tidak disimpan.
+                        Catatan: pajak disimpan di header (total_pajak). Alokasi pajak per-baris tidak disimpan.
                     </div>
                 </div>
             </div>

@@ -55,11 +55,11 @@
                         <th>SKU</th>
                         <th>Nama</th>
                         <th class="text-end">Harga</th>
-                        <th class="text-end">On Hand</th>
-                        <th class="text-end">Reserved</th>
-                        <th class="text-end">Available</th>
+                        <th class="text-end">Stok Di Tangan</th>
+                        <th class="text-end">Dicadangkan</th>
+                        <th class="text-end">Tersedia</th>
                         <th class="text-end">Min</th>
-                        <th>Low?</th>
+                        <th>Stok Menipis?</th>
                         <th style="width: 110px;">Aksi</th>
                     </tr>
                     </thead>
@@ -79,9 +79,9 @@
                             <td class="text-end">{{ $r->minStockThreshold }}</td>
                             <td>
                                 @if ($r->isLowStock())
-                                    <span class="badge bg-danger">YES</span>
+                                    <span class="badge bg-danger">YA</span>
                                 @else
-                                    <span class="badge bg-success">NO</span>
+                                    <span class="badge bg-success">TIDAK</span>
                                 @endif
                             </td>
                             <td>
