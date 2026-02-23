@@ -33,7 +33,7 @@
                         <a href="/"><img src="{{ asset('assets/compiled/svg/logo.svg') }}" alt="Logo"></a>
                     </div>
                     <h1 class="auth-title" style="font-size: 2.5rem;">Masuk.</h1>
-                    <p class="auth-subtitle mb-5">Masuk dengan data yang Anda gunakan saat registrasi.</p>
+                    <p class="auth-subtitle mb-5">Selamat datang di dashboard arbicon</p>
 
                     @if ($errors->any())
                         <div class="alert alert-danger shadow-sm">
@@ -73,14 +73,6 @@
 
                         <button type="submit" class="btn btn-primary btn-block btn-lg shadow-lg mt-5">Masuk</button>
                     </form>
-
-                    <div class="mt-5 text-center">
-                        <div class="p-3 border rounded bg-light">
-                            <small class="text-muted d-block mb-1"><strong>Data Login Audit:</strong></small>
-                            <code class="d-block">Admin: a@a.a / 12345678</code>
-                            <code class="d-block">Kasir: c@c.c / 12345678</code>
-                        </div>
-                    </div>
                 </div>
             </div>
             
