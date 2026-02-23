@@ -1,12 +1,12 @@
 @extends('shared.layouts.base')
 
-@section('title', 'Work Order')
+@section('title', 'Surat Perintah Kerja')
 
 @section('body')
     <div class="container" style="max-width: 800px; margin: 20px auto;">
         <div class="card">
             <div class="card-body">
-                <h3 class="mb-3">WORK ORDER</h3>
+                <h3 class="mb-3">SURAT PERINTAH KERJA</h3>
 
                 <div>No: <b>{{ $tx->transaction_number }}</b></div>
                 <div>Tanggal: {{ $tx->business_date }}</div>
@@ -14,14 +14,14 @@
 
                 <hr>
 
-                <h5>Customer</h5>
+                <h5>Pelanggan</h5>
                 <div>Nama: {{ $tx->customer_name ?? '-' }}</div>
                 <div>HP: {{ $tx->customer_phone ?? '-' }}</div>
                 <div>No Polisi: {{ $tx->vehicle_plate ?? '-' }}</div>
 
                 <hr>
 
-                <h5>Service</h5>
+                <h5>Jasa</h5>
                 @if($services->count() === 0)
                     <p class="mb-0">-</p>
                 @else
@@ -34,7 +34,7 @@
 
                 <hr>
 
-                <h5>Sparepart (dipakai/ditahan)</h5>
+                <h5>Suku Cadang (dipakai/ditahan)</h5>
                 @if($parts->count() === 0)
                     <p class="mb-0">-</p>
                 @else
@@ -44,7 +44,7 @@
                             <tr>
                                 <th>SKU</th>
                                 <th>Nama</th>
-                                <th>Qty</th>
+                                <th>Jumlah</th>
                             </tr>
                             </thead>
                             <tbody>

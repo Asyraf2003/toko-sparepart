@@ -182,7 +182,7 @@
                 ],
                 [
                     'kind' => 'logout',
-                    'label' => 'Logout',
+                    'label' => 'Keluar',
                     'url' => url('/logout'),
                     'icon' => 'bi bi-box-arrow-right',
                 ],

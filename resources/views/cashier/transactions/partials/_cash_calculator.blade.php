@@ -29,14 +29,14 @@
 
             <div>
                 <div>Total: <b><x-ui.rupiah :value="$roundedCashTotal" /></b></div>
-                <div>Rounding: <x-ui.rupiah :value="$cashRoundingAmount" /></div>
+                <div>Pembulatan: <x-ui.rupiah :value="$cashRoundingAmount" /></div>
             </div>
 
             @if ($paymentMethod === 'CASH')
                 <hr>
-                <div>Cash diterima: <b><x-ui.rupiah :value="$cashReceived" /></b></div>
+                <div>Tunai diterima: <b><x-ui.rupiah :value="$cashReceived" /></b></div>
                 <div>Kembalian: <b><x-ui.rupiah :value="$cashChange" /></b></div>
-                <div>Net Cash: <b><x-ui.rupiah :value="$netCash" /></b></div>
+                <div>Tunai bersih: <b><x-ui.rupiah :value="$netCash" /></b></div>
             @endif
 
             <div class="mt-2 text-muted" style="font-size: 12px;">
@@ -49,10 +49,10 @@
             </div>
 
             <div>
-                <div>Grand Total: <b><x-ui.rupiah :value="$grossTotal" /></b></div>
+                <div>Total Akhir: <b><x-ui.rupiah :value="$grossTotal" /></b></div>
                 <div>
-                    Cash Rounded Total: <b><x-ui.rupiah :value="$roundedCashTotal" /></b>
-                    (rounding: <x-ui.rupiah :value="$cashRoundingAmount" />)
+                    Total Tunai Setelah Pembulatan: <b><x-ui.rupiah :value="$roundedCashTotal" /></b>
+                    (pembulatan: <x-ui.rupiah :value="$cashRoundingAmount" />)
                 </div>
             </div>
 
@@ -62,15 +62,15 @@
 
         @else
             <div>
-                <div>Grand Total: <b><x-ui.rupiah :value="$grossTotal" /></b></div>
+                <div>Total Akhir: <b><x-ui.rupiah :value="$grossTotal" /></b></div>
                 <div>
-                    Cash Rounded Total: <b><x-ui.rupiah :value="$roundedCashTotal" /></b>
-                    (rounding: <x-ui.rupiah :value="$cashRoundingAmount" />)
+                    Total Tunai Setelah Pembulatan: <b><x-ui.rupiah :value="$roundedCashTotal" /></b>
+                    (pembulatan: <x-ui.rupiah :value="$cashRoundingAmount" />)
                 </div>
             </div>
 
             <div class="mt-3" style="max-width: 260px;">
-                <label class="form-label">Cash diterima</label>
+                <label class="form-label">Tunai diterima</label>
                 <input id="cash_received" type="number" min="0" value="0" class="form-control">
             </div>
 

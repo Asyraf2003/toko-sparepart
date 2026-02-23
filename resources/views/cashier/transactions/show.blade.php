@@ -49,26 +49,26 @@
                         <div>
                             <p><b>ID:</b> {{ $tx->id }}</p>
                             <p><b>No:</b> {{ $tx->transaction_number }}</p>
-                            <p><b>Business Date:</b> {{ $tx->business_date }}</p>
+                            <p><b>Tanggal Bisnis:</b> {{ $tx->business_date }}</p>
                             <p><b>Status:</b> {{ $tx->status }}</p>
-                            <p><b>Payment Status:</b> {{ $tx->payment_status }}</p>
-                            <p><b>Payment Method:</b> {{ $tx->payment_method ?? '-' }}</p>
+                            <p><b>Status Pembayaran:</b> {{ $tx->payment_status }}</p>
+                            <p><b>Metode Pembayaran:</b> {{ $tx->payment_method ?? '-' }}</p>
 
-                            <p><b>Rounding Mode:</b> {{ $tx->rounding_mode ?? '-' }}</p>
-                            <p><b>Rounding Amount:</b> {{ $tx->rounding_amount ?? 0 }}</p>
+                            <p><b>Mode Pembulatan:</b> {{ $tx->rounding_mode ?? '-' }}</p>
+                            <p><b>Nominal Pembulatan:</b> {{ $tx->rounding_amount ?? 0 }}</p>
 
-                            <p><b>Cash Received:</b> {{ $tx->cash_received ?? '-' }}</p>
-                            <p><b>Cash Change:</b> {{ $tx->cash_change ?? '-' }}</p>
-                            <p><b>Net Cash:</b>
+                            <p><b>Tunai Diterima:</b> {{ $tx->cash_received ?? '-' }}</p>
+                            <p><b>Kembalian Tunai:</b> {{ $tx->cash_change ?? '-' }}</p>
+                            <p><b>Tunai Bersih:</b>
                                 {{ ($tx->cash_received !== null && $tx->cash_change !== null) ? ($tx->cash_received - $tx->cash_change) : '-' }}
                             </p>
 
                             <hr>
 
                             <p><b>Nama:</b> {{ $tx->customer_name ?? '-' }}</p>
-                            <p><b>HP:</b> {{ $tx->customer_phone ?? '-' }}</p>
+                            <p><b>No. HP:</b> {{ $tx->customer_phone ?? '-' }}</p>
                             <p><b>Plat:</b> {{ $tx->vehicle_plate ?? '-' }}</p>
-                            <p><b>Note:</b> {{ $tx->note ?? '-' }}</p>
+                            <p><b>Catatan:</b> {{ $tx->note ?? '-' }}</p>
                         </div>
                     </div>
                 </div>

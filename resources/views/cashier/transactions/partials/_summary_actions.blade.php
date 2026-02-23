@@ -13,11 +13,11 @@
     <div class="card-body">
         <div class="mb-3">
             <div>Total Sparepart: <x-ui.rupiah :value="$partsTotal" /></div>
-            <div>Total Service: <x-ui.rupiah :value="$serviceTotal" /></div>
-            <div>Grand Total: <x-ui.rupiah :value="$grossTotal" /></div>
+            <div>Total Servis: <x-ui.rupiah :value="$serviceTotal" /></div>
+            <div>Total Akhir: <x-ui.rupiah :value="$grossTotal" /></div>
             <div class="d-none">
-                Cash Rounded Total: <x-ui.rupiah :value="$roundedCashTotal" />
-                (rounding: <x-ui.rupiah :value="$cashRoundingAmount" />)
+                Total Tunai Setelah Pembulatan: <x-ui.rupiah :value="$roundedCashTotal" />
+                (pembulatan: <x-ui.rupiah :value="$cashRoundingAmount" />)
             </div>
         </div>
 
@@ -57,7 +57,7 @@
                                     class="btn icon icon-left btn-success w-100 h-100 d-flex align-items-center justify-content-center"
                                     disabled>
                                 <i data-feather="dollar-sign"></i>
-                                <span>Complete Cash</span>
+                                <span>Selesaikan Tunai</span>
                             </button>
                         </form>
 
@@ -68,7 +68,7 @@
                             <button type="submit"
                                     class="btn icon icon-left btn-info w-100 h-100 d-flex align-items-center justify-content-center">
                                 <i data-feather="credit-card"></i>
-                                <span>Complete Transfer</span>
+                                <span>Selesaikan Transfer</span>
                             </button>
                         </form>
                     @endif
@@ -82,7 +82,7 @@
                       class="mt-3 row g-2 align-items-end">
                     @csrf
                     <div class="col-12 col-md-5">
-                        <label class="form-label">Reason VOID</label>
+                        <label class="form-label">Alasan VOID</label>
                         <input type="text" name="reason" class="form-control" required>
                     </div>
                     <div class="col-12 col-md-auto">
@@ -97,7 +97,7 @@
                 <a class="btn btn-light"
                    href="{{ url('/cashier/transactions/'.$tx->id.'/work-order') }}"
                    target="_blank" rel="noopener">
-                    Print Work Order
+                    Cetak Work Order
                 </a>
             </div>
         @endif

@@ -42,16 +42,16 @@
                             <div class="col-12">
                                 <label class="form-label">Status</label>
                                 <select name="status" class="form-select" id="today_status">
-                                    <option value="" @if(($status ?? '') === '') selected @endif>ALL</option>
+                                    <option value="" @if(($status ?? '') === '') selected @endif>SEMUA</option>
                                     <option value="DRAFT" @if(($status ?? '') === 'DRAFT') selected @endif>DRAFT</option>
                                     <option value="OPEN" @if(($status ?? '') === 'OPEN') selected @endif>OPEN</option>
-                                    <option value="COMPLETED" @if(($status ?? '') === 'COMPLETED') selected @endif>COMPLETED</option>
-                                    <option value="VOID" @if(($status ?? '') === 'VOID') selected @endif>VOID</option>
+                                    <option value="COMPLETED" @if(($status ?? '') === 'COMPLETED') selected @endif>SELESAI</option>
+                                    <option value="VOID" @if(($status ?? '') === 'VOID') selected @endif>BATAL</option>
                                 </select>
                             </div>
 
                             <div class="col-12">
-                                <label class="form-label">Cari No</label>
+                                <label class="form-label">Cari Nomor</label>
                                 <input type="text"
                                        name="q"
                                        value="{{ $q ?? '' }}"
@@ -61,7 +61,7 @@
                             </div>
 
                             <div class="col-12 d-flex gap-2">
-                                <button type="submit" class="btn btn-primary" id="today_apply_btn">Apply</button>
+                                <button type="submit" class="btn btn-primary" id="today_apply_btn">Terapkan</button>
                                 <a class="btn btn-light" href="{{ url('/cashier/transactions/today') }}" id="today_reset_link">Reset</a>
                             </div>
 

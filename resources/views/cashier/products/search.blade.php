@@ -6,7 +6,7 @@
     <div class="page-heading d-flex justify-content-between align-items-center">
         <div>
             <h3 class="mb-0">Cari Produk</h3>
-            <div class="text-muted">Cari SKU / Nama (min 2 karakter)</div>
+            <div class="text-muted">Cari SKU / Nama (minimal 2 karakter)</div>
         </div>
 
         <div>
@@ -32,7 +32,7 @@
             <div class="card-body">
                 <form method="get" action="{{ url('/cashier/products/search') }}" class="row g-2 align-items-end">
                     <div class="col-12 col-md-10">
-                        <label class="form-label">Query</label>
+                        <label class="form-label">Kata Kunci</label>
                         <input type="text" name="pq" class="form-control" value="{{ $initial }}" placeholder="Ketik SKU / Nama...">
                     </div>
 
