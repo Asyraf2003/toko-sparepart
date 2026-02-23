@@ -166,8 +166,8 @@
                         @csrf
 
                         <div class="mb-3">
-                            <label class="form-label">Qty Delta (+ tambah / - kurang)</label>
-                            <input class="form-control" type="number" name="qty_delta" value="{{ old('qty_delta', '0') }}" step="1">
+                            <label class="form-label">Qty Delta (koreksi pengurangan saja; stok masuk lewat Pembelian)</label>
+                            <input class="form-control" type="number" name="qty_delta" value="{{ old('qty_delta', '-1') }}" step="1">
                         </div>
 
                         <div class="mb-3">

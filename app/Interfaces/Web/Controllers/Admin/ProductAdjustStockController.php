@@ -14,7 +14,8 @@ final class ProductAdjustStockController
     public function __invoke(int $productId, Request $request, AdjustStockUseCase $uc): RedirectResponse
     {
         $data = $request->validate([
-            'qty_delta' => ['required', 'integer', 'not_in:0'],
+            // POLICY: hanya koreksi pengurangan (stok masuk wajib lewat purchases)
+            'qty_delta' => ['required', 'integer', 'max:-1'],
             'note' => ['required', 'string', 'min:1', 'max:255'],
         ]);
 

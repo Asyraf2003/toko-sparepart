@@ -33,6 +33,11 @@ final readonly class AdjustStockUseCase
             throw new \InvalidArgumentException('qtyDelta must not be 0');
         }
 
+        // POLICY: stok masuk (qtyDelta > 0) hanya lewat Purchases
+        if ($req->qtyDelta > 0) {
+            throw new \InvalidArgumentException('stock in is not allowed via adjustment; use purchases');
+        }
+
         $note = trim($req->note);
         if ($note === '') {
             throw new \InvalidArgumentException('note is required');

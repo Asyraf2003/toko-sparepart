@@ -1,11 +1,11 @@
 @extends('shared.layouts.app')
 
-@section('title', 'Produk & Stok')
+@section('title', 'Produk dan Stok')
 
 @section('page_heading')
     <div class="page-heading d-flex flex-wrap justify-content-between align-items-start gap-2">
         <div>
-            <h3>Produk & Stok</h3>
+            <h3>Produk dan Stok</h3>
             <p class="text-muted mb-0">Kelola daftar produk dan kontrol stok.</p>
         </div>
 

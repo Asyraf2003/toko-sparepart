@@ -61,14 +61,14 @@
                 <table class="table table-striped table-hover align-middle mb-0">
                     <thead>
                     <tr>
-                        <th>Tgl Kirim</th>
+                        <th style="width: 130px;">Tgl Kirim</th>
                         <th>No Faktur</th>
                         <th>Supplier</th>
                         <th class="text-end">Bruto</th>
                         <th class="text-end">Diskon</th>
                         <th class="text-end">Pajak</th>
                         <th class="text-end">Grand Total</th>
-                        <th class="text-center">Aksi</th> </tr>
+                        <th style="width: 110px;">Aksi</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -76,26 +76,23 @@
                         <tr>
                             <td>{{ $r->tgl_kirim }}</td>
                             <td>
-                                <a href="{{ url('/admin/purchases/'.$r->id) }}" class="fw-bold text-primary text-decoration-none">
-                                    {{ $r->no_faktur }}
-                                </a>
+                                <a href="{{ url('/admin/purchases/'.$r->id) }}">{{ $r->no_faktur }}</a>
                             </td>
                             <td>{{ $r->supplier_name }}</td>
                             <td class="text-end">{{ $fmt($r->total_bruto) }}</td>
                             <td class="text-end">{{ $fmt($r->total_diskon) }}</td>
                             <td class="text-end">{{ $fmt($r->total_pajak) }}</td>
-                            <td class="text-end fw-bold">{{ $fmt($r->grand_total) }}</td>
-                            <td class="text-center">
-                                <a href="{{ url('/admin/purchases/'.$r->id.'/edit') }}" 
-                                class="btn btn-sm btn-outline-warning" 
-                                title="Edit Data">
-                                    <i class="bi bi-pencil"></i> Edit
+                            <td class="text-end">{{ $fmt($r->grand_total) }}</td>
+                            <td>
+                                <a class="btn btn-sm btn-outline-primary"
+                                   href="{{ url('/admin/purchases/'.$r->id) }}">
+                                    Detail
                                 </a>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="text-muted text-center italic">Tidak ada data ditemukan</td>
+                            <td colspan="8" class="text-muted">Tidak ada data</td>
                         </tr>
                     @endforelse
                     </tbody>

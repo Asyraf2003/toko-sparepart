@@ -12,6 +12,7 @@
         </div>
 
         <div class="d-flex gap-2">
+            <a class="btn btn-outline-primary" href="{{ url('/admin/purchases/'.$invoice->id.'/edit') }}">Edit Header</a>
             <a class="btn btn-outline-secondary" href="{{ url('/admin/purchases') }}">← Kembali</a>
         </div>
     </div>
