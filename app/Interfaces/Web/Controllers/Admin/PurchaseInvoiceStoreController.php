@@ -9,98 +9,95 @@ use App\Application\UseCases\Purchasing\CreatePurchaseInvoiceRequest;
 use App\Application\UseCases\Purchasing\CreatePurchaseInvoiceUseCase;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 final class PurchaseInvoiceStoreController
 {
     public function __invoke(Request $request, CreatePurchaseInvoiceUseCase $uc): RedirectResponse
     {
-        $data = $request->validate([
-            'supplier_name' => ['required', 'string', 'min:1', 'max:190'],
-            'no_faktur' => ['required', 'string', 'min:1', 'max:64', 'unique:purchase_invoices,no_faktur'],
-            'tgl_kirim' => ['required', 'date'],
-            'kepada' => ['nullable', 'string', 'max:190'],
-            'no_pesanan' => ['nullable', 'string', 'max:64'],
-            'nama_sales' => ['nullable', 'string', 'max:190'],
+        // 1) Ambil payload mentah
+        $payload = $request->all();
+
+        // 2) FILTER: buang baris placeholder yang benar-benar kosong.
+        // Karena disc_percent default "0", indikator kosong hanya pakai: product_id / qty / unit_cost
+        $rawLines = $payload['lines'] ?? [];
+        if (! is_array($rawLines)) {
+            $rawLines = [];
+        }
+
+        $filteredLines = array_values(array_filter($rawLines, function ($row): bool {
+            if (! is_array($row)) {
+                return false;
+            }
+
+            $pid = trim((string) ($row['product_id'] ?? ''));
+            $qty = trim((string) ($row['qty'] ?? ''));
+            $cost = trim((string) ($row['unit_cost'] ?? ''));
+
+            // keep jika user mengisi salah satu dari 3 field utama
+            return $pid !== '' || $qty !== '' || $cost !== '';
+        }));
+
+        $payload['lines'] = $filteredLines;
+
+        // 3) Validasi: setelah difilter, minimal 1 line harus ada
+        $v = Validator::make($payload, [
+            'supplier_name' => ['required', 'string', 'max:255'],
+            'no_faktur' => ['required', 'string', 'max:255', Rule::unique('purchase_invoices', 'no_faktur')],
+            'tgl_kirim' => ['required', 'date_format:Y-m-d'],
+            'kepada' => ['nullable', 'string', 'max:255'],
+            'no_pesanan' => ['nullable', 'string', 'max:255'],
+            'nama_sales' => ['nullable', 'string', 'max:255'],
             'total_pajak' => ['required', 'integer', 'min:0'],
             'note' => ['nullable', 'string', 'max:255'],
 
             'lines' => ['required', 'array', 'min:1'],
-            'lines.*.product_id' => ['nullable', 'integer', 'exists:products,id'],
-            'lines.*.qty' => ['nullable', 'integer', 'min:1'],
-            'lines.*.unit_cost' => ['nullable', 'integer', 'min:0'],
+            'lines.*.product_id' => ['required', 'integer', 'exists:products,id'],
+            'lines.*.qty' => ['required', 'integer', 'min:1'],
+            'lines.*.unit_cost' => ['required', 'integer', 'min:0'],
             'lines.*.disc_percent' => ['nullable', 'numeric', 'min:0', 'max:100'],
         ]);
 
-        /** @var array<int,array<string,mixed>> $linesInput */
-        $linesInput = $data['lines'];
+        $validated = $v->validate();
+
+        // 4) Map lines -> DTO UseCase (hexagonal: controller -> usecase)
+        $actorId = (int) (Auth::id() ?? 0);
 
         $lines = [];
-        foreach ($linesInput as $i => $row) {
-            $pid = $row['product_id'] ?? null;
-            $qty = $row['qty'] ?? null;
-            $unitCost = $row['unit_cost'] ?? null;
-            $discPercent = $row['disc_percent'] ?? null;
-
-            $allEmpty = ($pid === null && $qty === null && $unitCost === null && $discPercent === null);
-            if ($allEmpty) {
-                continue;
-            }
-
-            if ($pid === null) {
-                throw ValidationException::withMessages([
-                    "lines.$i.product_id" => 'Product wajib dipilih.',
-                ]);
-            }
-            if ($qty === null) {
-                throw ValidationException::withMessages([
-                    "lines.$i.qty" => 'Qty wajib diisi.',
-                ]);
-            }
-            if ($unitCost === null) {
-                throw ValidationException::withMessages([
-                    "lines.$i.unit_cost" => 'Unit cost wajib diisi.',
-                ]);
-            }
-
-            $disc = $discPercent === null ? 0.0 : (float) $discPercent;
-
-            // percent (0..100) -> basis points (0..10000)
-            $discBps = (int) round($disc * 100);
-
-            if ($discBps < 0 || $discBps > 10000) {
-                throw ValidationException::withMessages([
-                    "lines.$i.disc_percent" => 'Diskon harus di antara 0 sampai 100 (%).',
-                ]);
-            }
+        foreach ($validated['lines'] as $row) {
+            $discPercent = (float) ($row['disc_percent'] ?? 0);
+            $discBps = (int) round($discPercent * 100); // 10.00% => 1000 bps
 
             $lines[] = new CreatePurchaseInvoiceLine(
-                productId: (int) $pid,
-                qty: (int) $qty,
-                unitCost: (int) $unitCost,
+                productId: (int) $row['product_id'],
+                qty: (int) $row['qty'],
+                unitCost: (int) $row['unit_cost'],
                 discBps: $discBps,
             );
         }
 
-        if (count($lines) === 0) {
-            throw ValidationException::withMessages([
-                'lines' => 'Minimal isi 1 line pembelian.',
-            ]);
+        try {
+            $uc->handle(new CreatePurchaseInvoiceRequest(
+                actorUserId: $actorId,
+                supplierName: (string) $validated['supplier_name'],
+                noFaktur: (string) $validated['no_faktur'],
+                tglKirim: (string) $validated['tgl_kirim'],
+                kepada: $validated['kepada'] ?? null,
+                noPesanan: $validated['no_pesanan'] ?? null,
+                namaSales: $validated['nama_sales'] ?? null,
+                totalPajak: (int) $validated['total_pajak'],
+                note: $validated['note'] ?? null,
+                lines: $lines,
+            ));
+        } catch (\InvalidArgumentException $e) {
+            return back()
+                ->withInput()
+                ->withErrors(['error' => $e->getMessage()]);
         }
 
-        $uc->handle(new CreatePurchaseInvoiceRequest(
-            actorUserId: (int) $request->user()->id,
-            supplierName: (string) $data['supplier_name'],
-            noFaktur: (string) $data['no_faktur'],
-            tglKirim: (string) $data['tgl_kirim'],
-            kepada: $data['kepada'] !== null ? (string) $data['kepada'] : null,
-            noPesanan: $data['no_pesanan'] !== null ? (string) $data['no_pesanan'] : null,
-            namaSales: $data['nama_sales'] !== null ? (string) $data['nama_sales'] : null,
-            totalPajak: (int) $data['total_pajak'],
-            note: $data['note'] !== null ? (string) $data['note'] : null,
-            lines: $lines,
-        ));
-
-        return redirect('/admin/purchases');
+        return redirect('/admin/purchases')
+            ->with('success', 'Pembelian berhasil disimpan.');
     }
 }
