@@ -9,9 +9,6 @@ use Throwable;
 final class MessagesId
 {
     /**
-     * Map legacy exception message (English, dari UseCase) -> kode internal.
-     * Ini memungkinkan kita translate tanpa refactor UseCase dulu.
-     *
      * @var array<string,string>
      */
     private const LEGACY_TO_CODE = [
@@ -44,7 +41,6 @@ final class MessagesId
         'invalid payment method' => 'PAYMENT_METHOD_INVALID',
         'cash received insufficient' => 'CASH_INSUFFICIENT',
 
-        // stock-related errors that leak to cashier today
         'insufficient available stock' => 'STOCK_INSUFFICIENT_AVAILABLE',
         'reserved stock insufficient' => 'STOCK_RESERVED_INSUFFICIENT',
         'reserved stock insufficient at completion' => 'STOCK_RESERVED_INSUFFICIENT_COMPLETE',
@@ -70,19 +66,17 @@ final class MessagesId
         // --- inventory adjustments ---
         'stock in is not allowed via adjustment; use purchases' => 'ADJUST_STOCKIN_NOT_ALLOWED',
         'note is required' => 'NOTE_REQUIRED',
-        'qtyDelta must not be 0' => 'QTY_DELTA_NOT_ZERO',
+        'qtydelta must not be 0' => 'QTY_DELTA_NOT_ZERO',
         'product not found' => 'PRODUCT_NOT_FOUND',
 
         // --- catalog ---
         'sku is required' => 'SKU_REQUIRED',
         'name is required' => 'NAME_REQUIRED',
-        'sellPriceCurrent must be >= 0' => 'SELL_PRICE_MIN_0',
-        'minStockThreshold must be >= 0' => 'MIN_STOCK_MIN_0',
+        'sellpricecurrent must be >= 0' => 'SELL_PRICE_MIN_0',
+        'minstockthreshold must be >= 0' => 'MIN_STOCK_MIN_0',
     ];
 
     /**
-     * Kode -> Pesan Indonesia (user-facing)
-     *
      * @var array<string,string>
      */
     private const CODE_TO_ID = [
@@ -147,20 +141,20 @@ final class MessagesId
 
     public static function error(Throwable $e): string
     {
-        // 1) Handle pola exception message dinamis (contoh: InsufficientStock custom message)
         $msg = trim((string) $e->getMessage());
+
+        // dynamic message special-case
         if (stripos($msg, 'Insufficient stock for product_id=') === 0) {
             return 'Stok tidak cukup.';
         }
 
-        // 2) Map legacy exact message -> code -> ID
         $norm = self::normalize($msg);
         $code = self::LEGACY_TO_CODE[$norm] ?? null;
+
         if ($code !== null && isset(self::CODE_TO_ID[$code])) {
             return self::CODE_TO_ID[$code];
         }
 
-        // 3) Fallback aman (jangan bocorin internal)
         return 'Terjadi kesalahan. Silakan coba lagi.';
     }
 
