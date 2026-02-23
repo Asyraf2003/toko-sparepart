@@ -1,13 +1,13 @@
 @extends('shared.layouts.app')
 
-@section('title', 'Edit Payroll')
+@section('title', 'Edit Gaji')
 
 @section('page_heading')
     @php $locked = $period->loan_deductions_applied_at !== null; @endphp
 
     <div class="page-heading d-flex flex-wrap justify-content-between align-items-start gap-2">
         <div>
-            <h3>Edit Payroll Period</h3>
+            <h3>Edit Periode Gaji</h3>
             <p class="text-muted mb-0">{{ $period->week_start }} → {{ $period->week_end }}</p>
         </div>
 
@@ -25,13 +25,13 @@
 
     @if ($locked)
         <div class="alert alert-warning">
-            Period sudah <b>Applied</b> ({{ $period->loan_deductions_applied_at }}). Edit lines tidak diperbolehkan. Hanya note header yang bisa diubah.
+            Periode sudah <b>Diterapkan</b> ({{ $period->loan_deductions_applied_at }}). Edit baris tidak diperbolehkan. Hanya catatan header yang bisa diubah.
         </div>
     @endif
 
     @if ($errors->any())
         <div class="alert alert-danger">
-            <div class="fw-bold mb-2">Validasi error</div>
+            <div class="fw-bold mb-2">Terjadi kesalahan validasi</div>
             <ul class="mb-0">
                 @foreach ($errors->all() as $e)
                     <li>{{ $e }}</li>
@@ -51,21 +51,21 @@
 
                         <div class="row g-3">
                             <div class="col-12 col-md-4">
-                                <label class="form-label">Week Start (Senin)</label>
+                                <label class="form-label">Mulai Minggu (Senin)</label>
                                 <input class="form-control" type="date" name="week_start"
                                        value="{{ old('week_start', $period->week_start) }}"
                                        {{ $locked ? 'disabled' : '' }}>
                             </div>
 
                             <div class="col-12 col-md-4">
-                                <label class="form-label">Week End (Sabtu)</label>
+                                <label class="form-label">Akhir Minggu (Sabtu)</label>
                                 <input class="form-control" type="date" name="week_end"
                                        value="{{ old('week_end', $period->week_end) }}"
                                        {{ $locked ? 'disabled' : '' }}>
                             </div>
 
                             <div class="col-12 col-md-4">
-                                <label class="form-label">Note (opsional)</label>
+                                <label class="form-label">Catatan (opsional)</label>
                                 <input class="form-control" type="text" name="note"
                                        value="{{ old('note', $period->note) }}">
                             </div>
@@ -89,20 +89,20 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
-                        <div class="fw-bold mb-2">Lines</div>
+                        <div class="fw-bold mb-2">Baris</div>
 
                         @if ($locked)
-                            <div class="text-muted">Lines terkunci karena sudah applied.</div>
+                            <div class="text-muted">Baris terkunci karena sudah diterapkan.</div>
                         @else
                             <div class="table-responsive">
                                 <table class="table table-striped table-hover align-middle mb-0">
                                     <thead>
                                     <tr>
-                                        <th style="min-width: 220px;">Employee</th>
-                                        <th class="text-end" style="width: 180px;">Outstanding Loan</th>
-                                        <th class="text-end" style="width: 160px;">Gross Pay</th>
-                                        <th class="text-end" style="width: 160px;">Loan Deduction</th>
-                                        <th style="min-width: 220px;">Note</th>
+                                        <th style="min-width: 220px;">Karyawan</th>
+                                        <th class="text-end" style="width: 180px;">Pinjaman Berjalan</th>
+                                        <th class="text-end" style="width: 160px;">Gaji Kotor</th>
+                                        <th class="text-end" style="width: 160px;">Potongan Pinjaman</th>
+                                        <th style="min-width: 220px;">Catatan</th>
                                     </tr>
                                     </thead>
                                     <tbody>

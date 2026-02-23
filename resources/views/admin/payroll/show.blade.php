@@ -1,6 +1,6 @@
 @extends('shared.layouts.app')
 
-@section('title', 'Payroll Detail')
+@section('title', 'Detail Payroll')
 
 @section('page_heading')
     @php
@@ -13,7 +13,7 @@
 
     <div class="page-heading d-flex flex-wrap justify-content-between align-items-start gap-2">
         <div>
-            <h3>Payroll Period</h3>
+            <h3>Periode Payroll</h3>
             <p class="text-muted mb-0">{{ $period->week_start }} → {{ $period->week_end }}</p>
         </div>
 
@@ -43,17 +43,17 @@
                     <div class="table-responsive">
                         <table class="table table-striped align-middle mb-0">
                             <tbody>
-                            <tr><th style="width: 180px;">Week Start</th><td>{{ $period->week_start }}</td></tr>
-                            <tr><th>Week End</th><td>{{ $period->week_end }}</td></tr>
-                            <tr><th>Note</th><td>{{ $period->note ?? '-' }}</td></tr>
+                            <tr><th style="width: 180px;">Mulai Minggu</th><td>{{ $period->week_start }}</td></tr>
+                            <tr><th>Akhir Minggu</th><td>{{ $period->week_end }}</td></tr>
+                            <tr><th>Catatan</th><td>{{ $period->note ?? '-' }}</td></tr>
                             <tr>
-                                <th>Deductions Applied?</th>
+                                <th>Potongan Sudah Diterapkan?</th>
                                 <td>
                                     @if ($locked)
-                                        <span class="badge bg-success">YES</span>
+                                        <span class="badge bg-success">YA</span>
                                         <div class="text-muted small">{{ $period->loan_deductions_applied_at }}</div>
                                     @else
-                                        <span class="badge bg-secondary">NO</span>
+                                        <span class="badge bg-secondary">TIDAK</span>
                                     @endif
                                 </td>
                             </tr>
@@ -65,13 +65,13 @@
 
             <div class="card mt-3">
                 <div class="card-body">
-                    <div class="fw-bold mb-2">Totals</div>
+                    <div class="fw-bold mb-2">Total</div>
                     <div class="table-responsive">
                         <table class="table table-striped align-middle mb-0">
                             <tbody>
-                            <tr><th style="width: 180px;">Gross</th><td class="text-end">{{ $fmt($sumGross) }}</td></tr>
-                            <tr><th>Deduction</th><td class="text-end">{{ $fmt($sumDed) }}</td></tr>
-                            <tr><th>Net</th><td class="text-end fw-semibold">{{ $fmt($sumNet) }}</td></tr>
+                            <tr><th style="width: 180px;">Gaji Kotor</th><td class="text-end">{{ $fmt($sumGross) }}</td></tr>
+                            <tr><th>Potongan</th><td class="text-end">{{ $fmt($sumDed) }}</td></tr>
+                            <tr><th>Gaji Bersih</th><td class="text-end fw-semibold">{{ $fmt($sumNet) }}</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -82,17 +82,17 @@
         <div class="col-12 col-lg-7">
             <div class="card">
                 <div class="card-body">
-                    <div class="fw-bold mb-2">Lines</div>
+                    <div class="fw-bold mb-2">Baris</div>
 
                     <div class="table-responsive">
                         <table class="table table-striped table-hover align-middle mb-0">
                             <thead>
                             <tr>
-                                <th>Employee</th>
-                                <th class="text-end" style="width: 160px;">Gross</th>
-                                <th class="text-end" style="width: 160px;">Loan Deduction</th>
-                                <th class="text-end" style="width: 160px;">Net</th>
-                                <th>Note</th>
+                                <th>Karyawan</th>
+                                <th class="text-end" style="width: 160px;">Gaji Kotor</th>
+                                <th class="text-end" style="width: 160px;">Potongan Pinjaman</th>
+                                <th class="text-end" style="width: 160px;">Gaji Bersih</th>
+                                <th>Catatan</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -113,7 +113,7 @@
 
                     @if ($locked)
                         <div class="alert alert-warning mt-3 mb-0">
-                            Period sudah <b>Applied</b>. Edit lines tidak diperbolehkan agar laporan & potongan hutang konsisten.
+                            Periode sudah <b>Diterapkan</b>. Edit baris tidak diperbolehkan agar laporan & potongan hutang konsisten.
                         </div>
                     @endif
                 </div>

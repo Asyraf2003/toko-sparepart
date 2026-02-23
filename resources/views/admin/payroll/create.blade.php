@@ -1,11 +1,11 @@
 @extends('shared.layouts.app')
 
-@section('title', 'Buat Payroll')
+@section('title', 'Buat Gaji')
 
 @section('page_heading')
     <div class="page-heading d-flex flex-wrap justify-content-between align-items-start gap-2">
         <div>
-            <h3>Buat Payroll Period</h3>
+            <h3>Buat Periode Gaji</h3>
             <p class="text-muted mb-0">Periode mingguan (Senin–Sabtu).</p>
         </div>
 
@@ -18,7 +18,7 @@
 @section('content')
     @if ($errors->any())
         <div class="alert alert-danger">
-            <div class="fw-bold mb-2">Validasi error</div>
+            <div class="fw-bold mb-2">Terjadi kesalahan validasi</div>
             <ul class="mb-0">
                 @foreach ($errors->all() as $e)
                     <li>{{ $e }}</li>
@@ -39,17 +39,17 @@
 
                         <div class="row g-3">
                             <div class="col-12 col-md-4">
-                                <label class="form-label">Week Start (harus Senin)</label>
+                                <label class="form-label">Mulai Minggu (harus Senin)</label>
                                 <input class="form-control" type="date" name="week_start" value="{{ old('week_start') }}">
                             </div>
 
                             <div class="col-12 col-md-4">
-                                <label class="form-label">Week End (harus Sabtu)</label>
+                                <label class="form-label">Akhir Minggu (harus Sabtu)</label>
                                 <input class="form-control" type="date" name="week_end" value="{{ old('week_end') }}">
                             </div>
 
                             <div class="col-12 col-md-4">
-                                <label class="form-label">Note (opsional)</label>
+                                <label class="form-label">Catatan (opsional)</label>
                                 <input class="form-control" type="text" name="note" value="{{ old('note') }}">
                             </div>
                         </div>
@@ -61,17 +61,17 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
-                        <div class="fw-bold mb-2">Lines (isi gross dan/atau potongan)</div>
+                        <div class="fw-bold mb-2">Baris (isi gaji kotor dan/atau potongan)</div>
 
                         <div class="table-responsive">
                             <table class="table table-striped table-hover align-middle mb-0">
                                 <thead>
                                 <tr>
-                                    <th style="min-width: 220px;">Employee</th>
-                                    <th class="text-end" style="width: 180px;">Outstanding Loan</th>
-                                    <th class="text-end" style="width: 160px;">Gross Pay</th>
-                                    <th class="text-end" style="width: 160px;">Loan Deduction</th>
-                                    <th style="min-width: 220px;">Note</th>
+                                    <th style="min-width: 220px;">Karyawan</th>
+                                    <th class="text-end" style="width: 180px;">Pinjaman Berjalan</th>
+                                    <th class="text-end" style="width: 160px;">Gaji Kotor</th>
+                                    <th class="text-end" style="width: 160px;">Potongan Pinjaman</th>
+                                    <th style="min-width: 220px;">Catatan</th>
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -103,7 +103,7 @@
                         </div>
 
                         <div class="d-flex gap-2 mt-3">
-                            <button class="btn btn-primary" type="submit">Simpan Payroll</button>
+                            <button class="btn btn-primary" type="submit">Simpan Gaji</button>
                             <a class="btn btn-outline-secondary" href="{{ url('/admin/payroll') }}">Batal</a>
                         </div>
                     </div>

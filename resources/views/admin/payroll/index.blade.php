@@ -1,16 +1,16 @@
 @extends('shared.layouts.app')
 
-@section('title', 'Payroll')
+@section('title', 'Gaji')
 
 @section('page_heading')
     <div class="page-heading d-flex flex-wrap justify-content-between align-items-start gap-2">
         <div>
-            <h3>Payroll</h3>
+            <h3>Gaji</h3>
             <p class="text-muted mb-0">Mingguan (Senin–Sabtu).</p>
         </div>
 
         <div class="d-flex gap-2">
-            <a class="btn btn-primary" href="{{ url('/admin/payroll/create') }}">Buat Payroll Period</a>
+            <a class="btn btn-primary" href="{{ url('/admin/payroll/create') }}">Buat Periode Gaji</a>
         </div>
     </div>
 @endsection
@@ -26,13 +26,13 @@
                 <table class="table table-striped table-hover align-middle mb-0">
                     <thead>
                     <tr>
-                        <th style="width: 130px;">Week Start</th>
-                        <th style="width: 130px;">Week End</th>
-                        <th class="text-end" style="width: 140px;">Gross</th>
-                        <th class="text-end" style="width: 140px;">Deduction</th>
-                        <th class="text-end" style="width: 140px;">Net</th>
-                        <th style="width: 170px;">Applied?</th>
-                        <th>Note</th>
+                        <th style="width: 130px;">Mulai Minggu</th>
+                        <th style="width: 130px;">Akhir Minggu</th>
+                        <th class="text-end" style="width: 140px;">Gaji Kotor</th>
+                        <th class="text-end" style="width: 140px;">Potongan</th>
+                        <th class="text-end" style="width: 140px;">Gaji Bersih</th>
+                        <th style="width: 170px;">Sudah Diterapkan?</th>
+                        <th>Catatan</th>
                         <th style="width: 170px;">Aksi</th>
                     </tr>
                     </thead>
@@ -53,9 +53,9 @@
                             <td class="text-end fw-semibold">{{ $fmt($net) }}</td>
                             <td>
                                 @if ($locked)
-                                    <span class="badge bg-success">YES</span>
+                                    <span class="badge bg-success">YA</span>
                                 @else
-                                    <span class="badge bg-secondary">NO</span>
+                                    <span class="badge bg-secondary">TIDAK</span>
                                 @endif
                             </td>
                             <td>{{ $p->note }}</td>

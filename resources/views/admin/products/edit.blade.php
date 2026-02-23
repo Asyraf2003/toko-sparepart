@@ -6,7 +6,7 @@
     <div class="page-heading d-flex flex-wrap justify-content-between align-items-start gap-2">
         <div>
             <h3>Edit Produk</h3>
-            <p class="text-muted mb-0">Kelola info, harga, threshold, dan stok.</p>
+            <p class="text-muted mb-0">Kelola info, harga, ambang, dan stok.</p>
         </div>
 
         <div class="d-flex gap-2">
@@ -18,7 +18,7 @@
 @section('content')
     @if ($errors->any())
         <div class="alert alert-danger">
-            <div class="fw-bold mb-2">Validasi error</div>
+            <div class="fw-bold mb-2">Terjadi kesalahan validasi</div>
             <ul class="mb-0">
                 @foreach ($errors->all() as $e)
                     <li>{{ $e }}</li>
@@ -45,16 +45,16 @@
                             <tr><th>Nama</th><td>{{ $row->name }}</td></tr>
                             <tr><th>Harga</th><td>{{ $priceText }}</td></tr>
                             <tr><th>Min</th><td>{{ $row->minStockThreshold }}</td></tr>
-                            <tr><th>On Hand</th><td>{{ $row->onHandQty }}</td></tr>
-                            <tr><th>Reserved</th><td>{{ $row->reservedQty }}</td></tr>
-                            <tr><th>Available</th><td>{{ $row->availableQty() }}</td></tr>
+                            <tr><th>Stok Di Tangan</th><td>{{ $row->onHandQty }}</td></tr>
+                            <tr><th>Dicadangkan</th><td>{{ $row->reservedQty }}</td></tr>
+                            <tr><th>Tersedia</th><td>{{ $row->availableQty() }}</td></tr>
                             <tr>
-                                <th>Low?</th>
+                                <th>Stok Menipis?</th>
                                 <td>
                                     @if ($row->isLowStock())
-                                        <span class="badge bg-danger">YES</span>
+                                        <span class="badge bg-danger">YA</span>
                                     @else
-                                        <span class="badge bg-success">NO</span>
+                                        <span class="badge bg-success">TIDAK</span>
                                     @endif
                                 </td>
                             </tr>
@@ -70,7 +70,7 @@
         <div class="col-12 col-lg-6">
             <div class="card">
                 <div class="card-body">
-                    <div class="fw-bold mb-2">Update Info Produk</div>
+                    <div class="fw-bold mb-2">Perbarui Info Produk</div>
 
                     <form method="post" action="{{ url('/admin/products/'.$row->productId) }}">
                         @csrf
@@ -94,7 +94,7 @@
                             <label class="form-check-label" for="is_active">Aktif</label>
                         </div>
 
-                        <button class="btn btn-primary" type="submit">Update Info</button>
+                        <button class="btn btn-primary" type="submit">Perbarui Info</button>
                     </form>
                 </div>
             </div>
@@ -104,7 +104,7 @@
         <div class="col-12 col-lg-6">
             <div class="card">
                 <div class="card-body">
-                    <div class="fw-bold mb-2">Set Harga Jual</div>
+                    <div class="fw-bold mb-2">Atur Harga Jual</div>
 
                     <form method="post" action="{{ url('/admin/products/'.$row->productId.'/selling-price') }}">
                         @csrf
@@ -117,12 +117,12 @@
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Note/Alasan (wajib)</label>
+                            <label class="form-label">Catatan/Alasan (wajib)</label>
                             <input class="form-control" type="text" name="note" value="{{ old('note', '') }}" required>
                             <div class="form-text">Dicatat ke audit trail.</div>
                         </div>
 
-                        <button class="btn btn-primary" type="submit">Update Harga</button>
+                        <button class="btn btn-primary" type="submit">Perbarui Harga</button>
                     </form>
                 </div>
             </div>
@@ -132,25 +132,25 @@
         <div class="col-12 col-lg-6">
             <div class="card">
                 <div class="card-body">
-                    <div class="fw-bold mb-2">Set Min Stock Threshold</div>
+                    <div class="fw-bold mb-2">Atur Ambang Stok Minimum</div>
 
                     <form method="post" action="{{ url('/admin/products/'.$row->productId.'/min-threshold') }}">
                         @csrf
 
                         <div class="mb-3">
-                            <label class="form-label">Threshold Baru</label>
+                            <label class="form-label">Ambang Baru</label>
                             <input class="form-control" type="number" name="min_stock_threshold"
                                    value="{{ old('min_stock_threshold', (string) $row->minStockThreshold) }}"
                                    min="0" step="1">
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Note/Alasan (wajib)</label>
+                            <label class="form-label">Catatan/Alasan (wajib)</label>
                             <input class="form-control" type="text" name="note" value="{{ old('note', '') }}" required>
                             <div class="form-text">Dicatat ke audit trail.</div>
                         </div>
 
-                        <button class="btn btn-primary" type="submit">Update Threshold</button>
+                        <button class="btn btn-primary" type="submit">Perbarui Ambang</button>
                     </form>
                 </div>
             </div>
@@ -160,23 +160,23 @@
         <div class="col-12 col-lg-6">
             <div class="card">
                 <div class="card-body">
-                    <div class="fw-bold mb-2">Adjust Stock (On Hand)</div>
+                    <div class="fw-bold mb-2">Koreksi Stok (Di Tangan)</div>
 
                     <form method="post" action="{{ url('/admin/products/'.$row->productId.'/adjust-stock') }}">
                         @csrf
 
                         <div class="mb-3">
-                            <label class="form-label">Qty Delta (koreksi pengurangan saja; stok masuk lewat Pembelian)</label>
+                            <label class="form-label">Selisih Qty (koreksi pengurangan saja; stok masuk lewat Pembelian)</label>
                             <input class="form-control" type="number" name="qty_delta" value="{{ old('qty_delta', '-1') }}" step="1">
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Note/Alasan (wajib)</label>
+                            <label class="form-label">Catatan/Alasan (wajib)</label>
                             <input class="form-control" type="text" name="note" value="{{ old('note', '') }}" required>
                             <div class="form-text">Gunakan alasan yang jelas (stok opname, rusak, dll).</div>
                         </div>
 
-                        <button class="btn btn-danger" type="submit">Adjust</button>
+                        <button class="btn btn-danger" type="submit">Koreksi</button>
                     </form>
                 </div>
             </div>

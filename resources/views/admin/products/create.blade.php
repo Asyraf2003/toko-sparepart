@@ -18,7 +18,7 @@
 @section('content')
     @if ($errors->any())
         <div class="alert alert-danger">
-            <div class="fw-bold mb-2">Validasi error</div>
+            <div class="fw-bold mb-2">Terjadi kesalahan validasi</div>
             <ul class="mb-0">
                 @foreach ($errors->all() as $e)
                     <li>{{ $e }}</li>
@@ -44,13 +44,13 @@
                     </div>
 
                     <div class="col-12 col-md-6">
-                        <label class="form-label">Harga Jual (integer)</label>
+                        <label class="form-label">Harga Jual (angka bulat)</label>
                         <input class="form-control" type="number" name="sell_price_current" value="{{ old('sell_price_current', '0') }}" min="0" step="1">
                         <div class="form-text">Simpan sebagai angka bulat (rupiah).</div>
                     </div>
 
                     <div class="col-12 col-md-6">
-                        <label class="form-label">Min Stock Threshold</label>
+                        <label class="form-label">Ambang Stok Minimum</label>
                         <input class="form-control" type="number" name="min_stock_threshold" value="{{ old('min_stock_threshold', '3') }}" min="0" step="1">
                     </div>
 
