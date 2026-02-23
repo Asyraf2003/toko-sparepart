@@ -31,20 +31,20 @@
 
                                     {{-- QTY --}}
                                     <input type="number"
-                                        name="qty"
-                                        min="1"
-                                        value="{{ $l->qty }}"
-                                        class="form-control form-control-sm"
-                                        style="width: 90px;"
-                                        form="partline-qty-{{ $l->id }}"
-                                        aria-label="Qty"
-                                        required>
+                                           name="qty"
+                                           min="1"
+                                           value="{{ $l->qty }}"
+                                           class="form-control form-control-sm"
+                                           style="width: 90px;"
+                                           form="partline-qty-{{ $l->id }}"
+                                           aria-label="Qty"
+                                           required>
 
                                     {{-- UPDATE --}}
                                     <form id="partline-qty-{{ $l->id }}"
-                                        method="post"
-                                        action="{{ url('/cashier/transactions/'.$tx->id.'/part-lines/'.$l->id.'/qty') }}"
-                                        class="m-0 p-0">
+                                          method="post"
+                                          action="{{ url('/cashier/transactions/'.$tx->id.'/part-lines/'.$l->id.'/qty') }}"
+                                          class="m-0 p-0">
                                         @csrf
                                         <input type="hidden" name="reason" value="Update qty {{ $l->sku }}">
 
@@ -53,15 +53,14 @@
                                                 style="width: 30px; height: 30px;"
                                                 title="Update Qty"
                                                 aria-label="Update Qty">
-                                            <i class="bi bi-pencil-square"
-                                            style="font-size: 18px; line-height: 1;"></i>
+                                            <i class="bi bi-pencil-square" style="font-size: 18px; line-height: 1;"></i>
                                         </button>
                                     </form>
 
                                     {{-- DELETE --}}
                                     <form method="post"
-                                        action="{{ url('/cashier/transactions/'.$tx->id.'/part-lines/'.$l->id.'/delete') }}"
-                                        class="m-0 p-0">
+                                          action="{{ url('/cashier/transactions/'.$tx->id.'/part-lines/'.$l->id.'/delete') }}"
+                                          class="m-0 p-0">
                                         @csrf
                                         <input type="hidden" name="reason" value="Hapus line {{ $l->sku }}">
 
@@ -70,8 +69,7 @@
                                                 style="width: 30px; height: 30px;"
                                                 title="Hapus"
                                                 aria-label="Hapus">
-                                            <i class="bi bi-trash"
-                                            style="font-size: 18px; line-height: 1;"></i>
+                                            <i class="bi bi-trash" style="font-size: 18px; line-height: 1;"></i>
                                         </button>
                                     </form>
 

@@ -31,12 +31,12 @@
                     <th>ID</th>
                     <th>No</th>
                     @if($hasCustomerName)
-                        <th>Customer</th>
+                        <th>Pelanggan</th>
                     @endif
                     <th>Status</th>
-                    <th>Payment</th>
-                    <th>Method</th>
-                    <th class="d-none">Rounding</th>
+                    <th>Status Bayar</th>
+                    <th>Metode</th>
+                    <th class="d-none">Pembulatan</th>
                     @if($hasVehiclePlate)
                         <th class="d-none">Plat</th>
                     @endif

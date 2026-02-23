@@ -44,28 +44,5 @@
                 </div>
             </div>
         </div>
-
-        <div class="col-12 col-lg-7">
-            <div class="card">
-                <div class="card-body">
-                    <div class="fw-bold mb-2">Metadata</div>
-                    <pre class="p-3 bg-light rounded mb-0" style="max-height: 360px; overflow:auto;">{{ json_encode($a->meta ?? null, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
-                </div>
-            </div>
-
-            <div class="card mt-3">
-                <div class="card-body">
-                    <div class="fw-bold mb-2">Sebelum</div>
-                    <pre class="p-3 bg-light rounded mb-0" style="max-height: 360px; overflow:auto;">{{ json_encode($a->before ?? null, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
-                </div>
-            </div>
-
-            <div class="card mt-3">
-                <div class="card-body">
-                    <div class="fw-bold mb-2">Sesudah</div>
-                    <pre class="p-3 bg-light rounded mb-0" style="max-height: 360px; overflow:auto;">{{ json_encode($a->after ?? null, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
-                </div>
-            </div>
-        </div>
     </div>
 @endsection

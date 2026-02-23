@@ -8,11 +8,6 @@
             <h3>Dashboard Admin</h3>
             <p class="text-muted mb-0">Ringkas: KPI, grafik, dan pintasan.</p>
         </div>
-
-        <div class="d-flex gap-2">
-            <a class="btn btn-outline-secondary" href="{{ url('/admin?days=14') }}">14 hari</a>
-            <a class="btn btn-outline-secondary" href="{{ url('/admin?days=30') }}">30 hari</a>
-        </div>
     </div>
 @endsection
 
