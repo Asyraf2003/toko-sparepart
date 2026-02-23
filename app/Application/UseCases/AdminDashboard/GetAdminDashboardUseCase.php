@@ -124,7 +124,7 @@ final readonly class GetAdminDashboardUseCase
 
         foreach ($tx as $r) {
             $d = (string) $r->business_date;
-            if (!isset($revenueByDate[$d])) {
+            if (! isset($revenueByDate[$d])) {
                 continue;
             }
 
@@ -133,7 +133,7 @@ final readonly class GetAdminDashboardUseCase
             $txCountByDate[$d] += 1;
 
             $pm = $r->payment_method !== null ? (string) $r->payment_method : 'N/A';
-            if (!isset($paySplit[$pm])) {
+            if (! isset($paySplit[$pm])) {
                 $paySplit[$pm] = 0;
             }
             $paySplit[$pm] += $gt;
@@ -147,7 +147,7 @@ final readonly class GetAdminDashboardUseCase
             }
 
             $ts = $r->completed_at !== null ? (string) $r->completed_at : (string) $r->id;
-            if (!isset($perDayTx[$d])) {
+            if (! isset($perDayTx[$d])) {
                 $perDayTx[$d] = [];
             }
             $perDayTx[$d][] = ['ts' => $ts, 'total' => $gt];
@@ -187,7 +187,7 @@ final readonly class GetAdminDashboardUseCase
         $payLabels = [];
         $paySeries = [];
         foreach (['CASH', 'TRANSFER', 'N/A'] as $k) {
-            if (!isset($paySplit[$k])) {
+            if (! isset($paySplit[$k])) {
                 continue;
             }
             $payLabels[] = $k;
