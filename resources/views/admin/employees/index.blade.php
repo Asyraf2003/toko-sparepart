@@ -30,7 +30,7 @@
                     <tr>
                         <th>Nama</th>
                         <th style="width: 110px;">Aktif?</th>
-                        <th class="text-end" style="width: 200px;">Outstanding Loan</th>
+                        <th class="text-end" style="width: 200px;">Sisa Pinjaman</th>
                         <th style="width: 140px;">Aksi</th>
                     </tr>
                     </thead>
@@ -43,9 +43,9 @@
                             <td class="fw-semibold">{{ $r->name }}</td>
                             <td>
                                 @if ($r->is_active)
-                                    <span class="badge bg-success">YES</span>
+                                    <span class="badge bg-success">YA</span>
                                 @else
-                                    <span class="badge bg-secondary">NO</span>
+                                    <span class="badge bg-secondary">TIDAK</span>
                                 @endif
                             </td>
                             <td class="text-end">{{ $fmt($outstanding) }}</td>

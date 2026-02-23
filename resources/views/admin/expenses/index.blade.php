@@ -62,8 +62,8 @@
                     <tr>
                         <th style="width: 140px;">Tanggal</th>
                         <th style="width: 220px;">Kategori</th>
-                        <th class="text-end" style="width: 160px;">Amount</th>
-                        <th>Note</th>
+                        <th class="text-end" style="width: 160px;">Jumlah</th>
+                        <th>Catatan</th>
                     </tr>
                     </thead>
                     <tbody>

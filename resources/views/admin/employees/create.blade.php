@@ -18,7 +18,7 @@
 @section('content')
     @if ($errors->any())
         <div class="alert alert-danger">
-            <div class="fw-bold mb-2">Validasi error</div>
+            <div class="fw-bold mb-2">Terjadi kesalahan validasi</div>
             <ul class="mb-0">
                 @foreach ($errors->all() as $e)
                     <li>{{ $e }}</li>
