@@ -185,6 +185,17 @@
                 ],
             ],
         ],
+                [
+            'title' => 'AKUN',
+            'items' => [
+                [
+                    'kind' => 'logout',
+                    'label' => 'Logout',
+                    'url' => url('/logout'),
+                    'icon' => 'bi bi-box-arrow-right',
+                ],
+            ],
+        ],
     ];
 
     $cashierGroups = [
@@ -250,7 +261,23 @@
                     @foreach (($group['items'] ?? []) as $item)
                         @php
                             if (!empty($item['children'])) continue;
-                            if (($item['kind'] ?? 'link') !== 'link') continue;
+                                                        if (($item['kind'] ?? 'link') === 'logout') {
+                                // render logout inline
+                                $formId = 'logout-form-sidebar-admin-inline';
+                                echo '<li style="'.$liStyle.'">';
+                                echo '<a href="'.$item['url'].'" style="'.$linkStyle.'" onclick="event.preventDefault(); document.getElementById(\''.$formId.'\').submit();">';
+                                echo e($item['label']);
+                                echo '</a>';
+                                echo '<form id="'.$formId.'" method="post" action="'.$item['url'].'" style="display:none;">';
+                                echo csrf_field();
+                                echo '</form>';
+                                echo '</li>';
+                                continue;
+                            }
+
+                            if (($item['kind'] ?? 'link') !== 'link') {
+                                continue;
+                            }
                             $active = $isActive($item['active'] ?? [], $item['exclude'] ?? []);
                         @endphp
 

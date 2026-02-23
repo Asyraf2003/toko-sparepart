@@ -1,22 +1,25 @@
-<!doctype html>
-<html lang="id">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Edit Produk</title>
-</head>
-<body>
-<div style="max-width:900px;margin:20px auto;">
-    <h1>Edit Produk</h1>
+@extends('shared.layouts.app')
 
-    <p>
-        <a href="/admin/products">← Kembali</a>
-    </p>
+@section('title', 'Edit Produk')
 
-    @if ($errors->any())
+@section('page_heading')
+    <div class="page-heading d-flex flex-wrap justify-content-between align-items-start gap-2">
         <div>
-            <p>Validasi error:</p>
-            <ul>
+            <h3>Edit Produk</h3>
+            <p class="text-muted mb-0">Kelola info, harga, threshold, dan stok.</p>
+        </div>
+
+        <div class="d-flex gap-2">
+            <a class="btn btn-outline-secondary" href="{{ url('/admin/products') }}">← Kembali</a>
+        </div>
+    </div>
+@endsection
+
+@section('content')
+    @if ($errors->any())
+        <div class="alert alert-danger">
+            <div class="fw-bold mb-2">Validasi error</div>
+            <ul class="mb-0">
                 @foreach ($errors->all() as $e)
                     <li>{{ $e }}</li>
                 @endforeach
@@ -24,87 +27,159 @@
         </div>
     @endif
 
-    <h2>Info</h2>
-    <table border="1" cellspacing="0" cellpadding="6">
-        <tr><th>SKU</th><td>{{ $row->sku }}</td></tr>
-        <tr><th>Nama</th><td>{{ $row->name }}</td></tr>
-        <tr><th>Harga</th><td>{{ $row->sellPriceCurrent }}</td></tr>
-        <tr><th>Min</th><td>{{ $row->minStockThreshold }}</td></tr>
-        <tr><th>On Hand</th><td>{{ $row->onHandQty }}</td></tr>
-        <tr><th>Reserved</th><td>{{ $row->reservedQty }}</td></tr>
-        <tr><th>Available</th><td>{{ $row->availableQty() }}</td></tr>
-        <tr><th>Low?</th><td>{{ $row->isLowStock() ? 'YES' : 'NO' }}</td></tr>
-    </table>
+    @php
+        $price = $row->sellPriceCurrent ?? null;
+        $priceText = is_numeric($price) ? number_format((float) $price, 0, ',', '.') : (string) $price;
+    @endphp
 
-    <h2>Update Info Produk</h2>
-    <form method="post" action="/admin/products/{{ $row->productId }}">
-        @csrf
-        <p>
-            <label>SKU<br>
-                <input type="text" name="sku" value="{{ $row->sku }}">
-            </label>
-        </p>
-        <p>
-            <label>Nama<br>
-                <input type="text" name="name" value="{{ $row->name }}">
-            </label>
-        </p>
-        <p>
-            <label>
-                <input type="checkbox" name="is_active" value="1" {{ $row->isActive ? 'checked' : '' }}>
-                Aktif
-            </label>
-        </p>
-        <button type="submit">Update Info</button>
-    </form>
-    
-    <h2>Set Harga Jual</h2>
-    <form method="post" action="/admin/products/{{ $row->productId }}/selling-price">
-        @csrf
-        <p>
-            <label>Harga Baru<br>
-                <input type="number" name="sell_price_current" value="{{ $row->sellPriceCurrent }}">
-            </label>
-        </p>
-        <p>
-            <label>Note/Alasan (wajib)<br>
-                <input type="text" name="note" value="">
-            </label>
-        </p>
-        <button type="submit">Update Harga</button>
-    </form>
+    <div class="row g-3">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="fw-bold mb-2">Info</div>
 
-    <h2>Set Min Stock Threshold</h2>
-    <form method="post" action="/admin/products/{{ $row->productId }}/min-threshold">
-        @csrf
-        <p>
-            <label>Threshold Baru<br>
-                <input type="number" name="min_stock_threshold" value="{{ $row->minStockThreshold }}">
-            </label>
-        </p>
-        <p>
-            <label>Note/Alasan (wajib)<br>
-                <input type="text" name="note" value="">
-            </label>
-        </p>
-        <button type="submit">Update Threshold</button>
-    </form>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover align-middle mb-0">
+                            <tbody>
+                            <tr><th style="width:220px;">SKU</th><td>{{ $row->sku }}</td></tr>
+                            <tr><th>Nama</th><td>{{ $row->name }}</td></tr>
+                            <tr><th>Harga</th><td>{{ $priceText }}</td></tr>
+                            <tr><th>Min</th><td>{{ $row->minStockThreshold }}</td></tr>
+                            <tr><th>On Hand</th><td>{{ $row->onHandQty }}</td></tr>
+                            <tr><th>Reserved</th><td>{{ $row->reservedQty }}</td></tr>
+                            <tr><th>Available</th><td>{{ $row->availableQty() }}</td></tr>
+                            <tr>
+                                <th>Low?</th>
+                                <td>
+                                    @if ($row->isLowStock())
+                                        <span class="badge bg-danger">YES</span>
+                                    @else
+                                        <span class="badge bg-success">NO</span>
+                                    @endif
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
 
-    <h2>Adjust Stock (On Hand)</h2>
-    <form method="post" action="/admin/products/{{ $row->productId }}/adjust-stock">
-        @csrf
-        <p>
-            <label>Qty Delta (+ tambah / - kurang)<br>
-                <input type="number" name="qty_delta" value="0">
-            </label>
-        </p>
-        <p>
-            <label>Note/Alasan (wajib)<br>
-                <input type="text" name="note" value="">
-            </label>
-        </p>
-        <button type="submit">Adjust</button>
-    </form>
-</div>
-</body>
-</html>
+                </div>
+            </div>
+        </div>
+
+        {{-- Update Info Produk --}}
+        <div class="col-12 col-lg-6">
+            <div class="card">
+                <div class="card-body">
+                    <div class="fw-bold mb-2">Update Info Produk</div>
+
+                    <form method="post" action="{{ url('/admin/products/'.$row->productId) }}">
+                        @csrf
+
+                        <div class="mb-3">
+                            <label class="form-label">SKU</label>
+                            <input class="form-control" type="text" name="sku" value="{{ old('sku', $row->sku) }}">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Nama</label>
+                            <input class="form-control" type="text" name="name" value="{{ old('name', $row->name) }}">
+                        </div>
+
+                        <div class="form-check mb-3">
+                            @php
+                                $activeChecked = old('is_active', $row->isActive ? '1' : '') ? true : false;
+                            @endphp
+                            <input class="form-check-input" type="checkbox" id="is_active" name="is_active" value="1"
+                                {{ $activeChecked ? 'checked' : '' }}>
+                            <label class="form-check-label" for="is_active">Aktif</label>
+                        </div>
+
+                        <button class="btn btn-primary" type="submit">Update Info</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        {{-- Set Harga Jual --}}
+        <div class="col-12 col-lg-6">
+            <div class="card">
+                <div class="card-body">
+                    <div class="fw-bold mb-2">Set Harga Jual</div>
+
+                    <form method="post" action="{{ url('/admin/products/'.$row->productId.'/selling-price') }}">
+                        @csrf
+
+                        <div class="mb-3">
+                            <label class="form-label">Harga Baru</label>
+                            <input class="form-control" type="number" name="sell_price_current"
+                                   value="{{ old('sell_price_current', (string) $row->sellPriceCurrent) }}"
+                                   min="0" step="1">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Note/Alasan (wajib)</label>
+                            <input class="form-control" type="text" name="note" value="{{ old('note', '') }}" required>
+                            <div class="form-text">Dicatat ke audit trail.</div>
+                        </div>
+
+                        <button class="btn btn-primary" type="submit">Update Harga</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        {{-- Set Min Stock Threshold --}}
+        <div class="col-12 col-lg-6">
+            <div class="card">
+                <div class="card-body">
+                    <div class="fw-bold mb-2">Set Min Stock Threshold</div>
+
+                    <form method="post" action="{{ url('/admin/products/'.$row->productId.'/min-threshold') }}">
+                        @csrf
+
+                        <div class="mb-3">
+                            <label class="form-label">Threshold Baru</label>
+                            <input class="form-control" type="number" name="min_stock_threshold"
+                                   value="{{ old('min_stock_threshold', (string) $row->minStockThreshold) }}"
+                                   min="0" step="1">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Note/Alasan (wajib)</label>
+                            <input class="form-control" type="text" name="note" value="{{ old('note', '') }}" required>
+                            <div class="form-text">Dicatat ke audit trail.</div>
+                        </div>
+
+                        <button class="btn btn-primary" type="submit">Update Threshold</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        {{-- Adjust Stock (On Hand) --}}
+        <div class="col-12 col-lg-6">
+            <div class="card">
+                <div class="card-body">
+                    <div class="fw-bold mb-2">Adjust Stock (On Hand)</div>
+
+                    <form method="post" action="{{ url('/admin/products/'.$row->productId.'/adjust-stock') }}">
+                        @csrf
+
+                        <div class="mb-3">
+                            <label class="form-label">Qty Delta (+ tambah / - kurang)</label>
+                            <input class="form-control" type="number" name="qty_delta" value="{{ old('qty_delta', '0') }}" step="1">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Note/Alasan (wajib)</label>
+                            <input class="form-control" type="text" name="note" value="{{ old('note', '') }}" required>
+                            <div class="form-text">Gunakan alasan yang jelas (stok opname, rusak, dll).</div>
+                        </div>
+
+                        <button class="btn btn-danger" type="submit">Adjust</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+@endsection

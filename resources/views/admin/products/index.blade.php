@@ -1,66 +1,110 @@
-<!doctype html>
-<html lang="id">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Produk & Stok</title>
-</head>
-<body>
-<div style="max-width:1000px;margin:20px auto;">
-    <h1>Produk dan Stok</h1>
+@extends('shared.layouts.app')
 
-    <p><a href="/admin/products/create">Tambah Produk</a></p>
-    @include('admin.partials._sidebar_menu')
-    <form method="get" action="/admin/products">
-        <label>
-            Cari (SKU/Nama):
-            <input type="text" name="q" value="{{ $q }}">
-        </label>
-        <button type="submit">Cari</button>
-        <a href="/admin/products">Reset</a>
-    </form>
+@section('title', 'Produk & Stok')
 
-    <p>Total: {{ count($rows) }}</p>
+@section('page_heading')
+    <div class="page-heading d-flex flex-wrap justify-content-between align-items-start gap-2">
+        <div>
+            <h3>Produk & Stok</h3>
+            <p class="text-muted mb-0">Kelola daftar produk dan kontrol stok.</p>
+        </div>
 
-    <table border="1" cellspacing="0" cellpadding="6">
-        <thead>
-        <tr>
-            <th>SKU</th>
-            <th>Nama</th>
-            <th>Harga</th>
-            <th>On Hand</th>
-            <th>Reserved</th>
-            <th>Available</th>
-            <th>Min</th>
-            <th>Low?</th>
-            <th>Aksi</th>
-        </tr>
-        </thead>
-        <tbody>
-        @forelse ($rows as $r)
-            <tr>
-                <td>{{ $r->sku }}</td>
-                <td>{{ $r->name }}</td>
-                <td>{{ $r->sellPriceCurrent }}</td>
-                <td>{{ $r->onHandQty }}</td>
-                <td>{{ $r->reservedQty }}</td>
-                <td>{{ $r->availableQty() }}</td>
-                <td>{{ $r->minStockThreshold }}</td>
-                <td>{{ $r->isLowStock() ? 'YES' : 'NO' }}</td>
-                <td><a href="/admin/products/{{ $r->productId }}/edit">Edit</a></td>
-            </tr>
-        @empty
-            <tr>
-                <td colspan="9">Tidak ada data</td>
-            </tr>
-        @endforelse
-        </tbody>
-    </table>
+        <div class="d-flex gap-2">
+            <a class="btn btn-primary" href="{{ url('/admin/products/create') }}">Tambah Produk</a>
+        </div>
+    </div>
+@endsection
 
-    <p><a href="/logout" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Logout</a></p>
-    <form id="logout-form" method="post" action="/logout">
-        @csrf
-    </form>
-</div>
-</body>
-</html>
+@section('content')
+    @php
+        $total = null;
+        if (is_countable($rows)) {
+            $total = count($rows);
+        } elseif (is_object($rows) && method_exists($rows, 'count')) {
+            $total = $rows->count();
+        }
+    @endphp
+
+    <div class="card">
+        <div class="card-body">
+            <form class="row g-2 align-items-end" method="get" action="{{ url('/admin/products') }}">
+                <div class="col-12 col-md-6">
+                    <label class="form-label">Cari (SKU/Nama)</label>
+                    <input class="form-control" type="text" name="q" value="{{ $q }}">
+                </div>
+
+                <div class="col-auto">
+                    <button class="btn btn-outline-primary" type="submit">Cari</button>
+                </div>
+
+                <div class="col-auto">
+                    <a class="btn btn-outline-secondary" href="{{ url('/admin/products') }}">Reset</a>
+                </div>
+
+                <div class="col-12">
+                    <div class="text-muted mt-2">
+                        Total: {{ $total ?? '-' }}
+                    </div>
+                </div>
+            </form>
+
+            <div class="table-responsive mt-3">
+                <table class="table table-striped table-hover align-middle">
+                    <thead>
+                    <tr>
+                        <th>SKU</th>
+                        <th>Nama</th>
+                        <th class="text-end">Harga</th>
+                        <th class="text-end">On Hand</th>
+                        <th class="text-end">Reserved</th>
+                        <th class="text-end">Available</th>
+                        <th class="text-end">Min</th>
+                        <th>Low?</th>
+                        <th style="width: 110px;">Aksi</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @forelse ($rows as $r)
+                        @php
+                            $price = $r->sellPriceCurrent;
+                            $priceText = is_numeric($price) ? number_format((float) $price, 0, ',', '.') : (string) $price;
+                        @endphp
+                        <tr>
+                            <td>{{ $r->sku }}</td>
+                            <td>{{ $r->name }}</td>
+                            <td class="text-end">{{ $priceText }}</td>
+                            <td class="text-end">{{ $r->onHandQty }}</td>
+                            <td class="text-end">{{ $r->reservedQty }}</td>
+                            <td class="text-end">{{ $r->availableQty() }}</td>
+                            <td class="text-end">{{ $r->minStockThreshold }}</td>
+                            <td>
+                                @if ($r->isLowStock())
+                                    <span class="badge bg-danger">YES</span>
+                                @else
+                                    <span class="badge bg-success">NO</span>
+                                @endif
+                            </td>
+                            <td>
+                                <a class="btn btn-sm btn-outline-primary"
+                                   href="{{ url('/admin/products/'.$r->productId.'/edit') }}">
+                                    Edit
+                                </a>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="9" class="text-muted">Tidak ada data</td>
+                        </tr>
+                    @endforelse
+                    </tbody>
+                </table>
+            </div>
+
+            @if (is_object($rows) && method_exists($rows, 'links'))
+                <div class="mt-3">
+                    {{ $rows->links('vendor.pagination.mazer') }}
+                </div>
+            @endif
+        </div>
+    </div>
+@endsection

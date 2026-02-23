@@ -1,18 +1,25 @@
-<!doctype html>
-<html lang="id">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Tambah Produk</title>
-</head>
-<body>
-<div style="max-width:700px;margin:20px auto;">
-    <h1>Tambah Produk</h1>
+@extends('shared.layouts.app')
 
-    @if ($errors->any())
+@section('title', 'Tambah Produk')
+
+@section('page_heading')
+    <div class="page-heading d-flex flex-wrap justify-content-between align-items-start gap-2">
         <div>
-            <p>Validasi error:</p>
-            <ul>
+            <h3>Tambah Produk</h3>
+            <p class="text-muted mb-0">Input master produk baru.</p>
+        </div>
+
+        <div class="d-flex gap-2">
+            <a class="btn btn-outline-secondary" href="{{ url('/admin/products') }}">Kembali</a>
+        </div>
+    </div>
+@endsection
+
+@section('content')
+    @if ($errors->any())
+        <div class="alert alert-danger">
+            <div class="fw-bold mb-2">Validasi error</div>
+            <ul class="mb-0">
                 @foreach ($errors->all() as $e)
                     <li>{{ $e }}</li>
                 @endforeach
@@ -20,43 +27,47 @@
         </div>
     @endif
 
-    <form method="post" action="/admin/products">
-        @csrf
+    <div class="card">
+        <div class="card-body">
+            <form method="post" action="{{ url('/admin/products') }}">
+                @csrf
 
-        <p>
-            <label>SKU<br>
-                <input type="text" name="sku" value="{{ old('sku') }}">
-            </label>
-        </p>
+                <div class="row g-3">
+                    <div class="col-12 col-md-6">
+                        <label class="form-label">SKU</label>
+                        <input class="form-control" type="text" name="sku" value="{{ old('sku') }}" autocomplete="off">
+                    </div>
 
-        <p>
-            <label>Nama<br>
-                <input type="text" name="name" value="{{ old('name') }}">
-            </label>
-        </p>
+                    <div class="col-12 col-md-6">
+                        <label class="form-label">Nama</label>
+                        <input class="form-control" type="text" name="name" value="{{ old('name') }}" autocomplete="off">
+                    </div>
 
-        <p>
-            <label>Harga Jual (integer)<br>
-                <input type="number" name="sell_price_current" value="{{ old('sell_price_current', '0') }}">
-            </label>
-        </p>
+                    <div class="col-12 col-md-6">
+                        <label class="form-label">Harga Jual (integer)</label>
+                        <input class="form-control" type="number" name="sell_price_current" value="{{ old('sell_price_current', '0') }}" min="0" step="1">
+                        <div class="form-text">Simpan sebagai angka bulat (rupiah).</div>
+                    </div>
 
-        <p>
-            <label>Min Stock Threshold<br>
-                <input type="number" name="min_stock_threshold" value="{{ old('min_stock_threshold', '3') }}">
-            </label>
-        </p>
+                    <div class="col-12 col-md-6">
+                        <label class="form-label">Min Stock Threshold</label>
+                        <input class="form-control" type="number" name="min_stock_threshold" value="{{ old('min_stock_threshold', '3') }}" min="0" step="1">
+                    </div>
 
-        <p>
-            <label>
-                <input type="checkbox" name="is_active" value="1" {{ old('is_active', '1') ? 'checked' : '' }}>
-                Aktif
-            </label>
-        </p>
+                    <div class="col-12">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="is_active" name="is_active" value="1"
+                                {{ old('is_active', '1') ? 'checked' : '' }}>
+                            <label class="form-check-label" for="is_active">Aktif</label>
+                        </div>
+                    </div>
 
-        <button type="submit">Simpan</button>
-        <a href="/admin/products">Batal</a>
-    </form>
-</div>
-</body>
-</html>
+                    <div class="col-12 d-flex gap-2">
+                        <button class="btn btn-primary" type="submit">Simpan</button>
+                        <a class="btn btn-outline-secondary" href="{{ url('/admin/products') }}">Batal</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+@endsection

@@ -1,66 +1,112 @@
-<!doctype html>
-<html lang="id">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Pembelian (Supplier)</title>
-</head>
-<body>
-<div style="max-width:1000px;margin:20px auto;">
-    <h1>Pembelian (Supplier)</h1>
+@extends('shared.layouts.app')
 
-    <p>
-        <a href="/admin/purchases/create">Tambah Pembelian</a>
-        |
-        <a href="/admin/products">Produk & Stok</a>
-    </p>
+@section('title', 'Pembelian (Supplier)')
 
-    <form method="get" action="/admin/purchases">
-        <label>
-            Cari (No Faktur / Supplier):
-            <input type="text" name="q" value="{{ $q }}">
-        </label>
-        <button type="submit">Cari</button>
-        <a href="/admin/purchases">Reset</a>
-    </form>
+@section('page_heading')
+    <div class="page-heading d-flex flex-wrap justify-content-between align-items-start gap-2">
+        <div>
+            <h3>Pembelian (Supplier)</h3>
+            <p class="text-muted mb-0">Daftar invoice pembelian dari supplier.</p>
+        </div>
 
-    <p>Total: {{ count($rows) }}</p>
+        <div class="d-flex gap-2">
+            <a class="btn btn-primary" href="{{ url('/admin/purchases/create') }}">Tambah Pembelian</a>
+            <a class="btn btn-outline-secondary" href="{{ url('/admin/products') }}">Produk & Stok</a>
+        </div>
+    </div>
+@endsection
 
-    <table border="1" cellspacing="0" cellpadding="6">
-        <thead>
-        <tr>
-            <th>Tgl Kirim</th>
-            <th>No Faktur</th>
-            <th>Supplier</th>
-            <th>Bruto</th>
-            <th>Diskon</th>
-            <th>Pajak</th>
-            <th>Grand Total</th>
-        </tr>
-        </thead>
-        <tbody>
-        @forelse ($rows as $r)
-            <tr>
-                <td>{{ $r->tgl_kirim }}</td>
-                <td>{{ $r->no_faktur }}</td>
-                <td>{{ $r->supplier_name }}</td>
-                <td>{{ $r->total_bruto }}</td>
-                <td>{{ $r->total_diskon }}</td>
-                <td>{{ $r->total_pajak }}</td>
-                <td>{{ $r->grand_total }}</td>
-            </tr>
-        @empty
-            <tr>
-                <td colspan="7">Tidak ada data</td>
-            </tr>
-        @endforelse
-        </tbody>
-    </table>
+@section('content')
+    @php
+        $total = null;
+        if (is_countable($rows)) {
+            $total = count($rows);
+        } elseif (is_object($rows) && method_exists($rows, 'count')) {
+            $total = $rows->count();
+        }
 
-    <p><a href="/logout" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Logout</a></p>
-    <form id="logout-form" method="post" action="/logout">
-        @csrf
-    </form>
-</div>
-</body>
-</html>
+        $fmt = function ($v): string {
+            if ($v === null) return '-';
+            if (is_numeric($v)) return number_format((float) $v, 0, ',', '.');
+            return (string) $v;
+        };
+    @endphp
+
+    <div class="card">
+        <div class="card-body">
+            <form class="row g-2 align-items-end" method="get" action="{{ url('/admin/purchases') }}">
+                <div class="col-12 col-md-6">
+                    <label class="form-label">Cari (No Faktur / Supplier)</label>
+                    <input class="form-control" type="text" name="q" value="{{ $q }}">
+                </div>
+
+                <div class="col-auto">
+                    <button class="btn btn-outline-primary" type="submit">Cari</button>
+                </div>
+
+                <div class="col-auto">
+                    <a class="btn btn-outline-secondary" href="{{ url('/admin/purchases') }}">Reset</a>
+                </div>
+
+                <div class="col-12">
+                    <div class="text-muted mt-2">Total: {{ $total ?? '-' }}</div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover align-middle mb-0">
+                    <thead>
+                    <tr>
+                        <th>Tgl Kirim</th>
+                        <th>No Faktur</th>
+                        <th>Supplier</th>
+                        <th class="text-end">Bruto</th>
+                        <th class="text-end">Diskon</th>
+                        <th class="text-end">Pajak</th>
+                        <th class="text-end">Grand Total</th>
+                        <th class="text-center">Aksi</th> </tr>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @forelse ($rows as $r)
+                        <tr>
+                            <td>{{ $r->tgl_kirim }}</td>
+                            <td>
+                                <a href="{{ url('/admin/purchases/'.$r->id) }}" class="fw-bold text-primary text-decoration-none">
+                                    {{ $r->no_faktur }}
+                                </a>
+                            </td>
+                            <td>{{ $r->supplier_name }}</td>
+                            <td class="text-end">{{ $fmt($r->total_bruto) }}</td>
+                            <td class="text-end">{{ $fmt($r->total_diskon) }}</td>
+                            <td class="text-end">{{ $fmt($r->total_pajak) }}</td>
+                            <td class="text-end fw-bold">{{ $fmt($r->grand_total) }}</td>
+                            <td class="text-center">
+                                <a href="{{ url('/admin/purchases/'.$r->id.'/edit') }}" 
+                                class="btn btn-sm btn-outline-warning" 
+                                title="Edit Data">
+                                    <i class="bi bi-pencil"></i> Edit
+                                </a>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="8" class="text-muted text-center italic">Tidak ada data ditemukan</td>
+                        </tr>
+                    @endforelse
+                    </tbody>
+                </table>
+            </div>
+
+            @if (is_object($rows) && method_exists($rows, 'links'))
+                <div class="mt-3">
+                    {{ $rows->links('vendor.pagination.mazer') }}
+                </div>
+            @endif
+        </div>
+    </div>
+@endsection

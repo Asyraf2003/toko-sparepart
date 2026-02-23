@@ -1,24 +1,26 @@
-<!doctype html>
-<html lang="id">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Tambah Pembelian</title>
-</head>
-<body>
-<div style="max-width:1000px;margin:20px auto;">
-    <h1>Tambah Pembelian (Supplier)</h1>
+@extends('shared.layouts.app')
 
-    <p>
-        <a href="/admin/purchases">Kembali</a>
-        |
-        <a href="/admin/products">Produk & Stok</a>
-    </p>
+@section('title', 'Tambah Pembelian')
 
-    @if ($errors->any())
+@section('page_heading')
+    <div class="page-heading d-flex flex-wrap justify-content-between align-items-start gap-2">
         <div>
-            <p>Validasi error:</p>
-            <ul>
+            <h3>Tambah Pembelian (Supplier)</h3>
+            <p class="text-muted mb-0">Input header dan minimal 1 baris pembelian.</p>
+        </div>
+
+        <div class="d-flex gap-2">
+            <a class="btn btn-outline-secondary" href="{{ url('/admin/purchases') }}">Kembali</a>
+            <a class="btn btn-outline-secondary" href="{{ url('/admin/products') }}">Produk & Stok</a>
+        </div>
+    </div>
+@endsection
+
+@section('content')
+    @if ($errors->any())
+        <div class="alert alert-danger">
+            <div class="fw-bold mb-2">Validasi error</div>
+            <ul class="mb-0">
                 @foreach ($errors->all() as $e)
                     <li>{{ $e }}</li>
                 @endforeach
@@ -26,108 +28,117 @@
         </div>
     @endif
 
-    <form method="post" action="/admin/purchases">
+    <form method="post" action="{{ url('/admin/purchases') }}">
         @csrf
 
-        <fieldset>
-            <legend>Header</legend>
+        <div class="row g-3">
+            {{-- Header --}}
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="fw-bold mb-2">Header</div>
 
-            <p>
-                <label>Supplier Name<br>
-                    <input type="text" name="supplier_name" value="{{ old('supplier_name') }}">
-                </label>
-            </p>
+                        <div class="row g-3">
+                            <div class="col-12 col-md-6">
+                                <label class="form-label">Supplier Name</label>
+                                <input class="form-control" type="text" name="supplier_name" value="{{ old('supplier_name') }}">
+                            </div>
 
-            <p>
-                <label>No Faktur (unik)<br>
-                    <input type="text" name="no_faktur" value="{{ old('no_faktur') }}">
-                </label>
-            </p>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label">No Faktur (unik)</label>
+                                <input class="form-control" type="text" name="no_faktur" value="{{ old('no_faktur') }}">
+                            </div>
 
-            <p>
-                <label>Tgl Kirim (Y-m-d)<br>
-                    <input type="date" name="tgl_kirim" value="{{ old('tgl_kirim') }}">
-                </label>
-            </p>
+                            <div class="col-12 col-md-4">
+                                <label class="form-label">Tgl Kirim</label>
+                                <input class="form-control" type="date" name="tgl_kirim" value="{{ old('tgl_kirim') }}">
+                            </div>
 
-            <p>
-                <label>Kepada (opsional)<br>
-                    <input type="text" name="kepada" value="{{ old('kepada') }}">
-                </label>
-            </p>
+                            <div class="col-12 col-md-4">
+                                <label class="form-label">Kepada (opsional)</label>
+                                <input class="form-control" type="text" name="kepada" value="{{ old('kepada') }}">
+                            </div>
 
-            <p>
-                <label>No Pesanan (opsional)<br>
-                    <input type="text" name="no_pesanan" value="{{ old('no_pesanan') }}">
-                </label>
-            </p>
+                            <div class="col-12 col-md-4">
+                                <label class="form-label">No Pesanan (opsional)</label>
+                                <input class="form-control" type="text" name="no_pesanan" value="{{ old('no_pesanan') }}">
+                            </div>
 
-            <p>
-                <label>Nama Sales (opsional)<br>
-                    <input type="text" name="nama_sales" value="{{ old('nama_sales') }}">
-                </label>
-            </p>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label">Nama Sales (opsional)</label>
+                                <input class="form-control" type="text" name="nama_sales" value="{{ old('nama_sales') }}">
+                            </div>
 
-            <p>
-                <label>Total Pajak (Rupiah integer, header-level)<br>
-                    <input type="number" name="total_pajak" min="0" value="{{ old('total_pajak', '0') }}">
-                </label>
-            </p>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label">Total Pajak (Rupiah integer, header-level)</label>
+                                <input class="form-control" type="number" name="total_pajak" min="0" step="1"
+                                       value="{{ old('total_pajak', '0') }}">
+                            </div>
 
-            <p>
-                <label>Note (opsional)<br>
-                    <input type="text" name="note" value="{{ old('note') }}">
-                </label>
-            </p>
-        </fieldset>
+                            <div class="col-12">
+                                <label class="form-label">Note (opsional)</label>
+                                <input class="form-control" type="text" name="note" value="{{ old('note') }}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-        <fieldset>
-            <legend>Lines (isi minimal 1)</legend>
+            {{-- Lines --}}
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="fw-bold mb-2">Lines (isi minimal 1)</div>
 
-            <table border="1" cellspacing="0" cellpadding="6">
-                <thead>
-                <tr>
-                    <th>Product</th>
-                    <th>Qty</th>
-                    <th>Unit Cost</th>
-                    <th>Diskon (%)</th>
-                </tr>
-                </thead>
-                <tbody>
-                @for ($i = 0; $i < 10; $i++)
-                    <tr>
-                        <td>
-                            <select name="lines[{{ $i }}][product_id]">
-                                <option value="">-- pilih --</option>
-                                @foreach ($products as $p)
-                                    <option value="{{ $p->productId }}"
-                                        {{ (string) old("lines.$i.product_id") === (string) $p->productId ? 'selected' : '' }}>
-                                        {{ $p->sku }} - {{ $p->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </td>
-                        <td>
-                            <input type="number" name="lines[{{ $i }}][qty]" min="1" value="{{ old("lines.$i.qty") }}">
-                        </td>
-                        <td>
-                            <input type="number" name="lines[{{ $i }}][unit_cost]" min="0" value="{{ old("lines.$i.unit_cost") }}">
-                        </td>
-                        <td>
-                            <input type="number" name="lines[{{ $i }}][disc_percent]" min="0" max="100" step="0.01"
-                                   value="{{ old("lines.$i.disc_percent", '0') }}">
-                        </td>
-                    </tr>
-                @endfor
-                </tbody>
-            </table>
-        </fieldset>
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover align-middle mb-0">
+                                <thead>
+                                <tr>
+                                    <th style="min-width: 320px;">Product</th>
+                                    <th style="width: 120px;" class="text-end">Qty</th>
+                                    <th style="width: 180px;" class="text-end">Unit Cost</th>
+                                    <th style="width: 160px;" class="text-end">Diskon (%)</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                @for ($i = 0; $i < 10; $i++)
+                                    <tr>
+                                        <td>
+                                            <select class="form-select" name="lines[{{ $i }}][product_id]">
+                                                <option value="">-- pilih --</option>
+                                                @foreach ($products as $p)
+                                                    <option value="{{ $p->productId }}"
+                                                        {{ (string) old("lines.$i.product_id") === (string) $p->productId ? 'selected' : '' }}>
+                                                        {{ $p->sku }} - {{ $p->name }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <input class="form-control text-end" type="number" name="lines[{{ $i }}][qty]" min="1" step="1"
+                                                   value="{{ old("lines.$i.qty") }}">
+                                        </td>
+                                        <td>
+                                            <input class="form-control text-end" type="number" name="lines[{{ $i }}][unit_cost]" min="0" step="1"
+                                                   value="{{ old("lines.$i.unit_cost") }}">
+                                        </td>
+                                        <td>
+                                            <input class="form-control text-end" type="number" name="lines[{{ $i }}][disc_percent]" min="0" max="100" step="0.01"
+                                                   value="{{ old("lines.$i.disc_percent", '0') }}">
+                                        </td>
+                                    </tr>
+                                @endfor
+                                </tbody>
+                            </table>
+                        </div>
 
-        <p>
-            <button type="submit">Simpan Pembelian</button>
-            <a href="/admin/purchases">Batal</a>
-        </p>
+                        <div class="d-flex gap-2 mt-3">
+                            <button class="btn btn-primary" type="submit">Simpan Pembelian</button>
+                            <a class="btn btn-outline-secondary" href="{{ url('/admin/purchases') }}">Batal</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </form>
-</div>
-</body>
-</html>
+@endsection
