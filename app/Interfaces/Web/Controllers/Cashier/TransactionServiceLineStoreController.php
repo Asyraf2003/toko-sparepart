@@ -7,6 +7,7 @@ namespace App\Interfaces\Web\Controllers\Cashier;
 use App\Application\UseCases\Sales\AddServiceLineRequest;
 use App\Application\UseCases\Sales\AddServiceLineUseCase;
 use Illuminate\Http\RedirectResponse;
+use App\Shared\Messages\MessagesId;
 use Throwable;
 
 final readonly class TransactionServiceLineStoreController
@@ -37,7 +38,7 @@ final readonly class TransactionServiceLineStoreController
         } catch (Throwable $e) {
             return redirect('/cashier/transactions/'.$transactionId)
                 ->withInput()
-                ->with('error', $e->getMessage());
+                ->with('error', MessagesId::error($e));
         }
 
         return redirect('/cashier/transactions/'.$transactionId);

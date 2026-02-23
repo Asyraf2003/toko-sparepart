@@ -7,6 +7,7 @@ namespace App\Interfaces\Web\Controllers\Cashier;
 use App\Application\UseCases\Sales\VoidTransactionRequest;
 use App\Application\UseCases\Sales\VoidTransactionUseCase;
 use Illuminate\Http\RedirectResponse;
+use App\Shared\Messages\MessagesId;
 use Throwable;
 
 final readonly class TransactionVoidController
@@ -31,7 +32,7 @@ final readonly class TransactionVoidController
                 reason: (string) $data['reason'],
             ));
         } catch (Throwable $e) {
-            return redirect('/cashier/transactions/'.$transactionId)->with('error', $e->getMessage());
+            return redirect('/cashier/transactions/'.$transactionId)->with('error', MessagesId::error($e));
         }
 
         return redirect('/cashier/transactions/today')

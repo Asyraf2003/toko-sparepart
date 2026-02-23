@@ -7,6 +7,7 @@ namespace App\Interfaces\Web\Controllers\Cashier;
 use App\Application\UseCases\Sales\UpdatePartLineQtyRequest;
 use App\Application\UseCases\Sales\UpdatePartLineQtyUseCase;
 use Illuminate\Http\RedirectResponse;
+use App\Shared\Messages\MessagesId;
 use Throwable;
 
 final readonly class TransactionPartLineUpdateQtyController
@@ -32,7 +33,7 @@ final readonly class TransactionPartLineUpdateQtyController
                 reason: (string) $data['reason'],
             ));
         } catch (Throwable $e) {
-            return redirect('/cashier/transactions/'.$transactionId)->with('error', $e->getMessage());
+            return redirect('/cashier/transactions/'.$transactionId)->with('error', MessagesId::error($e));
         }
 
         return redirect('/cashier/transactions/'.$transactionId);
