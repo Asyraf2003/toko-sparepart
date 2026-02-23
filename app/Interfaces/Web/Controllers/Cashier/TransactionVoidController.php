@@ -6,8 +6,8 @@ namespace App\Interfaces\Web\Controllers\Cashier;
 
 use App\Application\UseCases\Sales\VoidTransactionRequest;
 use App\Application\UseCases\Sales\VoidTransactionUseCase;
-use Illuminate\Http\RedirectResponse;
 use App\Shared\Messages\MessagesId;
+use Illuminate\Http\RedirectResponse;
 use Throwable;
 
 final readonly class TransactionVoidController

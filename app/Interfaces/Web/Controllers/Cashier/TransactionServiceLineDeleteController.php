@@ -6,8 +6,8 @@ namespace App\Interfaces\Web\Controllers\Cashier;
 
 use App\Application\UseCases\Sales\DeleteServiceLineRequest;
 use App\Application\UseCases\Sales\DeleteServiceLineUseCase;
-use Illuminate\Http\RedirectResponse;
 use App\Shared\Messages\MessagesId;
+use Illuminate\Http\RedirectResponse;
 use Throwable;
 
 final readonly class TransactionServiceLineDeleteController

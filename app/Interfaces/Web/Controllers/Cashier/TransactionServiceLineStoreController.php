@@ -6,8 +6,8 @@ namespace App\Interfaces\Web\Controllers\Cashier;
 
 use App\Application\UseCases\Sales\AddServiceLineRequest;
 use App\Application\UseCases\Sales\AddServiceLineUseCase;
-use Illuminate\Http\RedirectResponse;
 use App\Shared\Messages\MessagesId;
+use Illuminate\Http\RedirectResponse;
 use Throwable;
 
 final readonly class TransactionServiceLineStoreController

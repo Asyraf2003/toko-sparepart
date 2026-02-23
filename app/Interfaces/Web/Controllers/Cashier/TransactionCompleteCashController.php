@@ -6,8 +6,8 @@ namespace App\Interfaces\Web\Controllers\Cashier;
 
 use App\Application\UseCases\Sales\CompleteTransactionRequest;
 use App\Application\UseCases\Sales\CompleteTransactionUseCase;
-use Illuminate\Http\RedirectResponse;
 use App\Shared\Messages\MessagesId;
+use Illuminate\Http\RedirectResponse;
 use Throwable;
 
 final readonly class TransactionCompleteCashController

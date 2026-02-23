@@ -6,8 +6,6 @@ namespace Database\Seeders;
 
 use App\Application\UseCases\Catalog\CreateProductRequest;
 use App\Application\UseCases\Catalog\CreateProductUseCase;
-use App\Application\UseCases\Inventory\AdjustStockRequest;
-use App\Application\UseCases\Inventory\AdjustStockUseCase;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;

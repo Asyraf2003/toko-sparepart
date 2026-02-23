@@ -162,6 +162,7 @@ final class MessagesId
     {
         $s = trim($s);
         $s = preg_replace('/\s+/', ' ', $s) ?? $s;
+
         return strtolower($s);
     }
 }
