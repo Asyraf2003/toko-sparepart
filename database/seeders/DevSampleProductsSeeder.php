@@ -30,9 +30,6 @@ final class DevSampleProductsSeeder extends Seeder
         /** @var CreateProductUseCase $createProduct */
         $createProduct = app(CreateProductUseCase::class);
 
-        /** @var AdjustStockUseCase $adjustStock */
-        $adjustStock = app(AdjustStockUseCase::class);
-
         // SKU "wajib" (dipakai UI/tests)
         $items = [
             ['sku' => 'SP-ABC',     'name' => 'Sparepart ABC', 'price' => 10000,  'threshold' => 3, 'active' => true, 'stock' => 20],
@@ -170,16 +167,6 @@ final class DevSampleProductsSeeder extends Seeder
             if ($delta === 0) {
                 continue;
             }
-
-            // Seed stock via UseCase so ledger tercatat
-            $adjustStock->handle(new AdjustStockRequest(
-                productId: (int) $productId,
-                qtyDelta: (int) $delta,
-                actorUserId: (int) $adminId,
-                note: 'seed initial stock',
-                refType: self::REF_TYPE,
-                refId: null,
-            ));
         }
     }
 }
