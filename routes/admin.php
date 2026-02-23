@@ -14,8 +14,11 @@ use App\Interfaces\Web\Controllers\Admin\ExpenseCreateController;
 use App\Interfaces\Web\Controllers\Admin\ExpenseIndexController;
 use App\Interfaces\Web\Controllers\Admin\ExpenseStoreController;
 use App\Interfaces\Web\Controllers\Admin\PayrollPeriodCreateController;
+use App\Interfaces\Web\Controllers\Admin\PayrollPeriodEditController;
 use App\Interfaces\Web\Controllers\Admin\PayrollPeriodIndexController;
+use App\Interfaces\Web\Controllers\Admin\PayrollPeriodShowController;
 use App\Interfaces\Web\Controllers\Admin\PayrollPeriodStoreController;
+use App\Interfaces\Web\Controllers\Admin\PayrollPeriodUpdateController;
 use App\Interfaces\Web\Controllers\Admin\ProductAdjustStockController;
 use App\Interfaces\Web\Controllers\Admin\ProductCreateController;
 use App\Interfaces\Web\Controllers\Admin\ProductEditController;
@@ -61,6 +64,10 @@ Route::middleware(['auth', 'role:ADMIN'])->prefix('admin')->group(function (): v
     Route::get('/payroll', PayrollPeriodIndexController::class);
     Route::post('/payroll', PayrollPeriodStoreController::class);
     Route::get('/payroll/create', PayrollPeriodCreateController::class);
+
+    Route::get('/payroll/{payrollPeriodId}', PayrollPeriodShowController::class);
+    Route::get('/payroll/{payrollPeriodId}/edit', PayrollPeriodEditController::class);
+    Route::post('/payroll/{payrollPeriodId}', PayrollPeriodUpdateController::class);
 
     Route::get('/products', ProductStockIndexController::class);
     Route::post('/products', ProductStoreController::class);

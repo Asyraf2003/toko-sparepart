@@ -9,17 +9,20 @@ use App\Application\UseCases\Audit\SearchAuditLogsRequest;
 use App\Application\UseCases\Audit\SearchAuditLogsResult;
 use App\Application\UseCases\Audit\ShowAuditLogResult;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 final class EloquentAuditLogQuery implements AuditLogQueryPort
 {
     public function search(SearchAuditLogsRequest $req): SearchAuditLogsResult
     {
+        $actorCol = $this->resolveActorColumn();
+
         $q = DB::table('audit_logs')
-            ->leftJoin('users', 'audit_logs.actor_id', '=', 'users.id')
+            ->leftJoin('users', "audit_logs.$actorCol", '=', 'users.id')
             ->select([
                 'audit_logs.id',
                 'audit_logs.created_at',
-                'audit_logs.actor_id',
+                DB::raw("audit_logs.$actorCol as actor_id"),
                 'audit_logs.actor_role',
                 'users.name as actor_name',
                 'users.email as actor_email',
@@ -31,7 +34,7 @@ final class EloquentAuditLogQuery implements AuditLogQueryPort
             ->orderByDesc('audit_logs.id');
 
         if ($req->actorId !== null) {
-            $q->where('audit_logs.actor_id', '=', $req->actorId);
+            $q->where("audit_logs.$actorCol", '=', $req->actorId);
         }
 
         $actor = trim((string) ($req->actor ?? ''));
@@ -91,11 +94,14 @@ final class EloquentAuditLogQuery implements AuditLogQueryPort
 
     public function findById(int $auditLogId): ?ShowAuditLogResult
     {
+        $actorCol = $this->resolveActorColumn();
+
         $r = DB::table('audit_logs')
-            ->leftJoin('users', 'audit_logs.actor_id', '=', 'users.id')
+            ->leftJoin('users', "audit_logs.$actorCol", '=', 'users.id')
             ->where('audit_logs.id', '=', $auditLogId)
             ->first([
                 'audit_logs.*',
+                DB::raw("audit_logs.$actorCol as actor_id"),
                 'users.name as actor_name',
                 'users.email as actor_email',
             ]);
@@ -141,5 +147,17 @@ final class EloquentAuditLogQuery implements AuditLogQueryPort
             meta: is_array($meta) ? $meta : null,
             createdAt: (string) $r->created_at,
         );
+    }
+
+    private function resolveActorColumn(): string
+    {
+        if (Schema::hasColumn('audit_logs', 'actor_id')) {
+            return 'actor_id';
+        }
+        if (Schema::hasColumn('audit_logs', 'actor_user_id')) {
+            return 'actor_user_id';
+        }
+
+        throw new \RuntimeException('audit_logs actor column not found (expected actor_id or actor_user_id)');
     }
 }

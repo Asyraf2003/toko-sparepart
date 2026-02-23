@@ -1,20 +1,25 @@
-<!doctype html>
-<html lang="id">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Tambah Loan</title>
-</head>
-<body>
-<div style="max-width:700px;margin:20px auto;">
-    <h1>Tambah Loan — {{ $employee->name }}</h1>
+@extends('shared.layouts.app')
 
-    <p><a href="/admin/employees">Kembali</a></p>
+@section('title', 'Tambah Loan')
 
-    @if ($errors->any())
+@section('page_heading')
+    <div class="page-heading d-flex flex-wrap justify-content-between align-items-start gap-2">
         <div>
-            <p>Validasi error:</p>
-            <ul>
+            <h3>Tambah Pinjaman Buat {{ $employee->name }}</h3>
+            <p class="text-muted mb-0">Catat pinjaman karyawan.</p>
+        </div>
+
+        <div class="d-flex gap-2">
+            <a class="btn btn-outline-secondary" href="{{ url('/admin/employees') }}">Kembali</a>
+        </div>
+    </div>
+@endsection
+
+@section('content')
+    @if ($errors->any())
+        <div class="alert alert-danger">
+            <div class="fw-bold mb-2">Validasi error</div>
+            <ul class="mb-0">
                 @foreach ($errors->all() as $e)
                     <li>{{ $e }}</li>
                 @endforeach
@@ -22,30 +27,33 @@
         </div>
     @endif
 
-    <form method="post" action="/admin/employees/{{ $employee->id }}/loans">
-        @csrf
+    <div class="card">
+        <div class="card-body">
+            <form method="post" action="{{ url('/admin/employees/'.$employee->id.'/loans') }}">
+                @csrf
 
-        <p>
-            <label>Tanggal Loan<br>
-                <input type="date" name="loan_date" value="{{ old('loan_date') }}">
-            </label>
-        </p>
+                <div class="row g-3">
+                    <div class="col-12 col-md-4">
+                        <label class="form-label">Tanggal Pinjaman</label>
+                        <input class="form-control" type="date" name="loan_date" value="{{ old('loan_date') }}">
+                    </div>
 
-        <p>
-            <label>Amount (rupiah integer)<br>
-                <input type="number" name="amount" min="1" value="{{ old('amount', '0') }}">
-            </label>
-        </p>
+                    <div class="col-12 col-md-4">
+                        <label class="form-label">Jumlah Pinjaman</label>
+                        <input class="form-control" type="number" name="amount" min="1" step="1" value="{{ old('amount', '0') }}">
+                    </div>
 
-        <p>
-            <label>Note (opsional)<br>
-                <input type="text" name="note" value="{{ old('note') }}">
-            </label>
-        </p>
+                    <div class="col-12 col-md-4">
+                        <label class="form-label">Note (opsional)</label>
+                        <input class="form-control" type="text" name="note" value="{{ old('note') }}">
+                    </div>
 
-        <button type="submit">Simpan Loan</button>
-        <a href="/admin/employees">Batal</a>
-    </form>
-</div>
-</body>
-</html>
+                    <div class="col-12 d-flex gap-2">
+                        <button class="btn btn-primary" type="submit">Simpan Pinjaman</button>
+                        <a class="btn btn-outline-secondary" href="{{ url('/admin/employees') }}">Batal</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+@endsection

@@ -1,53 +1,75 @@
-<!doctype html>
-<html lang="id">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Employees</title>
-</head>
-<body>
-<div style="max-width:900px;margin:20px auto;">
-    <h1>Employees</h1>
+@extends('shared.layouts.app')
 
-    <p>
-        <a href="/admin/employees/create">Tambah Employee</a>
-        |
-        <a href="/admin/payroll">Payroll</a>
-        |
-        <a href="/admin/expenses">Expenses</a>
-        |
-        <a href="/admin/products">Produk & Stok</a>
-    </p>
+@section('title', 'Karyawan')
 
-    <table border="1" cellspacing="0" cellpadding="6">
-        <thead>
-        <tr>
-            <th>Nama</th>
-            <th>Aktif?</th>
-            <th>Outstanding Loan</th>
-            <th>Aksi</th>
-        </tr>
-        </thead>
-        <tbody>
-        @forelse ($rows as $r)
-            <tr>
-                <td>{{ $r->name }}</td>
-                <td>{{ $r->is_active ? 'YES' : 'NO' }}</td>
-                <td>{{ (int) ($outstandingByEmployeeId[$r->id] ?? 0) }}</td>
-                <td>
-                    <a href="/admin/employees/{{ $r->id }}/loans/create">Tambah Loan</a>
-                </td>
-            </tr>
-        @empty
-            <tr><td colspan="4">Tidak ada data</td></tr>
-        @endforelse
-        </tbody>
-    </table>
+@section('page_heading')
+    <div class="page-heading d-flex flex-wrap justify-content-between align-items-start gap-2">
+        <div>
+            <h3>Karyawan</h3>
+            <p class="text-muted mb-0">Kelola karyawan dan pinjaman.</p>
+        </div>
 
-    <p><a href="/logout" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Logout</a></p>
-    <form id="logout-form" method="post" action="/logout">
-        @csrf
-    </form>
-</div>
-</body>
-</html>
+        <div class="d-flex gap-2">
+            <a class="btn btn-primary" href="{{ url('/admin/employees/create') }}">Tambah Karyawan</a>
+        </div>
+    </div>
+@endsection
+
+@section('content')
+    @php
+        $fmt = function (int $v): string {
+            return number_format((float) $v, 0, ',', '.');
+        };
+    @endphp
+
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover align-middle mb-0">
+                    <thead>
+                    <tr>
+                        <th>Nama</th>
+                        <th style="width: 110px;">Aktif?</th>
+                        <th class="text-end" style="width: 200px;">Outstanding Loan</th>
+                        <th style="width: 140px;">Aksi</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @forelse ($rows as $r)
+                        @php
+                            $outstanding = (int) ($outstandingByEmployeeId[$r->id] ?? 0);
+                        @endphp
+                        <tr>
+                            <td class="fw-semibold">{{ $r->name }}</td>
+                            <td>
+                                @if ($r->is_active)
+                                    <span class="badge bg-success">YES</span>
+                                @else
+                                    <span class="badge bg-secondary">NO</span>
+                                @endif
+                            </td>
+                            <td class="text-end">{{ $fmt($outstanding) }}</td>
+                            <td>
+                                <a class="btn btn-sm btn-outline-primary"
+                                   href="{{ url('/admin/employees/'.$r->id.'/loans/create') }}">
+                                    Beri Pinjaman
+                                </a>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="4" class="text-muted">Tidak ada data</td>
+                        </tr>
+                    @endforelse
+                    </tbody>
+                </table>
+            </div>
+
+            @if (is_object($rows) && method_exists($rows, 'links'))
+                <div class="mt-3">
+                    {{ $rows->links('vendor.pagination.mazer') }}
+                </div>
+            @endif
+        </div>
+    </div>
+@endsection

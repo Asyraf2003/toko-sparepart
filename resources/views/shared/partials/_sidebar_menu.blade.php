@@ -38,6 +38,7 @@
                 [
                     'label' => 'Dashboard',
                     'url' => url('/admin'),
+                    'icon' => 'bi bi-speedometer2',
                     'active' => ['admin'],
                 ],
             ],
@@ -46,15 +47,11 @@
             'title' => 'MASTER',
             'items' => [
                 [
-                    'label' => 'Produk (Stok & Daftar)',
+                    'label' => 'Produk',
                     'url' => url('/admin/products'),
+                    'icon' => 'bi bi-box-seam',
                     'active' => ['admin/products', 'admin/products/*'],
                     'exclude' => ['admin/products/create'],
-                ],
-                [
-                    'label' => 'Tambah Produk',
-                    'url' => url('/admin/products/create'),
-                    'active' => ['admin/products/create'],
                 ],
             ],
         ],
@@ -64,13 +61,9 @@
                 [
                     'label' => 'Invoice Pembelian',
                     'url' => url('/admin/purchases'),
+                    'icon' => 'bi bi-receipt',
                     'active' => ['admin/purchases', 'admin/purchases/*'],
                     'exclude' => ['admin/purchases/create'],
-                ],
-                [
-                    'label' => 'Input Pembelian',
-                    'url' => url('/admin/purchases/create'),
-                    'active' => ['admin/purchases/create'],
                 ],
             ],
         ],
@@ -78,15 +71,11 @@
             'title' => 'SDM',
             'items' => [
                 [
-                    'label' => 'Karyawan (Daftar)',
+                    'label' => 'Karyawan',
                     'url' => url('/admin/employees'),
+                    'icon' => 'bi bi-people',
                     'active' => ['admin/employees', 'admin/employees/*'],
                     'exclude' => ['admin/employees/create'],
-                ],
-                [
-                    'label' => 'Tambah Karyawan',
-                    'url' => url('/admin/employees/create'),
-                    'active' => ['admin/employees/create'],
                 ],
             ],
         ],
@@ -94,15 +83,11 @@
             'title' => 'PENGELUARAN',
             'items' => [
                 [
-                    'label' => 'Pengeluaran (Daftar)',
+                    'label' => 'Biaya Operasional',
                     'url' => url('/admin/expenses'),
+                    'icon' => 'bi bi-cash-coin',
                     'active' => ['admin/expenses', 'admin/expenses/*'],
                     'exclude' => ['admin/expenses/create'],
-                ],
-                [
-                    'label' => 'Tambah Pengeluaran',
-                    'url' => url('/admin/expenses/create'),
-                    'active' => ['admin/expenses/create'],
                 ],
             ],
         ],
@@ -112,13 +97,9 @@
                 [
                     'label' => 'Periode Payroll',
                     'url' => url('/admin/payroll'),
+                    'icon' => 'bi bi-calendar2-week',
                     'active' => ['admin/payroll', 'admin/payroll/*'],
                     'exclude' => ['admin/payroll/create'],
-                ],
-                [
-                    'label' => 'Buat Periode Payroll',
-                    'url' => url('/admin/payroll/create'),
-                    'active' => ['admin/payroll/create'],
                 ],
             ],
         ],
@@ -128,50 +109,26 @@
                 [
                     'label' => 'Laporan Penjualan',
                     'url' => url('/admin/reports/sales'),
+                    'icon' => 'bi bi-graph-up',
                     'active' => ['admin/reports/sales', 'admin/reports/sales/*'],
-                ],
-                [
-                    'label' => 'Cetak Penjualan (PDF)',
-                    'url' => url('/admin/reports/sales/pdf'),
-                    'active' => ['admin/reports/sales/pdf'],
-                    'target' => '_blank',
-                    'rel' => 'noopener',
                 ],
                 [
                     'label' => 'Laporan Pembelian',
                     'url' => url('/admin/reports/purchasing'),
+                    'icon' => 'bi bi-cart-check',
                     'active' => ['admin/reports/purchasing', 'admin/reports/purchasing/*'],
-                ],
-                [
-                    'label' => 'Cetak Pembelian (PDF)',
-                    'url' => url('/admin/reports/purchasing/pdf'),
-                    'active' => ['admin/reports/purchasing/pdf'],
-                    'target' => '_blank',
-                    'rel' => 'noopener',
                 ],
                 [
                     'label' => 'Laporan Stok',
                     'url' => url('/admin/reports/stock'),
+                    'icon' => 'bi bi-boxes',
                     'active' => ['admin/reports/stock', 'admin/reports/stock/*'],
-                ],
-                [
-                    'label' => 'Cetak Stok (PDF)',
-                    'url' => url('/admin/reports/stock/pdf'),
-                    'active' => ['admin/reports/stock/pdf'],
-                    'target' => '_blank',
-                    'rel' => 'noopener',
                 ],
                 [
                     'label' => 'Laporan Profit',
                     'url' => url('/admin/reports/profit'),
+                    'icon' => 'bi bi-piggy-bank',
                     'active' => ['admin/reports/profit', 'admin/reports/profit/*'],
-                ],
-                [
-                    'label' => 'Cetak Profit (PDF)',
-                    'url' => url('/admin/reports/profit/pdf'),
-                    'active' => ['admin/reports/profit/pdf'],
-                    'target' => '_blank',
-                    'rel' => 'noopener',
                 ],
             ],
         ],
@@ -181,11 +138,12 @@
                 [
                     'label' => 'Audit Logs',
                     'url' => url('/admin/audit-logs'),
+                    'icon' => 'bi bi-shield-check',
                     'active' => ['admin/audit-logs', 'admin/audit-logs/*'],
                 ],
             ],
         ],
-                [
+        [
             'title' => 'AKUN',
             'items' => [
                 [
@@ -217,6 +175,7 @@
                         [
                             'label' => 'Hari Ini',
                             'url' => url('/cashier/transactions/today'),
+                            'icon' => 'bi bi-calendar-day',
                             'active' => ['cashier/transactions/today'],
                         ],
                     ],
@@ -238,11 +197,12 @@
     {{-- no-op --}}
 @elseif ($render === 'inline')
     @php
-        $linkStyle = 'display:block;padding:10px 12px;border-radius:10px;text-decoration:none;color:inherit;';
+        $linkStyle = 'display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:10px;text-decoration:none;color:inherit;';
         $linkActiveStyle = $linkStyle.'background:#f3f4f6;font-weight:700;';
         $groupTitleStyle = 'padding:14px 12px 6px;font-size:11px;letter-spacing:.08em;opacity:.65;';
         $sectionStyle = 'margin:0;padding:0;list-style:none;';
         $liStyle = 'margin:3px 0;';
+        $iconStyle = 'opacity:.9;';
     @endphp
 
     <aside style="width:270px;min-height:100vh;border-right:1px solid #e5e7eb;background:#fff;">
@@ -260,13 +220,17 @@
                 <ul style="{{ $sectionStyle }}">
                     @foreach (($group['items'] ?? []) as $item)
                         @php
+                            // inline admin legacy: tetap skip children (karena butuh UI collapsible terpisah)
                             if (!empty($item['children'])) continue;
-                                                        if (($item['kind'] ?? 'link') === 'logout') {
-                                // render logout inline
-                                $formId = 'logout-form-sidebar-admin-inline';
+
+                            if (($item['kind'] ?? 'link') === 'logout') {
+                                $formId = 'logout-form-sidebar-'.$variant.'-inline';
                                 echo '<li style="'.$liStyle.'">';
                                 echo '<a href="'.$item['url'].'" style="'.$linkStyle.'" onclick="event.preventDefault(); document.getElementById(\''.$formId.'\').submit();">';
-                                echo e($item['label']);
+                                if (!empty($item['icon'])) {
+                                    echo '<i class="'.$item['icon'].'" style="'.$iconStyle.'"></i>';
+                                }
+                                echo '<span>'.e($item['label']).'</span>';
                                 echo '</a>';
                                 echo '<form id="'.$formId.'" method="post" action="'.$item['url'].'" style="display:none;">';
                                 echo csrf_field();
@@ -286,7 +250,10 @@
                                style="{{ $active ? $linkActiveStyle : $linkStyle }}"
                                @if (!empty($item['target'])) target="{{ $item['target'] }}" @endif
                                @if (!empty($item['rel'])) rel="{{ $item['rel'] }}" @endif>
-                                {{ $item['label'] }}
+                                @if (!empty($item['icon']))
+                                    <i class="{{ $item['icon'] }}" style="{{ $iconStyle }}"></i>
+                                @endif
+                                <span>{{ $item['label'] }}</span>
                             </a>
                         </li>
                     @endforeach
@@ -296,6 +263,10 @@
     </aside>
 @else
     {{-- Mazer renderer => output LI only --}}
+    @php
+        $logoutFormId = 'logout-form-sidebar-'.$variant;
+    @endphp
+
     @foreach ($groups as $group)
         @if (!empty($group['title']))
             <li class="sidebar-title">{{ $group['title'] }}</li>
@@ -312,12 +283,12 @@
                 <li class="sidebar-item">
                     <a href="{{ $item['url'] }}"
                        class="sidebar-link"
-                       onclick="event.preventDefault(); document.getElementById('logout-form-sidebar').submit();">
+                       onclick="event.preventDefault(); document.getElementById('{{ $logoutFormId }}').submit();">
                         @if (!empty($item['icon'])) <i class="{{ $item['icon'] }}"></i> @endif
                         <span>{{ $item['label'] }}</span>
                     </a>
 
-                    <form id="logout-form-sidebar" method="post" action="{{ $item['url'] }}" class="d-none">
+                    <form id="{{ $logoutFormId }}" method="post" action="{{ $item['url'] }}" class="d-none">
                         @csrf
                     </form>
                 </li>
@@ -332,7 +303,10 @@
                         @foreach (($item['children'] ?? []) as $child)
                             @php $childActive = $isActive($child['active'] ?? [], $child['exclude'] ?? []); @endphp
                             <li class="submenu-item {{ $childActive ? 'active' : '' }}">
-                                <a href="{{ $child['url'] }}" class="submenu-link">{{ $child['label'] }}</a>
+                                <a href="{{ $child['url'] }}" class="submenu-link">
+                                    @if (!empty($child['icon'])) <i class="{{ $child['icon'] }}"></i> @endif
+                                    <span>{{ $child['label'] }}</span>
+                                </a>
                             </li>
                         @endforeach
                     </ul>

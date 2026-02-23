@@ -1,20 +1,25 @@
-<!doctype html>
-<html lang="id">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Tambah Employee</title>
-</head>
-<body>
-<div style="max-width:700px;margin:20px auto;">
-    <h1>Tambah Employee</h1>
+@extends('shared.layouts.app')
 
-    <p><a href="/admin/employees">Kembali</a></p>
+@section('title', 'Tambah Karyawan')
 
-    @if ($errors->any())
+@section('page_heading')
+    <div class="page-heading d-flex flex-wrap justify-content-between align-items-start gap-2">
         <div>
-            <p>Validasi error:</p>
-            <ul>
+            <h3>Tambah Karyawan</h3>
+            <p class="text-muted mb-0">Input data karyawan.</p>
+        </div>
+
+        <div class="d-flex gap-2">
+            <a class="btn btn-outline-secondary" href="{{ url('/admin/employees') }}">Kembali</a>
+        </div>
+    </div>
+@endsection
+
+@section('content')
+    @if ($errors->any())
+        <div class="alert alert-danger">
+            <div class="fw-bold mb-2">Validasi error</div>
+            <ul class="mb-0">
                 @foreach ($errors->all() as $e)
                     <li>{{ $e }}</li>
                 @endforeach
@@ -22,25 +27,31 @@
         </div>
     @endif
 
-    <form method="post" action="/admin/employees">
-        @csrf
+    <div class="card">
+        <div class="card-body">
+            <form method="post" action="{{ url('/admin/employees') }}">
+                @csrf
 
-        <p>
-            <label>Nama<br>
-                <input type="text" name="name" value="{{ old('name') }}">
-            </label>
-        </p>
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label">Nama</label>
+                        <input class="form-control" type="text" name="name" value="{{ old('name') }}" autocomplete="off">
+                    </div>
 
-        <p>
-            <label>
-                <input type="checkbox" name="is_active" value="1" {{ old('is_active', '1') ? 'checked' : '' }}>
-                Aktif
-            </label>
-        </p>
+                    <div class="col-12">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="is_active" name="is_active" value="1"
+                                {{ old('is_active', '1') ? 'checked' : '' }}>
+                            <label class="form-check-label" for="is_active">Aktif</label>
+                        </div>
+                    </div>
 
-        <button type="submit">Simpan</button>
-        <a href="/admin/employees">Batal</a>
-    </form>
-</div>
-</body>
-</html>
+                    <div class="col-12 d-flex gap-2">
+                        <button class="btn btn-primary" type="submit">Simpan</button>
+                        <a class="btn btn-outline-secondary" href="{{ url('/admin/employees') }}">Batal</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+@endsection
