@@ -7,6 +7,7 @@ namespace App\Interfaces\Web\Controllers\Cashier;
 use App\Application\UseCases\Sales\UpdateServiceLineRequest;
 use App\Application\UseCases\Sales\UpdateServiceLineUseCase;
 use Illuminate\Http\RedirectResponse;
+use App\Shared\Messages\MessagesId;
 use Throwable;
 
 final readonly class TransactionServiceLineUpdateController
@@ -34,7 +35,7 @@ final readonly class TransactionServiceLineUpdateController
                 reason: (string) $data['reason'],
             ));
         } catch (Throwable $e) {
-            return redirect('/cashier/transactions/'.$transactionId)->with('error', $e->getMessage());
+            return redirect('/cashier/transactions/'.$transactionId)->with('error', MessagesId::error($e));
         }
 
         return redirect('/cashier/transactions/'.$transactionId);

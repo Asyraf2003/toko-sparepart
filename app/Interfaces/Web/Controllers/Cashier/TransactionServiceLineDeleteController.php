@@ -7,6 +7,7 @@ namespace App\Interfaces\Web\Controllers\Cashier;
 use App\Application\UseCases\Sales\DeleteServiceLineRequest;
 use App\Application\UseCases\Sales\DeleteServiceLineUseCase;
 use Illuminate\Http\RedirectResponse;
+use App\Shared\Messages\MessagesId;
 use Throwable;
 
 final readonly class TransactionServiceLineDeleteController
@@ -30,7 +31,7 @@ final readonly class TransactionServiceLineDeleteController
                 reason: (string) $data['reason'],
             ));
         } catch (Throwable $e) {
-            return redirect('/cashier/transactions/'.$transactionId)->with('error', $e->getMessage());
+            return redirect('/cashier/transactions/'.$transactionId)->with('error', MessagesId::error($e));
         }
 
         return redirect('/cashier/transactions/'.$transactionId);

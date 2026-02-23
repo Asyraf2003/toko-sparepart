@@ -7,6 +7,7 @@ namespace App\Interfaces\Web\Controllers\Cashier;
 use App\Application\UseCases\Sales\OpenTransactionRequest;
 use App\Application\UseCases\Sales\OpenTransactionUseCase;
 use Illuminate\Http\RedirectResponse;
+use App\Shared\Messages\MessagesId;
 use Throwable;
 
 final readonly class TransactionOpenController
@@ -36,7 +37,7 @@ final readonly class TransactionOpenController
                 fields: $fields,
             ));
         } catch (Throwable $e) {
-            return redirect('/cashier/transactions/'.$transactionId)->with('error', $e->getMessage());
+            return redirect('/cashier/transactions/'.$transactionId)->with('error', MessagesId::error($e));
         }
 
         return redirect('/cashier/transactions/'.$transactionId);

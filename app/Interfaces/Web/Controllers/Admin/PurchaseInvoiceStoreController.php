@@ -8,6 +8,7 @@ use App\Application\UseCases\Purchasing\CreatePurchaseInvoiceLine;
 use App\Application\UseCases\Purchasing\CreatePurchaseInvoiceRequest;
 use App\Application\UseCases\Purchasing\CreatePurchaseInvoiceUseCase;
 use Illuminate\Http\RedirectResponse;
+use App\Shared\Messages\MessagesId;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -94,7 +95,7 @@ final class PurchaseInvoiceStoreController
         } catch (\InvalidArgumentException $e) {
             return back()
                 ->withInput()
-                ->withErrors(['error' => $e->getMessage()]);
+                ->withErrors(['error' => MessagesId::error($e)]);
         }
 
         return redirect('/admin/purchases')
