@@ -6,6 +6,7 @@ namespace App\Interfaces\Web\Controllers\Cashier;
 
 use App\Application\UseCases\Sales\AddPartLineRequest;
 use App\Application\UseCases\Sales\AddPartLineUseCase;
+use App\Shared\Messages\MessagesId;
 use Illuminate\Http\RedirectResponse;
 use Throwable;
 
@@ -37,7 +38,7 @@ final readonly class TransactionPartLineStoreController
         } catch (Throwable $e) {
             return redirect('/cashier/transactions/'.$transactionId)
                 ->withInput()
-                ->with('error', $e->getMessage());
+                ->with('error', MessagesId::error($e));
         }
 
         return redirect('/cashier/transactions/'.$transactionId);
