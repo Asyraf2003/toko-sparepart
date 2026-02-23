@@ -1,11 +1,11 @@
 @extends('shared.layouts.app')
 
-@section('title', 'Tambah Loan')
+@section('title', 'Tambah Pinjaman')
 
 @section('page_heading')
     <div class="page-heading d-flex flex-wrap justify-content-between align-items-start gap-2">
         <div>
-            <h3>Tambah Pinjaman Buat {{ $employee->name }}</h3>
+            <h3>Tambah Pinjaman untuk {{ $employee->name }}</h3>
             <p class="text-muted mb-0">Catat pinjaman karyawan.</p>
         </div>
 
@@ -18,7 +18,7 @@
 @section('content')
     @if ($errors->any())
         <div class="alert alert-danger">
-            <div class="fw-bold mb-2">Validasi error</div>
+            <div class="fw-bold mb-2">Terjadi kesalahan validasi</div>
             <ul class="mb-0">
                 @foreach ($errors->all() as $e)
                     <li>{{ $e }}</li>
@@ -44,7 +44,7 @@
                     </div>
 
                     <div class="col-12 col-md-4">
-                        <label class="form-label">Note (opsional)</label>
+                        <label class="form-label">Catatan (opsional)</label>
                         <input class="form-control" type="text" name="note" value="{{ old('note') }}">
                     </div>
 

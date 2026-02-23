@@ -59,7 +59,7 @@
             'title' => 'PEMBELIAN',
             'items' => [
                 [
-                    'label' => 'Invoice Pembelian',
+                    'label' => 'Pembelian Stok Barang',
                     'url' => url('/admin/purchases'),
                     'icon' => 'bi bi-receipt',
                     'active' => ['admin/purchases', 'admin/purchases/*'],
@@ -92,10 +92,10 @@
             ],
         ],
         [
-            'title' => 'PAYROLL',
+            'title' => 'GAJI',
             'items' => [
                 [
-                    'label' => 'Periode Payroll',
+                    'label' => 'Periode Gaji Karyawan',
                     'url' => url('/admin/payroll'),
                     'icon' => 'bi bi-calendar2-week',
                     'active' => ['admin/payroll', 'admin/payroll/*'],
@@ -125,7 +125,7 @@
                     'active' => ['admin/reports/stock', 'admin/reports/stock/*'],
                 ],
                 [
-                    'label' => 'Laporan Profit',
+                    'label' => 'Laporan Keuntungan',
                     'url' => url('/admin/reports/profit'),
                     'icon' => 'bi bi-piggy-bank',
                     'active' => ['admin/reports/profit', 'admin/reports/profit/*'],
@@ -136,7 +136,7 @@
             'title' => 'AUDIT',
             'items' => [
                 [
-                    'label' => 'Audit Logs',
+                    'label' => 'Catatan Audit',
                     'url' => url('/admin/audit-logs'),
                     'icon' => 'bi bi-shield-check',
                     'active' => ['admin/audit-logs', 'admin/audit-logs/*'],
@@ -147,8 +147,8 @@
             'title' => 'AKUN',
             'items' => [
                 [
-                    'kind' => 'logout',
-                    'label' => 'Logout',
+                    'kind' => 'Keluar',
+                    'label' => 'Keluar',
                     'url' => url('/logout'),
                     'icon' => 'bi bi-box-arrow-right',
                 ],

@@ -1,12 +1,12 @@
 @extends('shared.layouts.app')
 
-@section('title', 'Audit Logs')
+@section('title', 'Catatan Audit')
 
 @section('page_heading')
     <div class="page-heading d-flex flex-wrap justify-content-between align-items-start gap-2">
         <div>
-            <h3>Audit Logs</h3>
-            <p class="text-muted mb-0">Filter: actor/entity/action/date. Per halaman 10 baris.</p>
+            <h3>Catatan Audit</h3>
+            <p class="text-muted mb-0">Filter: pelaku/entitas/aksi/tanggal. Per halaman 10 baris.</p>
         </div>
     </div>
 @endsection
@@ -79,11 +79,11 @@
                                     <thead>
                                     <tr>
                                         <th style="width: 80px;">ID</th>
-                                        <th style="width: 180px;">Time</th>
-                                        <th>Actor</th>
-                                        <th style="width: 200px;">Action</th>
-                                        <th style="width: 220px;">Entity</th>
-                                        <th>Reason</th>
+                                        <th style="width: 180px;">Waktu</th>
+                                        <th>Pelaku</th>
+                                        <th style="width: 200px;">Aksi</th>
+                                        <th style="width: 220px;">Entitas</th>
+                                        <th>Alasan</th>
                                         <th style="width: 90px;">Detail</th>
                                     </tr>
                                     </thead>
@@ -106,7 +106,7 @@
                                             </td>
                                             <td>{{ $r['reason'] }}</td>
                                             <td>
-                                                <a class="btn btn-sm btn-outline-primary" href="{{ url('/admin/audit-logs/'.$r['id']) }}">Open</a>
+                                                <a class="btn btn-sm btn-outline-primary" href="{{ url('/admin/audit-logs/'.$r['id']) }}">Buka</a>
                                             </td>
                                         </tr>
                                     @endforeach
@@ -128,42 +128,42 @@
                     <form method="GET" action="{{ url('/admin/audit-logs') }}">
                         <div class="row g-3">
                             <div class="col-12">
-                                <label class="form-label">Actor (name/email contains)</label>
+                                <label class="form-label">Pelaku (nama/email mengandung)</label>
                                 <input class="form-control" type="text" name="actor" value="{{ $filters['actor'] ?? '' }}">
                             </div>
 
                             <div class="col-12">
-                                <label class="form-label">Actor ID</label>
+                                <label class="form-label">ID Pelaku</label>
                                 <input class="form-control" type="text" name="actor_id" value="{{ $filters['actor_id'] ?? '' }}">
                             </div>
 
                             <div class="col-12">
-                                <label class="form-label">Entity Type</label>
-                                <input class="form-control" type="text" name="entity_type" value="{{ $filters['entity_type'] ?? '' }}" placeholder="Transaction/Product/...">
+                                <label class="form-label">Tipe Entitas</label>
+                                <input class="form-control" type="text" name="entity_type" value="{{ $filters['entity_type'] ?? '' }}" placeholder="Transaksi/Produk/...">
                             </div>
 
                             <div class="col-12">
-                                <label class="form-label">Entity ID</label>
+                                <label class="form-label">ID Entitas</label>
                                 <input class="form-control" type="text" name="entity_id" value="{{ $filters['entity_id'] ?? '' }}">
                             </div>
 
                             <div class="col-12">
-                                <label class="form-label">Action</label>
-                                <input class="form-control" type="text" name="action" value="{{ $filters['action'] ?? '' }}" placeholder="VOID/PRICE_CHANGE/...">
+                                <label class="form-label">Aksi</label>
+                                <input class="form-control" type="text" name="action" value="{{ $filters['action'] ?? '' }}" placeholder="TRANSAKSI_BATAL/UBAH_HARGA/...">
                             </div>
 
                             <div class="col-12">
-                                <label class="form-label">Date From</label>
+                                <label class="form-label">Tanggal Mulai</label>
                                 <input class="form-control" type="date" name="date_from" value="{{ $filters['date_from'] ?? '' }}">
                             </div>
 
                             <div class="col-12">
-                                <label class="form-label">Date To</label>
+                                <label class="form-label">Tanggal Sampai</label>
                                 <input class="form-control" type="date" name="date_to" value="{{ $filters['date_to'] ?? '' }}">
                             </div>
 
                             <div class="col-12 d-flex gap-2">
-                                <button class="btn btn-primary" type="submit">Apply</button>
+                                <button class="btn btn-primary" type="submit">Terapkan</button>
                                 <a class="btn btn-outline-secondary" href="{{ url('/admin/audit-logs') }}">Reset</a>
                             </div>
 
