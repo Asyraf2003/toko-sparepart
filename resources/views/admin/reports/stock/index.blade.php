@@ -1,18 +1,18 @@
 @extends('shared.layouts.app')
 
-@section('title', 'Stock Report')
+@section('title', 'Laporan Stok')
 
 @section('page_heading')
     <div class="page-heading d-flex flex-wrap justify-content-between align-items-start gap-2">
         <div>
-            <h3>Stock Report</h3>
-            <p class="text-muted mb-0">Ringkasan stok dan low-stock.</p>
+            <h3>Laporan Stok</h3>
+            <p class="text-muted mb-0">Ringkasan stok dan stok menipis.</p>
         </div>
         <div class="d-flex gap-2">
             <a class="btn btn-outline-primary"
                target="_blank" rel="noopener"
                href="{{ url('/admin/reports/stock/pdf') }}?{{ http_build_query(array_filter($filters, fn($v) => $v !== null && $v !== '')) }}">
-                Export PDF
+                Ekspor PDF
             </a>
         </div>
     </div>
@@ -26,8 +26,8 @@
                 <div class="card-body">
                     <div class="fw-bold mb-2">Ringkasan</div>
                     <ul class="mb-0">
-                        <li>Count: {{ $result->summary->count }}</li>
-                        <li>Low Stock Count (available &lt;= threshold): {{ $result->summary->lowStockCount }}</li>
+                        <li>Jumlah: {{ $result->summary->count }}</li>
+                        <li>Jumlah Stok Menipis (tersedia &lt;= ambang): {{ $result->summary->lowStockCount }}</li>
                     </ul>
                 </div>
             </div>
@@ -42,12 +42,12 @@
                             <tr>
                                 <th style="width: 120px;">SKU</th>
                                 <th>Nama</th>
-                                <th style="width: 90px;">Active</th>
-                                <th class="text-end" style="width: 120px;">Threshold</th>
-                                <th class="text-end" style="width: 120px;">On Hand</th>
-                                <th class="text-end" style="width: 120px;">Reserved</th>
-                                <th class="text-end" style="width: 120px;">Available</th>
-                                <th style="width: 110px;">Low Stock</th>
+                                <th style="width: 90px;">Aktif</th>
+                                <th class="text-end" style="width: 120px;">Ambang</th>
+                                <th class="text-end" style="width: 120px;">Stok Di Tangan</th>
+                                <th class="text-end" style="width: 120px;">Dicadangkan</th>
+                                <th class="text-end" style="width: 120px;">Tersedia</th>
+                                <th style="width: 110px;">Stok Menipis</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -57,9 +57,9 @@
                                     <td>{{ $r->name }}</td>
                                     <td>
                                         @if ($r->isActive)
-                                            <span class="badge bg-success">YES</span>
+                                            <span class="badge bg-success">YA</span>
                                         @else
-                                            <span class="badge bg-secondary">NO</span>
+                                            <span class="badge bg-secondary">TIDAK</span>
                                         @endif
                                     </td>
                                     <td class="text-end">{{ $r->minStockThreshold }}</td>
@@ -68,9 +68,9 @@
                                     <td class="text-end fw-semibold">{{ $r->availableQty }}</td>
                                     <td>
                                         @if ($r->isLowStock)
-                                            <span class="badge bg-danger">YES</span>
+                                            <span class="badge bg-danger">YA</span>
                                         @else
-                                            <span class="badge bg-success">NO</span>
+                                            <span class="badge bg-success">TIDAK</span>
                                         @endif
                                     </td>
                                 </tr>
@@ -97,25 +97,25 @@
                     <form method="get" action="{{ url('/admin/reports/stock') }}">
                         <div class="row g-3">
                             <div class="col-12">
-                                <label class="form-label">Search (sku/nama)</label>
+                                <label class="form-label">Cari (sku/nama)</label>
                                 <input class="form-control" type="text" name="q" value="{{ $filters['q'] ?? '' }}" maxlength="190">
                             </div>
 
                             <div class="col-12">
-                                <label class="form-label">Only Active</label>
+                                <label class="form-label">Hanya Aktif</label>
                                 <select class="form-select" name="only_active">
-                                    <option value="1" @selected(($filters['only_active'] ?? '1') === '1')>Yes</option>
-                                    <option value="0" @selected(($filters['only_active'] ?? '1') === '0')>No</option>
+                                    <option value="1" @selected(($filters['only_active'] ?? '1') === '1')>Ya</option>
+                                    <option value="0" @selected(($filters['only_active'] ?? '1') === '0')>Tidak</option>
                                 </select>
                             </div>
 
                             <div class="col-12">
-                                <label class="form-label">Limit</label>
+                                <label class="form-label">Batas</label>
                                 <input class="form-control" type="number" name="limit" min="1" max="2000" value="{{ $filters['limit'] ?? 500 }}">
                             </div>
 
                             <div class="col-12 d-flex gap-2">
-                                <button class="btn btn-primary" type="submit">Apply</button>
+                                <button class="btn btn-primary" type="submit">Terapkan</button>
                                 <a class="btn btn-outline-secondary" href="{{ url('/admin/reports/stock') }}">Reset</a>
                             </div>
 
@@ -123,7 +123,7 @@
                                 <a class="btn btn-outline-primary w-100"
                                    target="_blank" rel="noopener"
                                    href="{{ url('/admin/reports/stock/pdf') }}?{{ http_build_query(array_filter($filters, fn($v) => $v !== null && $v !== '')) }}">
-                                    Export PDF
+                                    Ekspor PDF
                                 </a>
                             </div>
                         </div>

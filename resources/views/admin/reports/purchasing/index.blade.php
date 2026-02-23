@@ -1,11 +1,11 @@
 @extends('shared.layouts.app')
 
-@section('title', 'Purchasing Report')
+@section('title', 'Laporan Pembelian')
 
 @section('page_heading')
     <div class="page-heading d-flex flex-wrap justify-content-between align-items-start gap-2">
         <div>
-            <h3>Purchasing Report</h3>
+            <h3>Laporan Pembelian</h3>
             <p class="text-muted mb-0">Gunakan periode untuk menampilkan ringkasan dan detail.</p>
         </div>
         <div class="d-flex gap-2">
@@ -13,7 +13,7 @@
                 <a class="btn btn-outline-primary"
                    target="_blank" rel="noopener"
                    href="{{ url('/admin/reports/purchasing/pdf') }}?{{ http_build_query(array_filter($filters, fn($v) => $v !== null && $v !== '')) }}">
-                    Export PDF
+                    Ekspor PDF
                 </a>
             @endif
         </div>
@@ -33,7 +33,7 @@
             @if ($result === null)
                 <div class="card">
                     <div class="card-body">
-                        <p class="mb-0">Isi periode (from/to) untuk menampilkan data.</p>
+                        <p class="mb-0">Isi periode (dari/sampai) untuk menampilkan data.</p>
                     </div>
                 </div>
             @else
@@ -44,11 +44,11 @@
                         <div class="table-responsive">
                             <table class="table table-striped align-middle mb-0">
                                 <tbody>
-                                <tr><th style="width: 220px;">Count</th><td class="text-end">{{ $result->summary->count }}</td></tr>
+                                <tr><th style="width: 220px;">Jumlah</th><td class="text-end">{{ $result->summary->count }}</td></tr>
                                 <tr><th>Total Bruto</th><td class="text-end">{{ $fmt($result->summary->totalBruto) }}</td></tr>
                                 <tr><th>Total Diskon</th><td class="text-end">{{ $fmt($result->summary->totalDiskon) }}</td></tr>
                                 <tr><th>Total Pajak</th><td class="text-end">{{ $fmt($result->summary->totalPajak) }}</td></tr>
-                                <tr><th class="fw-bold">Grand Total</th><td class="text-end fw-bold">{{ $fmt($result->summary->grandTotal) }}</td></tr>
+                                <tr><th class="fw-bold">Total Akhir</th><td class="text-end fw-bold">{{ $fmt($result->summary->grandTotal) }}</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -69,7 +69,7 @@
                                     <th class="text-end">Total Bruto</th>
                                     <th class="text-end">Total Diskon</th>
                                     <th class="text-end">Total Pajak</th>
-                                    <th class="text-end">Grand Total</th>
+                                    <th class="text-end">Total Akhir</th>
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -101,27 +101,27 @@
                     <form method="get" action="{{ url('/admin/reports/purchasing') }}">
                         <div class="row g-3">
                             <div class="col-12">
-                                <label class="form-label">From</label>
+                                <label class="form-label">Dari</label>
                                 <input class="form-control" type="date" name="from" value="{{ $filters['from'] ?? '' }}">
                             </div>
 
                             <div class="col-12">
-                                <label class="form-label">To</label>
+                                <label class="form-label">Sampai</label>
                                 <input class="form-control" type="date" name="to" value="{{ $filters['to'] ?? '' }}">
                             </div>
 
                             <div class="col-12">
-                                <label class="form-label">No Faktur (contains)</label>
+                                <label class="form-label">No Faktur (mengandung)</label>
                                 <input class="form-control" type="text" name="no_faktur" value="{{ $filters['no_faktur'] ?? '' }}" maxlength="64">
                             </div>
 
                             <div class="col-12">
-                                <label class="form-label">Limit</label>
+                                <label class="form-label">Batas</label>
                                 <input class="form-control" type="number" name="limit" min="1" max="1000" value="{{ $filters['limit'] ?? 200 }}">
                             </div>
 
                             <div class="col-12 d-flex gap-2">
-                                <button class="btn btn-primary" type="submit">Apply</button>
+                                <button class="btn btn-primary" type="submit">Terapkan</button>
                                 <a class="btn btn-outline-secondary" href="{{ url('/admin/reports/purchasing') }}">Reset</a>
                             </div>
 
@@ -130,7 +130,7 @@
                                     <a class="btn btn-outline-primary w-100"
                                        target="_blank" rel="noopener"
                                        href="{{ url('/admin/reports/purchasing/pdf') }}?{{ http_build_query(array_filter($filters, fn($v) => $v !== null && $v !== '')) }}">
-                                        Export PDF
+                                        Ekspor PDF
                                     </a>
                                 </div>
                             @endif

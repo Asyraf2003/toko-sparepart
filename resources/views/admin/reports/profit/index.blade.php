@@ -1,11 +1,11 @@
 @extends('shared.layouts.app')
 
-@section('title', 'Profit Report')
+@section('title', 'Laporan Laba')
 
 @section('page_heading')
     <div class="page-heading d-flex flex-wrap justify-content-between align-items-start gap-2">
         <div>
-            <h3>Profit Report</h3>
+            <h3>Laporan Laba</h3>
             <p class="text-muted mb-0">Gunakan filter periode untuk menampilkan ringkasan & detail.</p>
         </div>
         <div class="d-flex gap-2">
@@ -13,7 +13,7 @@
                 <a class="btn btn-outline-primary"
                    target="_blank" rel="noopener"
                    href="{{ url('/admin/reports/profit/pdf') }}?{{ http_build_query(array_filter($filters, fn($v) => $v !== null && $v !== '')) }}">
-                    Export PDF
+                    Ekspor PDF
                 </a>
             @endif
         </div>
@@ -33,7 +33,7 @@
             @if ($result === null)
                 <div class="card">
                     <div class="card-body">
-                        <p class="mb-0">Isi periode (from/to) untuk menampilkan data.</p>
+                        <p class="mb-0">Isi periode (dari/sampai) untuk menampilkan data.</p>
                     </div>
                 </div>
             @else
@@ -44,15 +44,15 @@
                         <div class="table-responsive">
                             <table class="table table-striped align-middle mb-0">
                                 <tbody>
-                                <tr><th style="width: 240px;">Revenue Part</th><td class="text-end">{{ $fmt($result->summary->revenuePart) }}</td></tr>
-                                <tr><th>Revenue Service</th><td class="text-end">{{ $fmt($result->summary->revenueService) }}</td></tr>
-                                <tr><th>Rounding</th><td class="text-end">{{ $fmt($result->summary->roundingAmount) }}</td></tr>
-                                <tr><th class="fw-bold">Revenue Total</th><td class="text-end fw-bold">{{ $fmt($result->summary->revenueTotal) }}</td></tr>
-                                <tr><th>COGS Total</th><td class="text-end">{{ $fmt($result->summary->cogsTotal) }}</td></tr>
-                                <tr><th>Expenses Total</th><td class="text-end">{{ $fmt($result->summary->expensesTotal) }}</td></tr>
-                                <tr><th>Payroll Gross</th><td class="text-end">{{ $fmt($result->summary->payrollGross) }}</td></tr>
-                                <tr><th class="fw-bold">Net Profit</th><td class="text-end fw-bold">{{ $fmt($result->summary->netProfit) }}</td></tr>
-                                <tr><th>Missing COGS Qty</th><td class="text-end">{{ $result->summary->missingCogsQty }}</td></tr>
+                                <tr><th style="width: 240px;">Pendapatan Part</th><td class="text-end">{{ $fmt($result->summary->revenuePart) }}</td></tr>
+                                <tr><th>Pendapatan Jasa</th><td class="text-end">{{ $fmt($result->summary->revenueService) }}</td></tr>
+                                <tr><th>Pembulatan</th><td class="text-end">{{ $fmt($result->summary->roundingAmount) }}</td></tr>
+                                <tr><th class="fw-bold">Total Pendapatan</th><td class="text-end fw-bold">{{ $fmt($result->summary->revenueTotal) }}</td></tr>
+                                <tr><th>Total HPP</th><td class="text-end">{{ $fmt($result->summary->cogsTotal) }}</td></tr>
+                                <tr><th>Total Operasional</th><td class="text-end">{{ $fmt($result->summary->expensesTotal) }}</td></tr>
+                                <tr><th>Total Payroll (Kotor)</th><td class="text-end">{{ $fmt($result->summary->payrollGross) }}</td></tr>
+                                <tr><th class="fw-bold">Laba Bersih</th><td class="text-end fw-bold">{{ $fmt($result->summary->netProfit) }}</td></tr>
+                                <tr><th>Qty HPP Hilang</th><td class="text-end">{{ $result->summary->missingCogsQty }}</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -67,16 +67,16 @@
                             <table class="table table-striped table-hover align-middle mb-0">
                                 <thead>
                                 <tr>
-                                    <th>Period</th>
-                                    <th class="text-end">Revenue Part</th>
-                                    <th class="text-end">Revenue Service</th>
-                                    <th class="text-end">Rounding</th>
-                                    <th class="text-end">Revenue Total</th>
-                                    <th class="text-end">COGS</th>
-                                    <th class="text-end">Expenses</th>
-                                    <th class="text-end">Payroll Gross</th>
-                                    <th class="text-end">Net Profit</th>
-                                    <th class="text-end">Missing COGS Qty</th>
+                                    <th>Periode</th>
+                                    <th class="text-end">Pendapatan Part</th>
+                                    <th class="text-end">Pendapatan Jasa</th>
+                                    <th class="text-end">Pembulatan</th>
+                                    <th class="text-end">Total Pendapatan</th>
+                                    <th class="text-end">HPP</th>
+                                    <th class="text-end">Operasional</th>
+                                    <th class="text-end">Payroll (Kotor)</th>
+                                    <th class="text-end">Laba Bersih</th>
+                                    <th class="text-end">Qty HPP Hilang</th>
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -111,25 +111,25 @@
                     <form method="get" action="{{ url('/admin/reports/profit') }}">
                         <div class="row g-3">
                             <div class="col-12">
-                                <label class="form-label">From</label>
+                                <label class="form-label">Dari</label>
                                 <input class="form-control" type="date" name="from" value="{{ $filters['from'] ?? '' }}">
                             </div>
 
                             <div class="col-12">
-                                <label class="form-label">To</label>
+                                <label class="form-label">Sampai</label>
                                 <input class="form-control" type="date" name="to" value="{{ $filters['to'] ?? '' }}">
                             </div>
 
                             <div class="col-12">
-                                <label class="form-label">Granularity</label>
+                                <label class="form-label">Granularitas</label>
                                 <select class="form-select" name="granularity">
-                                    <option value="weekly" @selected(($filters['granularity'] ?? 'weekly') === 'weekly')>weekly</option>
-                                    <option value="monthly" @selected(($filters['granularity'] ?? 'weekly') === 'monthly')>monthly</option>
+                                    <option value="weekly" @selected(($filters['granularity'] ?? 'weekly') === 'weekly')>mingguan</option>
+                                    <option value="monthly" @selected(($filters['granularity'] ?? 'weekly') === 'monthly')>bulanan</option>
                                 </select>
                             </div>
 
                             <div class="col-12 d-flex gap-2">
-                                <button class="btn btn-primary" type="submit">Apply</button>
+                                <button class="btn btn-primary" type="submit">Terapkan</button>
                                 <a class="btn btn-outline-secondary" href="{{ url('/admin/reports/profit') }}">Reset</a>
                             </div>
 
@@ -138,7 +138,7 @@
                                     <a class="btn btn-outline-primary w-100"
                                        target="_blank" rel="noopener"
                                        href="{{ url('/admin/reports/profit/pdf') }}?{{ http_build_query(array_filter($filters, fn($v) => $v !== null && $v !== '')) }}">
-                                        Export PDF
+                                        Ekspor PDF
                                     </a>
                                 </div>
                             @endif
