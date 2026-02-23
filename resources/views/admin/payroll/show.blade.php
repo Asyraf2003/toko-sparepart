@@ -1,6 +1,6 @@
 @extends('shared.layouts.app')
 
-@section('title', 'Detail Payroll')
+@section('title', 'Detail Periode Gaji')
 
 @section('page_heading')
     @php
@@ -13,7 +13,7 @@
 
     <div class="page-heading d-flex flex-wrap justify-content-between align-items-start gap-2">
         <div>
-            <h3>Periode Payroll</h3>
+            <h3>Periode Gaji</h3>
             <p class="text-muted mb-0">{{ $period->week_start }} → {{ $period->week_end }}</p>
         </div>
 

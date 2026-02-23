@@ -42,7 +42,7 @@ it('admin can view payroll period detail', function () {
     $this->actingAs($admin)
         ->get('/admin/payroll/'.$periodId)
         ->assertOk()
-        ->assertSee('Payroll Period', false)
+        ->assertSee('Edit', false)
         ->assertSee('2026-02-23')
         ->assertSee('2026-02-28')
         ->assertSee('Emp A');
@@ -84,7 +84,7 @@ it('admin can edit unlocked payroll period and update lines', function () {
     $this->actingAs($admin)
         ->get('/admin/payroll/'.$periodId.'/edit')
         ->assertOk()
-        ->assertSee('Edit Payroll Period', false)
+        ->assertSee('Edit Periode Gaji', false)
         ->assertSee('Emp B');
 
     $this->actingAs($admin)

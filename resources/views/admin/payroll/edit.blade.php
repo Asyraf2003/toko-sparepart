@@ -1,6 +1,6 @@
 @extends('shared.layouts.app')
 
-@section('title', 'Edit Gaji')
+@section('title', 'Edit Periode Gaji')
 
 @section('page_heading')
     @php $locked = $period->loan_deductions_applied_at !== null; @endphp

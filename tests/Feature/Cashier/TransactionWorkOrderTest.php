@@ -43,7 +43,7 @@ final class TransactionWorkOrderTest extends TestCase
         $this->actingAs($cashier)
             ->get('/cashier/transactions/'.(int) $tx->id.'/work-order')
             ->assertOk()
-            ->assertSee('WORK ORDER')
+            ->assertSee('SURAT PERINTAH KERJA')
             ->assertSee($txNumber);
     }
 }
