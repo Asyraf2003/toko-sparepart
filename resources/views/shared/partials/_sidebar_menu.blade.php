@@ -138,7 +138,7 @@
             'title' => 'TELEGRAM',
             'items' => [
                 [
-                    'label' => 'Telegram Bot (Admin)',
+                    'label' => 'Telegram Bot',
                     'url' => url('/admin/telegram'),
                     'icon' => 'bi bi-telegram',
                     'active' => ['admin/telegram'],
