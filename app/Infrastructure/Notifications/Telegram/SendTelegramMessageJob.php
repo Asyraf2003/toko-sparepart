@@ -33,7 +33,14 @@ final class SendTelegramMessageJob implements ShouldQueue
             return;
         }
 
-        $tg->sendMessage($this->chatId, $this->text);
+        try {
+            $tg->sendMessage($this->chatId, $this->text);
+        } catch (TelegramRateLimitedException $e) {
+            // Respect Telegram retry_after to avoid silent drops.
+            $this->release($e->retryAfterSeconds());
+
+            return;
+        }
 
         DB::table('notification_states')->insertOrIgnore([
             'key' => $this->dedupKey,

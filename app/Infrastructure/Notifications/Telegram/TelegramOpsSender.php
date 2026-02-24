@@ -32,10 +32,23 @@ final readonly class TelegramOpsSender implements TelegramSenderPort
             ]);
 
             if (! $resp->successful()) {
+                $status = $resp->status();
+
                 Log::warning('telegram_ops_send_failed', [
-                    'status' => $resp->status(),
+                    'status' => $status,
                     'chat_id' => $chatId,
                 ]);
+
+                if ($status === 429) {
+                    $retryAfter = (int) data_get($resp->json(), 'parameters.retry_after', 1);
+                    if ($retryAfter < 1) {
+                        $retryAfter = 1;
+                    }
+
+                    throw new TelegramRateLimitedException($retryAfter, 'telegram_ops_rate_limited');
+                }
+
+                throw new \RuntimeException('telegram_ops_send_failed: status='.$status);
             }
         } catch (\Throwable $e) {
             Log::warning('telegram_ops_send_exception', [

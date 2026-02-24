@@ -33,10 +33,23 @@ final class TelegramBotApi
             ]);
 
             if (! $resp->successful()) {
+                $status = $resp->status();
+
                 Log::warning('telegram_bot_send_menu_failed', [
-                    'status' => $resp->status(),
+                    'status' => $status,
                     'chat_id' => $chatId,
                 ]);
+
+                if ($status === 429) {
+                    $retryAfter = (int) data_get($resp->json(), 'parameters.retry_after', 1);
+                    if ($retryAfter < 1) {
+                        $retryAfter = 1;
+                    }
+
+                    throw new TelegramRateLimitedException($retryAfter, 'telegram_bot_rate_limited');
+                }
+
+                throw new \RuntimeException('telegram_bot_send_menu_failed: status='.$status);
             }
         } catch (\Throwable $e) {
             Log::warning('telegram_bot_send_menu_exception', [
@@ -59,15 +72,29 @@ final class TelegramBotApi
 
         $resp = Http::timeout(10)->get($url, ['file_id' => $fileId]);
         if (! $resp->successful()) {
+            $status = $resp->status();
+
             Log::warning('telegram_bot_get_file_failed', [
-                'status' => $resp->status(),
+                'status' => $status,
                 'file_id' => $fileId,
             ]);
 
-            return '';
+            if ($status === 429) {
+                $retryAfter = (int) data_get($resp->json(), 'parameters.retry_after', 1);
+                if ($retryAfter < 1) {
+                    $retryAfter = 1;
+                }
+
+                throw new TelegramRateLimitedException($retryAfter, 'telegram_bot_get_file_rate_limited');
+            }
+
+            throw new \RuntimeException('telegram_bot_get_file_failed: status='.$status);
         }
 
         $filePath = (string) data_get($resp->json(), 'result.file_path', '');
+        if (trim($filePath) === '') {
+            throw new \RuntimeException('telegram_bot_get_file_failed: empty file_path');
+        }
 
         return $filePath;
     }
@@ -83,14 +110,39 @@ final class TelegramBotApi
 
         $resp = Http::timeout(25)->get($url);
         if (! $resp->successful()) {
+            $status = $resp->status();
+
             Log::warning('telegram_bot_download_failed', [
-                'status' => $resp->status(),
+                'status' => $status,
                 'file_path' => $filePath,
             ]);
 
-            return '';
+            // Telegram file download usually doesn't return JSON,
+            // but we still attempt to parse retry_after when possible.
+            if ($status === 429) {
+                $retryAfter = 1;
+                try {
+                    $json = $resp->json();
+                    $retryAfter = (int) data_get($json, 'parameters.retry_after', 1);
+                } catch (\Throwable) {
+                    // ignore JSON parse failures
+                }
+
+                if ($retryAfter < 1) {
+                    $retryAfter = 1;
+                }
+
+                throw new TelegramRateLimitedException($retryAfter, 'telegram_bot_download_rate_limited');
+            }
+
+            throw new \RuntimeException('telegram_bot_download_failed: status='.$status);
         }
 
-        return (string) $resp->body();
+        $body = (string) $resp->body();
+        if ($body === '') {
+            throw new \RuntimeException('telegram_bot_download_failed: empty body');
+        }
+
+        return $body;
     }
 }

@@ -38,11 +38,18 @@ final class SendTelegramMenuJob implements ShouldQueue
             return;
         }
 
-        TelegramBotApi::sendMessageWithInlineKeyboard(
-            botToken: $token,
-            chatId: $this->chatId,
-            text: $this->text,
-            inlineKeyboard: $this->inlineKeyboard,
-        );
+        try {
+            TelegramBotApi::sendMessageWithInlineKeyboard(
+                botToken: $token,
+                chatId: $this->chatId,
+                text: $this->text,
+                inlineKeyboard: $this->inlineKeyboard,
+            );
+        } catch (TelegramRateLimitedException $e) {
+            // Respect Telegram retry_after to avoid silent drops.
+            $this->release($e->retryAfterSeconds());
+
+            return;
+        }
     }
 }
