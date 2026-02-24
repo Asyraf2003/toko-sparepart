@@ -41,6 +41,8 @@ use App\Interfaces\Web\Controllers\Admin\SalesReportIndexController;
 use App\Interfaces\Web\Controllers\Admin\SalesReportPdfController;
 use App\Interfaces\Web\Controllers\Admin\StockReportIndexController;
 use App\Interfaces\Web\Controllers\Admin\StockReportPdfController;
+use App\Interfaces\Web\Controllers\Admin\PurchaseInvoiceMarkPaidController;
+use App\Interfaces\Web\Controllers\Admin\PurchaseInvoiceMarkUnpaidController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'role:ADMIN'])->prefix('admin')->group(function (): void {
@@ -96,4 +98,7 @@ Route::middleware(['auth', 'role:ADMIN'])->prefix('admin')->group(function (): v
 
     Route::get('/reports/profit', ProfitReportIndexController::class);
     Route::get('/reports/profit/pdf', ProfitReportPdfController::class);
+
+    Route::post('/purchases/{purchaseInvoiceId}/mark-paid', PurchaseInvoiceMarkPaidController::class);
+    Route::post('/purchases/{purchaseInvoiceId}/mark-unpaid', PurchaseInvoiceMarkUnpaidController::class);
 });
