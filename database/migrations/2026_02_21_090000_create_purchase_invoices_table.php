@@ -18,6 +18,13 @@ return new class extends Migration
             $table->string('no_faktur', 64)->unique();
             $table->date('tgl_kirim')->index();
 
+            // Payment / due date (enterprise reminders)
+            $table->date('due_date')->nullable()->index();
+            $table->string('payment_status', 16)->default('UNPAID')->index(); // UNPAID|PAID
+            $table->timestamp('paid_at')->nullable();
+            $table->unsignedBigInteger('paid_by_user_id')->nullable()->index();
+            $table->string('paid_note', 255)->nullable();
+
             $table->string('kepada', 190)->nullable();
             $table->string('no_pesanan', 64)->nullable()->index();
             $table->string('nama_sales', 190)->nullable();
@@ -36,6 +43,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['tgl_kirim', 'supplier_name']);
+            $table->index(['payment_status', 'due_date']);
         });
     }
 

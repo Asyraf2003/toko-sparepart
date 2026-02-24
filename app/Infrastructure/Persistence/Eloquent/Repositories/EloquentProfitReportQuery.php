@@ -15,7 +15,7 @@ final class EloquentProfitReportQuery implements ProfitReportQueryPort
 {
     public function aggregate(string $fromDate, string $toDate, string $granularity): ProfitReportResult
     {
-        if (! in_array($granularity, ['weekly', 'monthly'], true)) {
+        if (! in_array($granularity, ['daily', 'weekly', 'monthly'], true)) {
             $granularity = 'weekly';
         }
 
@@ -69,18 +69,32 @@ final class EloquentProfitReportQuery implements ProfitReportQueryPort
                 DB::raw('SUM(amount) as expenses_total'),
             ]);
 
-        // Payroll is weekly (Mon–Sat). We aggregate by payroll_periods range.
-        // For monthly bucket: current policy = bucket by month(week_end).
-        $payrollWeekly = DB::table('payroll_periods as pp')
-            ->join('payroll_lines as pl', 'pl.payroll_period_id', '=', 'pp.id')
-            ->whereBetween('pp.week_end', [$fromDate, $toDate])
-            ->groupBy('pp.week_start', 'pp.week_end')
-            ->orderBy('pp.week_start')
-            ->get([
-                'pp.week_start',
-                'pp.week_end',
-                DB::raw('SUM(pl.gross_pay) as payroll_gross'),
-            ]);
+        // Payroll: for daily mode, we need overlapping periods to allocate into days.
+        if ($granularity === 'daily') {
+            $payrollWeekly = DB::table('payroll_periods as pp')
+                ->join('payroll_lines as pl', 'pl.payroll_period_id', '=', 'pp.id')
+                ->where('pp.week_end', '>=', $fromDate)
+                ->where('pp.week_start', '<=', $toDate)
+                ->groupBy('pp.week_start', 'pp.week_end')
+                ->orderBy('pp.week_start')
+                ->get([
+                    'pp.week_start',
+                    'pp.week_end',
+                    DB::raw('SUM(pl.gross_pay) as payroll_gross'),
+                ]);
+        } else {
+            // existing policy (unchanged): filter by week_end inside range
+            $payrollWeekly = DB::table('payroll_periods as pp')
+                ->join('payroll_lines as pl', 'pl.payroll_period_id', '=', 'pp.id')
+                ->whereBetween('pp.week_end', [$fromDate, $toDate])
+                ->groupBy('pp.week_start', 'pp.week_end')
+                ->orderBy('pp.week_start')
+                ->get([
+                    'pp.week_start',
+                    'pp.week_end',
+                    DB::raw('SUM(pl.gross_pay) as payroll_gross'),
+                ]);
+        }
 
         $salesByDate = [];
         foreach ($salesDaily as $r) {
@@ -105,7 +119,10 @@ final class EloquentProfitReportQuery implements ProfitReportQueryPort
         for ($d = $from; $d->lte($to); $d = $d->addDay()) {
             $ds = $d->toDateString();
 
-            if ($granularity === 'weekly') {
+            if ($granularity === 'daily') {
+                $key = $ds;
+                $label = $ds.' (day)';
+            } elseif ($granularity === 'weekly') {
                 $keyDate = $d->startOfWeek(CarbonImmutable::MONDAY);
                 $key = $keyDate->toDateString();
                 $label = $key.' (week)';
@@ -139,14 +156,53 @@ final class EloquentProfitReportQuery implements ProfitReportQueryPort
             $buckets[$key]['expenses'] += $expensesByDate[$ds] ?? 0;
         }
 
+        // Payroll allocation
         foreach ($payrollWeekly as $p) {
             $weekStart = CarbonImmutable::parse((string) $p->week_start);
             $weekEnd = CarbonImmutable::parse((string) $p->week_end);
             $gross = (int) $p->payroll_gross;
 
+            if ($gross <= 0) {
+                continue;
+            }
+
+            if ($granularity === 'daily') {
+                $days = $weekStart->diffInDays($weekEnd) + 1;
+                if ($days <= 0) {
+                    continue;
+                }
+
+                $base = intdiv($gross, $days);
+                $rem = $gross % $days;
+
+                for ($i = 0; $i < $days; $i++) {
+                    $day = $weekStart->addDays($i)->toDateString();
+                    if ($day < $fromDate || $day > $toDate) {
+                        continue;
+                    }
+
+                    if (! isset($buckets[$day])) {
+                        $buckets[$day] = [
+                            'label' => $day.' (day)',
+                            'part' => 0,
+                            'service' => 0,
+                            'rounding' => 0,
+                            'cogs' => 0,
+                            'missing' => 0,
+                            'expenses' => 0,
+                            'payroll' => 0,
+                        ];
+                    }
+
+                    $buckets[$day]['payroll'] += $base + ($i < $rem ? 1 : 0);
+                }
+
+                continue;
+            }
+
             $key = $granularity === 'weekly'
                 ? $weekStart->toDateString()
-                : $weekEnd->format('Y-m'); // policy as above
+                : $weekEnd->format('Y-m'); // existing policy
 
             if (! isset($buckets[$key])) {
                 $buckets[$key] = [

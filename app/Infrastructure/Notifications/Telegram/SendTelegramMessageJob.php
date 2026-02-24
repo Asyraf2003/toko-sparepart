@@ -1,0 +1,47 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Infrastructure\Notifications\Telegram;
+
+use App\Application\Ports\Services\TelegramSenderPort;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\DB;
+
+final class SendTelegramMessageJob implements ShouldQueue
+{
+    use Dispatchable;
+    use InteractsWithQueue;
+    use Queueable;
+    use SerializesModels;
+
+    public function __construct(
+        public readonly string $chatId,
+        public readonly string $text,
+        public readonly string $dedupKey,
+        public readonly ?string $metaJson = null,
+    ) {}
+
+    public function handle(TelegramSenderPort $tg): void
+    {
+        // Idempotency (job-level): if already sent, do nothing.
+        $exists = DB::table('notification_states')->where('key', $this->dedupKey)->exists();
+        if ($exists) {
+            return;
+        }
+
+        $tg->sendMessage($this->chatId, $this->text);
+
+        DB::table('notification_states')->insertOrIgnore([
+            'key' => $this->dedupKey,
+            'sent_at' => now(),
+            'meta_json' => $this->metaJson,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    }
+}

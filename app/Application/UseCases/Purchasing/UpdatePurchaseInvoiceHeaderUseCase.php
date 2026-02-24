@@ -8,6 +8,7 @@ use App\Application\Ports\Services\AuditLoggerPort;
 use App\Application\Ports\Services\ClockPort;
 use App\Application\Ports\Services\TransactionManagerPort;
 use App\Domain\Audit\AuditEntry;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 
 final readonly class UpdatePurchaseInvoiceHeaderUseCase
@@ -47,9 +48,10 @@ final readonly class UpdatePurchaseInvoiceHeaderUseCase
             throw new \InvalidArgumentException('reason is required');
         }
 
+        $dueDate = CarbonImmutable::parse($req->tglKirim)->addMonthNoOverflow()->toDateString();
         $nowStr = $this->clock->now()->format('Y-m-d H:i:s');
 
-        $this->tx->run(function () use ($req, $supplier, $noFaktur, $reason, $nowStr): void {
+        $this->tx->run(function () use ($req, $supplier, $noFaktur, $reason, $dueDate, $nowStr): void {
             $row = DB::table('purchase_invoices')
                 ->where('id', $req->purchaseInvoiceId)
                 ->lockForUpdate()
@@ -58,6 +60,7 @@ final readonly class UpdatePurchaseInvoiceHeaderUseCase
                     'supplier_name',
                     'no_faktur',
                     'tgl_kirim',
+                    'due_date',
                     'kepada',
                     'no_pesanan',
                     'nama_sales',
@@ -81,6 +84,7 @@ final readonly class UpdatePurchaseInvoiceHeaderUseCase
                 'supplier_name' => (string) $row->supplier_name,
                 'no_faktur' => (string) $row->no_faktur,
                 'tgl_kirim' => (string) $row->tgl_kirim,
+                'due_date' => $row->due_date !== null ? (string) $row->due_date : null,
                 'kepada' => $row->kepada !== null ? (string) $row->kepada : null,
                 'no_pesanan' => $row->no_pesanan !== null ? (string) $row->no_pesanan : null,
                 'nama_sales' => $row->nama_sales !== null ? (string) $row->nama_sales : null,
@@ -91,6 +95,7 @@ final readonly class UpdatePurchaseInvoiceHeaderUseCase
                 'supplier_name' => $supplier,
                 'no_faktur' => $noFaktur,
                 'tgl_kirim' => $req->tglKirim,
+                'due_date' => $dueDate,
                 'kepada' => $req->kepada !== null ? trim((string) $req->kepada) : null,
                 'no_pesanan' => $req->noPesanan !== null ? trim((string) $req->noPesanan) : null,
                 'nama_sales' => $req->namaSales !== null ? trim((string) $req->namaSales) : null,
@@ -106,6 +111,7 @@ final readonly class UpdatePurchaseInvoiceHeaderUseCase
                 'supplier_name' => $update['supplier_name'],
                 'no_faktur' => $update['no_faktur'],
                 'tgl_kirim' => $update['tgl_kirim'],
+                'due_date' => $update['due_date'],
                 'kepada' => $update['kepada'],
                 'no_pesanan' => $update['no_pesanan'],
                 'nama_sales' => $update['nama_sales'],
@@ -123,6 +129,7 @@ final readonly class UpdatePurchaseInvoiceHeaderUseCase
                 after: $after,
                 meta: [
                     'policy' => 'header-only (no line edit)',
+                    'due_date_policy' => 'addMonthNoOverflow(tgl_kirim)',
                 ],
             ));
         });

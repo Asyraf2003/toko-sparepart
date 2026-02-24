@@ -8,6 +8,7 @@ use App\Application\Ports\Services\ClockPort;
 use App\Application\Ports\Services\TransactionManagerPort;
 use App\Application\UseCases\Notifications\NotifyLowStockForProductRequest;
 use App\Application\UseCases\Notifications\NotifyLowStockForProductUseCase;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 
 final readonly class CreatePurchaseInvoiceUseCase
@@ -25,10 +26,13 @@ final readonly class CreatePurchaseInvoiceUseCase
         $now = $this->clock->now();
         $nowStr = $now->format('Y-m-d H:i:s');
 
+        $tglKirim = CarbonImmutable::parse($req->tglKirim);
+        $dueDate = $tglKirim->addMonthNoOverflow()->toDateString();
+
         /** @var list<int> $productIdsToNotify */
         $productIdsToNotify = [];
 
-        $this->tx->run(function () use ($req, $nowStr, &$productIdsToNotify) {
+        $this->tx->run(function () use ($req, $nowStr, $dueDate, &$productIdsToNotify) {
             $productIds = [];
             foreach ($req->lines as $l) {
                 $productIds[] = $l->productId;
@@ -46,6 +50,8 @@ final readonly class CreatePurchaseInvoiceUseCase
                 'supplier_name' => $req->supplierName,
                 'no_faktur' => $req->noFaktur,
                 'tgl_kirim' => $req->tglKirim,
+                'due_date' => $dueDate,
+                'payment_status' => 'UNPAID',
                 'kepada' => $req->kepada,
                 'no_pesanan' => $req->noPesanan,
                 'nama_sales' => $req->namaSales,

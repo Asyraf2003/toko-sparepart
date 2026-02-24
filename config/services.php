@@ -33,4 +33,21 @@ return [
         'throttle_on_failure' => env('TELEGRAM_LOW_STOCK_THROTTLE_ON_FAILURE', true),
     ],
 
+    // Telegram ops: purchase due/overdue + profit daily (admin only)
+    'telegram_ops' => [
+        'enabled' => env('TELEGRAM_OPS_ENABLED', false),
+        'bot_token' => env('TELEGRAM_OPS_BOT_TOKEN', ''),
+        'chat_ids' => env('TELEGRAM_OPS_CHAT_IDS', ''),
+
+        // Purchase reminders (run daily incl Sunday)
+        'purchase_due_enabled' => env('TELEGRAM_OPS_PURCHASE_DUE_ENABLED', true),
+        'purchase_due_reminder_time' => env('TELEGRAM_OPS_PURCHASE_REMINDER_TIME', '09:00'),
+
+        'purchase_overdue_enabled' => env('TELEGRAM_OPS_PURCHASE_OVERDUE_ENABLED', true),
+        'purchase_overdue_reminder_time' => env('TELEGRAM_OPS_OVERDUE_REMINDER_TIME', '09:05'),
+
+        // Profit daily report (Mon–Sat 18:00)
+        'profit_enabled' => env('TELEGRAM_OPS_PROFIT_ENABLED', true),
+    ],
+
 ];
