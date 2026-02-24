@@ -23,6 +23,8 @@ final readonly class TelegramOpsMessage
         return new self($loc);
     }
 
+    // -------- PUSH --------
+
     public function profitDaily(string $date, ?ProfitReportRow $row): string
     {
         if ($row === null) {
@@ -105,20 +107,115 @@ final readonly class TelegramOpsMessage
         return implode("\n", $lines);
     }
 
+    // -------- BOT --------
+
+    public function botWelcome(): string
+    {
+        return implode("\n", [
+            '🤖 '.$this->t('bot_title'),
+            $this->t('bot_help'),
+            '',
+            $this->botCommands(),
+        ]);
+    }
+
+    public function botNotLinked(): string
+    {
+        return implode("\n", [
+            '⛔ '.$this->t('bot_not_linked_title'),
+            $this->t('bot_not_linked_hint'),
+        ]);
+    }
+
+    public function botLinkedOk(): string
+    {
+        return '✅ '.$this->t('bot_linked_ok');
+    }
+
+    public function botLinkFormatHint(): string
+    {
+        return $this->t('bot_link_format');
+    }
+
+    public function botAskInvoiceNo(): string
+    {
+        return '🧾 '.$this->t('bot_ask_invoice_no');
+    }
+
+    public function botInvoiceNotFound(string $noFaktur): string
+    {
+        return '❌ '.$this->t('bot_invoice_not_found').': '.$noFaktur;
+    }
+
+    public function botAskUploadProof(string $noFaktur): string
+    {
+        return implode("\n", [
+            '📎 '.$this->t('bot_ask_upload'),
+            $this->t('bot_invoice').': '.$noFaktur,
+        ]);
+    }
+
+    public function botProofSubmittedPending(): string
+    {
+        return '✅ '.$this->t('bot_proof_pending');
+    }
+
+    public function botApproved(string $noFaktur): string
+    {
+        return '✅ '.$this->t('bot_approved').': '.$noFaktur;
+    }
+
+    public function botRejected(string $noFaktur, ?string $note): string
+    {
+        $msg = '❌ '.$this->t('bot_rejected').': '.$noFaktur;
+        if ($note !== null && trim($note) !== '') {
+            $msg .= "\n".$this->t('note').': '.trim($note);
+        }
+
+        return $msg;
+    }
+
+    private function botCommands(): string
+    {
+        $lines = $this->tLines('bot_commands_lines');
+
+        return implode("\n", $lines);
+    }
+
     private function moneyIdr(int $v): string
     {
-        // keep Indonesian thousands separator style as you requested: 15.000
-        $n = number_format($v, 0, ',', '.');
-
-        // In EN mode, keep "Rp" prefix too (finance context), but you can change here.
-        return 'Rp '.$n;
+        return 'Rp '.number_format($v, 0, ',', '.');
     }
 
     private function t(string $key): string
     {
         $dict = self::DICT[$this->locale] ?? self::DICT['id'];
 
-        return $dict[$key] ?? $key;
+        $v = $dict[$key] ?? $key;
+
+        return is_string($v) ? $v : $key;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function tLines(string $key): array
+    {
+        $dict = self::DICT[$this->locale] ?? self::DICT['id'];
+        $v = $dict[$key] ?? [];
+
+        if (! is_array($v)) {
+            return [];
+        }
+
+        $out = [];
+        foreach ($v as $line) {
+            if (is_string($line) && trim($line) !== '') {
+                $out[] = $line;
+            }
+        }
+
+        return $out;
     }
 
     private const DICT = [
@@ -142,6 +239,31 @@ final readonly class TelegramOpsMessage
             'ship_date_short' => 'Kirim',
             'due_date_short' => 'Due',
             'total_short' => 'Total',
+
+            'note' => 'Catatan',
+
+            'bot_title' => 'BOT ADMIN',
+            'bot_help' => 'Menu admin untuk cek hutang supplier & profit harian.',
+
+            'bot_commands_lines' => [
+                '/menu — tampilkan menu',
+                '/purchases_unpaid — daftar supplier belum dibayar',
+                '/profit_latest — profit terakhir',
+                '/pay — submit bukti bayar (akan diminta No Faktur)',
+                '/link <TOKEN> — pairing bot ke akun admin',
+            ],
+
+            'bot_not_linked_title' => 'Belum terhubung',
+            'bot_not_linked_hint' => 'Gunakan /link <TOKEN> dari halaman admin untuk pairing.',
+            'bot_linked_ok' => 'Pairing berhasil. Ketik /menu.',
+            'bot_link_format' => 'Format: /link <TOKEN>',
+            'bot_ask_invoice_no' => 'Kirim No Faktur (contoh: FAK-001).',
+            'bot_invoice_not_found' => 'Invoice tidak ditemukan',
+            'bot_ask_upload' => 'Silakan upload foto/pdf bukti bayar.',
+            'bot_invoice' => 'No Faktur',
+            'bot_proof_pending' => 'Bukti bayar diterima. Status: PENDING (menunggu approve).',
+            'bot_approved' => 'Pembayaran disetujui',
+            'bot_rejected' => 'Pembayaran ditolak',
         ],
         'en' => [
             'profit_title' => 'DAILY PROFIT',
@@ -163,6 +285,31 @@ final readonly class TelegramOpsMessage
             'ship_date_short' => 'Ship',
             'due_date_short' => 'Due',
             'total_short' => 'Total',
+
+            'note' => 'Note',
+
+            'bot_title' => 'ADMIN BOT',
+            'bot_help' => 'Admin menu for supplier payables & profit.',
+
+            'bot_commands_lines' => [
+                '/menu — show menu',
+                '/purchases_unpaid — unpaid supplier invoices',
+                '/profit_latest — latest profit',
+                '/pay — submit payment proof (invoice no will be requested)',
+                '/link <TOKEN> — pair bot to admin account',
+            ],
+
+            'bot_not_linked_title' => 'Not linked',
+            'bot_not_linked_hint' => 'Use /link <TOKEN> from admin page to pair.',
+            'bot_linked_ok' => 'Paired successfully. Type /menu.',
+            'bot_link_format' => 'Format: /link <TOKEN>',
+            'bot_ask_invoice_no' => 'Send invoice number (e.g. FAK-001).',
+            'bot_invoice_not_found' => 'Invoice not found',
+            'bot_ask_upload' => 'Please upload a photo/pdf as payment proof.',
+            'bot_invoice' => 'Invoice',
+            'bot_proof_pending' => 'Payment proof received. Status: PENDING (awaiting approval).',
+            'bot_approved' => 'Payment approved',
+            'bot_rejected' => 'Payment rejected',
         ],
     ];
 }

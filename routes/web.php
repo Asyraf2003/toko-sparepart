@@ -28,3 +28,5 @@ Route::get('/', function () {
 
 require __DIR__.'/admin.php';
 require __DIR__.'/cashier.php';
+require __DIR__.'/telegram.php';
+require __DIR__.'/telegram_admin.php';

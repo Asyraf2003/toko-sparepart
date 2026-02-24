@@ -44,6 +44,8 @@ return [
         'purchase_overdue_enabled' => env('TELEGRAM_OPS_PURCHASE_OVERDUE_ENABLED', true),
         'purchase_overdue_reminder_time' => env('TELEGRAM_OPS_OVERDUE_REMINDER_TIME', '09:05'),
         'profit_enabled' => env('TELEGRAM_OPS_PROFIT_ENABLED', true),
+        'webhook_secret' => env('TELEGRAM_OPS_WEBHOOK_SECRET', ''),
+        'locale' => env('TELEGRAM_OPS_LOCALE', 'id'),
+        'pairing_token_ttl_minutes' => (int) env('TELEGRAM_OPS_PAIRING_TOKEN_TTL_MINUTES', 10),
     ],
-
 ];
