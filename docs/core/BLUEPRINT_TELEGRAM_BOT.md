@@ -1,60 +1,54 @@
-# Blueprint: Sistem Notifikasi & Bot Telegram Enterprise (Purchasing & Profit)
+# BLUEPRINT: Enterprise Telegram Integration & Purchase Payment System
 
-## A. Aturan Bisnis (Fixed - Zero Assumption)
-* **Anchor:** `tgl_pengiriman` (Delivery Date).
-* **Due Date:** `tgl_pengiriman` + 1 bulan dengan *Calendar Clamp* (Opsi A).
-    * Contoh: `15/06` → Due `15/07`.
-    * Contoh: `30/01/2026` → Due `28/02/2026` (Clamp ke hari terakhir Februari).
-* **Reminder H-5:** `notify_at = due_date - 5 hari` (Tetap -5 meskipun di bulan Februari).
-* **Overdue Reminder:** Jika `today > due_date` DAN `invoice status != PAID` → Kirim reminder sesuai jadwal.
-* **Implementasi:** Rule wajib berupa *Pure Function* dengan *Unit Test* untuk menjamin stabilitas.
+## 1. Business Logic & Constraints (Fixed)
+* **Due Date Calculation:** `tgl_kirim` + 1 bulan. 
+    * *Constraint:* Wajib menggunakan `Carbon::addMonthNoOverflow()` (Calendar Clamp) untuk menangani akhir bulan (contoh: 31 Jan -> 28 Feb).
+* **Due Reminder (H-5):** Trigger otomatis jika `today == due_date - 5`.
+* **Overdue Reminder:** Trigger otomatis jika `today > due_date` AND `payment_status == 'UNPAID'`.
+* **Daily Profit Schedule:** Senin–Sabtu pukul 18:00 (Timezone: `Asia/Makassar`).
 
-## B. Scope & Akses
-* **Otoritas:** Notifikasi push dan bot interaktif hanya untuk user dengan role **Admin**.
-* **Keamanan:** Bot hanya melayani user yang sudah melalui proses *Pairing* (terhubung ke `user_id` admin), bukan berdasarkan `chat_id` yang di-hardcode.
+## 2. Data Model Requirements (Audit-Ready)
+### A. Purchase Invoices (Alteration)
+| Column | Type | Index | Description |
+| :--- | :--- | :--- | :--- |
+| `due_date` | Date | Yes | Persisted for query efficiency |
+| `payment_status` | Enum/String | Yes | `UNPAID`, `PAID` |
+| `paid_at` | Datetime | No | Nullable |
+| `paid_by_user_id` | BigInt | No | FK to users (Audit Trail) |
 
-## C. Kanal Telegram
-1.  **Push Scheduled (Outbound):**
-    * Purchase Due H-5 (Reminder jatuh tempo).
-    * Purchase Overdue (Reminder keterlambatan).
-    * Profit Harian: Jam 18:00 (Senin–Sabtu).
-2.  **Bot Interaktif (Inbound/Pull):**
-    * ` /purchases_unpaid `: Daftar invoice supplier belum lunas.
-    * ` /profit_latest `: Profit harian terakhir.
-    * ` /pay <no_faktur> `: Submit bukti bayar (Opsi 1: Upload bukti).
+### B. New Support Tables
+1.  **`telegram_links`**: Menghubungkan `user_id` dengan `chat_id` Telegram.
+2.  **`telegram_pairing_tokens`**: Token sekali pakai untuk proses linking admin.
+3.  **`telegram_payment_proof_submissions`**: Storage metadata untuk bukti bayar (Status: `PENDING`, `APPROVED`, `REJECTED`).
+4.  **`notification_states`**: Idempotency table untuk mencegah spam/double-send.
 
-## D. Komponen Hexagonal Architecture
-### 1. Application Ports
-* `TelegramSenderPort`: Mengirim teks dan dokumen/gambar.
-* `TelegramUpdateReceiverPort`: Menangani payload webhook.
-* `PurchaseInvoiceQueryPort`: Mengambil data invoice unpaid, due date, dan status.
-* `PaymentProofRepositoryPort`: Menyimpan metadata bukti bayar yang diupload via bot.
+## 3. Architecture (Hexagonal Boundaries)
+### A. Ports (Interfaces)
+~~~php
+interface TelegramSenderPort {
+    public function sendMessage(string $chatId, string $text): void;
+    public function sendDocument(string $chatId, mixed $file, string $caption): void;
+}
 
-### 2. Use Cases
-* `SendPurchaseInvoiceDueRemindersUseCase`
-* `SendPurchaseInvoiceOverdueRemindersUseCase`
-* `SendDailyProfitTelegramReportUseCase`
-* `HandleTelegramWebhookUpdateUseCase`
-* `LinkTelegramChatUseCase` (Proses pairing admin ↔ chat id).
-* `SubmitPaymentProofViaTelegramUseCase` (Opsi 1).
+interface PurchaseInvoiceQueryPort {
+    public function getUnpaidInvoices(array $filters): array;
+    public function getInvoicesDueInDays(int $days): array;
+}
 
-### 3. Infrastructure
-* `Infrastructure/Notifications/Telegram/TelegramSender`: Implementasi HTTP client ke Telegram API.
-* `Interfaces/Web/Controllers/TelegramWebhookController`: Endpoint penerima webhook.
-* `Persistence/Eloquent`: Tabel link, pairing tokens, submissions, dan idempotency states.
+interface ProfitReportQueryPort {
+    // Extend for 'daily' support
+    public function getReport(string $granularity, \DateTimeInterface $date): ProfitDTO;
+}
+~~~
 
-## E. Model Data (Enterprise Minimum)
-* `telegram_links`: Mapping `user_id` ke `chat_id`.
-* `telegram_pairing_tokens`: Token sekali pakai (OTP) untuk proses pairing.
-* `telegram_payment_proof_submissions`: Log upload bukti bayar (Status: `PENDING`, `APPROVED`, `REJECTED`).
-* `notification_states`: Tabel Idempotency untuk mencegah spam notifikasi jika job di-retry.
-    * Key: `purchase_due:{invoiceId}:{notifyAtYmd}`
-    * Key: `purchase_overdue:{invoiceId}:{businessDateYmd}`
+### B. Use Cases
+* `SendPurchaseDueH5TelegramUseCase`
+* `SendPurchaseOverdueTelegramUseCase`
+* `SendDailyProfitTelegramUseCase`
+* `HandleTelegramWebhookUpdateUseCase` (Bot Interaction)
+* `SubmitPaymentProofViaTelegramUseCase` (Opsi 1)
 
-## F. Penjadwalan (Scheduling)
-* **Profit Harian:** 18:00 WITA (Senin–Sabtu).
-* **Reminders:** Configurable `TELEGRAM_REMINDER_DAYS` (Default: 1-6 / Senin-Sabtu).
-
-## G. Audit & Compliance
-* Setiap aksi bot yang mengubah data wajib mencatat **Audit Log**.
-* Webhook wajib menggunakan **Secret Token Header** dan **Rate Limiting (Throttle)**.
+## 4. Bot Interactive Model
+- **Command Router:** Bot mendeteksi command (`/purchases_unpaid`, `/profit_latest`, `/pay <no_faktur>`).
+- **State Machine:** Untuk `/pay`, user masuk ke state "Awaiting Upload". Upload dokumen memicu perubahan status ke `PENDING`.
+- **Inline Keyboards:** Menu pilih untuk daftar invoice unpaid.
