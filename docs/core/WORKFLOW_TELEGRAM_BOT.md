@@ -1,65 +1,42 @@
-# Workflow: Telegram Automation & Notification System
-Version: 1.0
-Status: FINAL
-Audit Requirement: ZERO ASSUMPTION / DATA-DRIVEN
+# Workflow Implementasi Step-by-Step
 
-## 1. Konsep & Aturan Inti (Business Logic)
+> **Catatan:** Sesuai instruksi "No Asumsi", setiap langkah yang membutuhkan data akan meminta inspeksi data terlebih dahulu.
 
-### A. Purchase Invoice Reminder
-Setiap invoice supplier memiliki siklus notifikasi sebagai berikut:
-* **Perhitungan Due Date**: 
-    ~~~
-    due_date = delivery_date + 1 bulan
-    ~~~
-    *Aturan Khusus:* Jika tanggal tidak tersedia (misal: 31 Jan -> 31 Feb), maka otomatis menjadi hari terakhir bulan tersebut (28/29 Feb).
-* **Perhitungan Notify Date**:
-    ~~~
-    notify_date = due_date - 5 hari
-    ~~~
-* **Filter Status**: Notifikasi **WAJIB** hanya dikirim untuk status `UNPAID` atau `PARTIAL`. Status `PAID` dilarang memicu notifikasi.
+### Step 1: Snapshot & Audit Data (Wajib)
+Sebelum memulai kode, lakukan inspeksi pada file berikut dan kirimkan isinya:
+1.  `database/migrations/..._create_purchase_invoices_table.php`
+2.  `app/Application/Ports/Repositories/ProfitReportQueryPort.php` (Jika sudah ada).
+3.  `app/Infrastructure/Notifications/Telegram/TelegramLowStockNotifier.php` (Sebagai referensi pola yang sudah ada).
+4.  Daftar Route/Controller Telegram yang sudah ada (Jika ada).
 
-### B. Daily Profit Report
-* **Jadwal Rutin**: Senin – Sabtu, Jam 18:00 WITA.
-* **On-Demand**: Bot harus merespon command `/profit now` secara instan.
+### Step 2: Schema & Persistence
+Bentuk tabel database untuk mendukung fitur enterprise:
+~~~php
+// Migration untuk telegram_links, pairing_tokens, dan proof_submissions
+~~~
+Generalisasi tabel `notification_states` agar bisa menampung berbagai tipe key notifikasi.
 
-### C. Payment Status
-* **Source of Truth**: Status `PAID` diubah manual di sistem internal.
-* **Bot Role**: Hanya sebagai Read-Only Viewer dan Request Generator (Pull/Push).
+### Step 3: Infrastruktur & Port Unifikasi
+1.  Ekstrak `TelegramSenderPort`.
+2.  Refactor `TelegramLowStockNotifier` agar menggunakan Port yang baru (DRY Principle).
+3.  Implementasi `TelegramSender` menggunakan `Http::post`.
 
----
+### Step 4: Scheduler & Idempotency
+1.  Buat Job untuk pengiriman notifikasi dengan logic retry/backoff.
+2.  Daftarkan di `routes/console.php` atau `App\Console\Kernel`.
+3.  Gunakan `notification_states` untuk memastikan notifikasi tidak terkirim dua kali (Deduplication).
 
-## 2. Operasional Terjadwal (Scheduler)
+### Step 5: Webhook & Command Router
+1.  Buat endpoint `POST /telegram/webhook`.
+2.  Implementasi Middleware untuk verifikasi `X-Telegram-Bot-Api-Secret-Token`.
+3.  Buat router sederhana untuk menangani command: `/start`, `/link`, `/purchases_unpaid`, `/profit_latest`, dan handle upload foto.
 
-### A. Push Profit Harian
-1. Scheduler memanggil `SendDailyProfitSummaryUseCase(businessDate=today)`.
-2. Query ringkasan via `ProfitReportQueryPort`.
-3. Validasi Idempotency: Cek tabel `daily_profit_notification_states` (mencegah duplikasi).
-4. Kirim ke Telegram Allowlist.
+### Step 6: Admin Approval Flow (Opsi 1)
+1.  Buat UI di Web Admin untuk melihat daftar `telegram_payment_proof_submissions`.
+2.  Tombol Approve/Reject:
+    * **Approve:** Ubah status invoice ke PAID + Kirim notifikasi balik ke Telegram.
+    * **Reject:** Simpan alasan + Kirim notifikasi "Ditolak" ke Telegram.
 
-### B. Push Reminder Jatuh Tempo
-1. Scheduler jalan setiap hari jam 09:00 WITA.
-2. Memanggil `NotifyPurchaseInvoicesDueUseCase(today)`.
-3. Query invoice dengan kriteria: `status IN (UNPAID, PARTIAL)` AND `notify_date == today`.
-4. Validasi Idempotency per `invoice_id` untuk tanggal terkait.
-
----
-
-## 3. Bot Command (Pull Mechanism)
-
-Sistem merespon perintah berikut dengan validasi `allowlist_user_id`:
-
-| Command | Deskripsi | Parameter |
-| :--- | :--- | :--- |
-| `/profit` | Profit hari ini | - |
-| `/profit [date]` | Profit tanggal spesifik | `YYYY-MM-DD` |
-| `/purchases unpaid` | Daftar invoice belum lunas | Paging support |
-| `/purchases due` | Invoice mendekati jatuh tempo | <= 7 hari & Overdue |
-| `/help` | Daftar bantuan | - |
-
----
-
-## 4. Audit Trail (Mandatory)
-Setiap interaksi dicatat ke Audit Log sesuai ADR:
-1.  **NOTIFICATION_SENT**: Triggered by System (Scheduler).
-2.  **TELEGRAM_COMMAND**: Triggered by User (Command sukses).
-3.  **TELEGRAM_DENIED**: Security event (User tidak terdaftar).
+### Step 7: Audit Log & Final Testing
+1.  Pastikan semua aksi masuk ke tabel `audit_logs`.
+2.  Jalankan Unit Test untuk kalkulasi tanggal (Clamp Februari).

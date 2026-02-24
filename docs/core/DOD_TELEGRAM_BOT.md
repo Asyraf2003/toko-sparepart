@@ -1,22 +1,23 @@
-# Definition of Done (DoD) - Telegram Integration
+# Definition of Done (DoD)
 
-## DoD-0: Arsitektur & Kontrak (Foundational)
-- [ ] Seluruh logic bisnis berada di **UseCase** dan **Domain Policy**, bukan di Controller/Webhook.
-- [ ] Integrasi Telegram menggunakan `NotifierPort` (Abstraksi Infrastructure).
-- [ ] Pengambilan data laporan menggunakan `QueryPort` (Bukan raw query di bot handler).
+### 1. Fungsionalitas (Functional)
+- [ ] **Reminder H-5:** Terkirim otomatis untuk invoice unpaid dengan rule clamp +1 bulan yang akurat.
+- [ ] **Overdue Reminder:** Terkirim jika melewati due date.
+- [ ] **Profit Report:** Terkirim setiap jam 18:00 (Senin-Sabtu).
+- [ ] **Pairing System:** User Admin berhasil melakukan pairing via token unik (bukan manual chat_id).
+- [ ] **Bot Commands:** `/purchases_unpaid` dan `/profit_latest` menampilkan data yang valid.
+- [ ] **Payment Submission:** Admin bisa upload bukti bayar via Telegram dan muncul di dashboard admin web dengan status `PENDING`.
+- [ ] **Feedback Loop:** Notifikasi persetujuan/penolakan bukti bayar terkirim kembali ke user Telegram.
 
-## DoD-1: Reminder Jatuh Tempo (P0)
-- [ ] **Logic**: `DueDatePolicy` menangani tgl 30/31 ke bulan yang lebih pendek (Februari/April).
-- [ ] **Filter**: Invoice `PAID` tidak muncul meskipun `notify_date` sesuai.
-- [ ] **Idempotency**: Tabel `purchase_due_notification_states` mencegah spam jika job di-restart.
-- [ ] **Test**: Unit test meng-cover tahun kabisat dan akhir bulan.
+### 2. Standar Enterprise (Non-Functional)
+- [ ] **Security:** Webhook terlindungi dengan Secret Token dan Rate Limiter.
+- [ ] **Reliability:** Semua pengiriman pesan masuk ke Queue (antrean) dengan mekanisme Retry.
+- [ ] **Idempotency:** Tidak ada pengiriman pesan ganda untuk invoice yang sama di hari yang sama (Anti-Spam).
+- [ ] **Traceability:** Semua interaksi bot yang bersifat transaksional tercatat di Audit Log.
+- [ ] **Privacy:** File bukti bayar disimpan di storage private, tidak dapat diakses publik secara langsung.
 
-## DoD-2: Daily Profit Push (P0)
-- [ ] **Schedule**: Berjalan otomatis Mon-Sat 18:00 WITA.
-- [ ] **Format**: Angka menggunakan format Rupiah standar (Contoh: `15.000.000`).
-- [ ] **Audit**: Tercatat sebagai `NOTIFICATION_SENT` dengan payload total summary.
-
-## DoD-3: Telegram Bot & Security (P1)
-- [ ] **Security**: Webhook memvalidasi `secret_token` dan `allowlist_user_id`.
-- [ ] **Audit**: User tidak dikenal yang mencoba command dicatat sebagai `TELEGRAM_DENIED`.
-- [ ] **Paging**: Command `/purchases` membatasi output max 10 item per chat.
+### 3. Kualitas Kode (Testing)
+- [ ] **Unit Test:** Fungsi kalkulasi `due_date` lulus tes untuk kasus akhir bulan (Januari 30 ke Februari 28).
+- [ ] **Unit Test:** Fungsi deteksi `overdue` akurat.
+- [ ] **Feature Test:** Request webhook dari chat_id yang tidak ter-link ditolak secara otomatis.
+- [ ] **Feature Test:** Token pairing hanya bisa digunakan satu kali (Single Use).
