@@ -155,6 +155,16 @@ final readonly class TelegramOpsMessage
         ]);
     }
 
+    public function botAskProductQuery(): string
+    {
+        return '🔎 '.$this->t('bot_ask_product_query');
+    }
+
+    public function botProductNotFound(string $q): string
+    {
+        return '❌ '.$this->t('bot_product_not_found').': '.$q;
+    }
+
     public function botProofSubmittedPending(): string
     {
         return '✅ '.$this->t('bot_proof_pending');
@@ -243,11 +253,16 @@ final readonly class TelegramOpsMessage
             'note' => 'Catatan',
 
             'bot_title' => 'BOT ADMIN',
-            'bot_help' => 'Menu admin untuk cek hutang supplier & profit harian.',
+            'bot_help' => 'Menu admin untuk cek hutang supplier, jatuh tempo, stok, & profit.',
 
             'bot_commands_lines' => [
                 '/menu — tampilkan menu',
-                '/purchases_unpaid — daftar supplier belum dibayar',
+                '/laporan — alias menu',
+                '/unpaid — daftar supplier belum dibayar',
+                '/jatuh_tempo — invoice jatuh tempo H-5',
+                '/overdue — invoice overdue',
+                '/stok_menipis — daftar stok menipis',
+                '/produk <q> — cari produk (SKU/Nama)',
                 '/profit_latest — profit terakhir',
                 '/pay — submit bukti bayar (akan diminta No Faktur)',
                 '/link <TOKEN> — pairing bot ke akun admin',
@@ -261,6 +276,8 @@ final readonly class TelegramOpsMessage
             'bot_invoice_not_found' => 'Invoice tidak ditemukan',
             'bot_ask_upload' => 'Silakan upload foto/pdf bukti bayar.',
             'bot_invoice' => 'No Faktur',
+            'bot_ask_product_query' => 'Kirim kata kunci produk (SKU/Nama).',
+            'bot_product_not_found' => 'Produk tidak ditemukan',
             'bot_proof_pending' => 'Bukti bayar diterima. Status: PENDING (menunggu approve).',
             'bot_approved' => 'Pembayaran disetujui',
             'bot_rejected' => 'Pembayaran ditolak',
@@ -289,11 +306,16 @@ final readonly class TelegramOpsMessage
             'note' => 'Note',
 
             'bot_title' => 'ADMIN BOT',
-            'bot_help' => 'Admin menu for supplier payables & profit.',
+            'bot_help' => 'Admin menu for payables, due, stock, and profit.',
 
             'bot_commands_lines' => [
                 '/menu — show menu',
-                '/purchases_unpaid — unpaid supplier invoices',
+                '/laporan — menu alias',
+                '/unpaid — unpaid supplier invoices',
+                '/jatuh_tempo — due in 5 days',
+                '/overdue — overdue invoices',
+                '/stok_menipis — low stock items',
+                '/produk <q> — search product (SKU/Name)',
                 '/profit_latest — latest profit',
                 '/pay — submit payment proof (invoice no will be requested)',
                 '/link <TOKEN> — pair bot to admin account',
@@ -307,6 +329,8 @@ final readonly class TelegramOpsMessage
             'bot_invoice_not_found' => 'Invoice not found',
             'bot_ask_upload' => 'Please upload a photo/pdf as payment proof.',
             'bot_invoice' => 'Invoice',
+            'bot_ask_product_query' => 'Send product keyword (SKU/Name).',
+            'bot_product_not_found' => 'Product not found',
             'bot_proof_pending' => 'Payment proof received. Status: PENDING (awaiting approval).',
             'bot_approved' => 'Payment approved',
             'bot_rejected' => 'Payment rejected',

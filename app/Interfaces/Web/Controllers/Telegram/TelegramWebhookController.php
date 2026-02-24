@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Interfaces\Web\Controllers\Telegram;
 
+use App\Application\Ports\Repositories\ProductStockQueryPort;
 use App\Application\Ports\Repositories\ProfitReportQueryPort;
+use App\Application\Ports\Repositories\StockReportQueryPort;
 use App\Application\Ports\Services\ClockPort;
 use App\Application\Ports\Services\TelegramSenderPort;
 use App\Application\Services\TelegramOpsMessage;
@@ -20,6 +22,8 @@ final readonly class TelegramWebhookController
     public function __construct(
         private TelegramSenderPort $tg,
         private ProfitReportQueryPort $profit,
+        private StockReportQueryPort $stock,
+        private ProductStockQueryPort $products,
         private ClockPort $clock,
     ) {}
 
@@ -81,6 +85,31 @@ final readonly class TelegramWebhookController
             return;
         }
 
+        if ($data === 'menu_due_h5') {
+            $this->sendDueH5List($chatId, $tpl);
+
+            return;
+        }
+
+        if ($data === 'menu_overdue') {
+            $this->sendOverdueList($chatId, $tpl);
+
+            return;
+        }
+
+        if ($data === 'menu_low_stock') {
+            $this->sendLowStockList($chatId, $tpl);
+
+            return;
+        }
+
+        if ($data === 'menu_product_search') {
+            $this->setConversation($chatId, 'AWAIT_PRODUCT_QUERY', null);
+            $this->tg->sendMessage($chatId, $tpl->botAskProductQuery());
+
+            return;
+        }
+
         if ($data === 'menu_pay') {
             $this->setConversation($chatId, 'AWAIT_INVOICE_NO', null);
             $this->tg->sendMessage($chatId, $tpl->botAskInvoiceNo());
@@ -118,25 +147,59 @@ final readonly class TelegramWebhookController
             return;
         }
 
-        if ($text === '/menu') {
+        // normalize command & argument (Telegram command cannot contain spaces)
+        [$cmd, $arg] = $this->splitCommand($text);
+
+        if ($cmd === '/menu' || $cmd === '/laporan') {
             $this->dispatchMenu($chatId, $tpl);
 
             return;
         }
 
-        if ($text === '/purchases_unpaid') {
+        if ($cmd === '/purchases_unpaid' || $cmd === '/unpaid') {
             $this->sendUnpaidList($chatId);
 
             return;
         }
 
-        if ($text === '/profit_latest') {
+        if ($cmd === '/profit_latest') {
             $this->sendProfitLatest($chatId, $tpl);
 
             return;
         }
 
-        if ($text === '/pay') {
+        if ($cmd === '/jatuh_tempo') {
+            $this->sendDueH5List($chatId, $tpl);
+
+            return;
+        }
+
+        if ($cmd === '/overdue') {
+            $this->sendOverdueList($chatId, $tpl);
+
+            return;
+        }
+
+        if ($cmd === '/stok_menipis') {
+            $this->sendLowStockList($chatId, $tpl);
+
+            return;
+        }
+
+        if ($cmd === '/produk') {
+            if (trim($arg) === '') {
+                $this->setConversation($chatId, 'AWAIT_PRODUCT_QUERY', null);
+                $this->tg->sendMessage($chatId, $tpl->botAskProductQuery());
+
+                return;
+            }
+
+            $this->sendProductSearch($chatId, $arg, $tpl);
+
+            return;
+        }
+
+        if ($cmd === '/pay') {
             $this->setConversation($chatId, 'AWAIT_INVOICE_NO', null);
             $this->tg->sendMessage($chatId, $tpl->botAskInvoiceNo());
 
@@ -157,6 +220,13 @@ final readonly class TelegramWebhookController
             return;
         }
 
+        if ($conv !== null && $conv['state'] === 'AWAIT_PRODUCT_QUERY' && $text !== '') {
+            $this->clearConversation($chatId);
+            $this->sendProductSearch($chatId, $text, $tpl);
+
+            return;
+        }
+
         $this->tg->sendMessage($chatId, $tpl->botWelcome());
     }
 
@@ -168,9 +238,15 @@ final readonly class TelegramWebhookController
             inlineKeyboard: [
                 [
                     ['text' => '📦 Unpaid Supplier', 'callback_data' => 'menu_unpaid'],
+                    ['text' => '📈 Profit Latest', 'callback_data' => 'menu_profit'],
                 ],
                 [
-                    ['text' => '📈 Profit Latest', 'callback_data' => 'menu_profit'],
+                    ['text' => '⏳ Jatuh Tempo H-5', 'callback_data' => 'menu_due_h5'],
+                    ['text' => '🚨 Overdue', 'callback_data' => 'menu_overdue'],
+                ],
+                [
+                    ['text' => '🧰 Stok Menipis', 'callback_data' => 'menu_low_stock'],
+                    ['text' => '🔎 Cari Produk', 'callback_data' => 'menu_product_search'],
                 ],
                 [
                     ['text' => '🧾 Submit Bukti Bayar', 'callback_data' => 'menu_pay'],
@@ -252,6 +328,138 @@ final readonly class TelegramWebhookController
                 'Kirim: '.(string) $r->tgl_kirim,
                 'Due: '.(string) ($r->due_date ?? '-'),
                 'Total: Rp '.number_format((int) $r->grand_total, 0, ',', '.'),
+            ]);
+        }
+
+        $this->tg->sendMessage($chatId, implode("\n", $lines));
+    }
+
+    private function sendDueH5List(string $chatId, TelegramOpsMessage $tpl): void
+    {
+        $today = CarbonImmutable::instance($this->clock->now())->setTimezone('Asia/Makassar')->startOfDay();
+        $targetDue = $today->addDays(5)->toDateString();
+
+        $rows = DB::table('purchase_invoices')
+            ->where(function ($q) {
+                $q->whereNull('payment_status')->orWhere('payment_status', 'UNPAID');
+            })
+            ->whereNotNull('due_date')
+            ->where('due_date', $targetDue)
+            ->orderBy('due_date')
+            ->orderBy('supplier_name')
+            ->limit(50)
+            ->get(['id', 'supplier_name', 'no_faktur', 'tgl_kirim', 'due_date', 'grand_total']);
+
+        if ($rows->count() === 0) {
+            $this->tg->sendMessage($chatId, "✅ OK\nTidak ada invoice jatuh tempo H-5.");
+
+            return;
+        }
+
+        $this->tg->sendMessage($chatId, $tpl->purchaseDueH5Digest($targetDue, $rows->all()));
+    }
+
+    private function sendOverdueList(string $chatId, TelegramOpsMessage $tpl): void
+    {
+        $today = CarbonImmutable::instance($this->clock->now())->setTimezone('Asia/Makassar')->startOfDay()->toDateString();
+
+        $rows = DB::table('purchase_invoices')
+            ->where(function ($q) {
+                $q->whereNull('payment_status')->orWhere('payment_status', 'UNPAID');
+            })
+            ->whereNotNull('due_date')
+            ->where('due_date', '<', $today)
+            ->orderBy('due_date')
+            ->orderBy('supplier_name')
+            ->limit(50)
+            ->get(['id', 'supplier_name', 'no_faktur', 'tgl_kirim', 'due_date', 'grand_total']);
+
+        if ($rows->count() === 0) {
+            $this->tg->sendMessage($chatId, "✅ OK\nTidak ada invoice overdue.");
+
+            return;
+        }
+
+        $this->tg->sendMessage($chatId, $tpl->purchaseOverdueDigest($today, $rows->all()));
+    }
+
+    private function sendLowStockList(string $chatId, TelegramOpsMessage $tpl): void
+    {
+        $result = $this->stock->list(search: null, onlyActive: true, limit: 500);
+
+        $rows = array_values(array_filter($result->rows, fn ($r) => $r->isLowStock === true));
+        usort($rows, fn ($a, $b) => $a->availableQty <=> $b->availableQty);
+
+        if (count($rows) === 0) {
+            $this->tg->sendMessage($chatId, "✅ OK\nTidak ada stok menipis.");
+
+            return;
+        }
+
+        $max = 20;
+        $lines = [
+            '🧰 STOK MENIPIS (top '.$max.')',
+            'Menipis: '.$result->summary->lowStockCount.' / Total: '.$result->summary->count,
+            '',
+        ];
+
+        $slice = array_slice($rows, 0, $max);
+        foreach ($slice as $r) {
+            $name = (string) $r->name;
+            if (strlen($name) > 28) {
+                $name = substr($name, 0, 28).'…';
+            }
+
+            $lines[] = implode(' | ', [
+                (string) $r->sku,
+                $name,
+                'Avail: '.(int) $r->availableQty,
+                'Min: '.(int) $r->minStockThreshold,
+            ]);
+        }
+
+        $this->tg->sendMessage($chatId, implode("\n", $lines));
+    }
+
+    private function sendProductSearch(string $chatId, string $query, TelegramOpsMessage $tpl): void
+    {
+        $q = trim($query);
+        if ($q === '') {
+            $this->tg->sendMessage($chatId, $tpl->botAskProductQuery());
+
+            return;
+        }
+
+        $rows = $this->products->list(search: $q, onlyActive: true);
+
+        if (count($rows) === 0) {
+            $this->tg->sendMessage($chatId, $tpl->botProductNotFound($q));
+
+            return;
+        }
+
+        $max = 20;
+        $lines = [
+            '🔎 HASIL CARI PRODUK (top '.$max.')',
+            'Query: '.$q,
+            'Jumlah: '.count($rows),
+            '',
+        ];
+
+        $slice = array_slice($rows, 0, $max);
+        foreach ($slice as $r) {
+            $name = $r->name;
+            if (strlen($name) > 28) {
+                $name = substr($name, 0, 28).'…';
+            }
+
+            $lines[] = implode(' | ', [
+                $r->sku,
+                $name,
+                'Harga: Rp '.number_format($r->sellPriceCurrent, 0, ',', '.'),
+                'Avail: '.$r->availableQty(),
+                'Min: '.$r->minStockThreshold,
+                $r->isLowStock() ? '⚠️ LOW' : 'OK',
             ]);
         }
 
@@ -347,7 +555,6 @@ final readonly class TelegramWebhookController
             originalFilename: $originalName,
         )->onQueue('notifications');
 
-        // immediate ack (fast)
         $this->tg->sendMessage($chatId, '⏳ Upload diterima. Sedang diproses...');
     }
 
@@ -400,5 +607,22 @@ final readonly class TelegramWebhookController
     private function clearConversation(string $chatId): void
     {
         DB::table('telegram_conversations')->where('chat_id', $chatId)->delete();
+    }
+
+    /**
+     * @return array{0:string,1:string}
+     */
+    private function splitCommand(string $text): array
+    {
+        $text = trim($text);
+        if ($text === '') {
+            return ['', ''];
+        }
+
+        $parts = preg_split('/\s+/', $text, 2) ?: [];
+        $cmd = isset($parts[0]) ? trim((string) $parts[0]) : '';
+        $arg = isset($parts[1]) ? trim((string) $parts[1]) : '';
+
+        return [$cmd, $arg];
     }
 }
