@@ -8,6 +8,7 @@ use App\Application\Ports\Services\AuditLoggerPort;
 use App\Application\Ports\Services\TelegramSenderPort;
 use App\Application\Services\TelegramOpsMessage;
 use App\Domain\Audit\AuditEntry;
+use App\Infrastructure\Notifications\Telegram\SendTelegramMessageJob;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -139,7 +140,12 @@ final readonly class TelegramPaymentProofController
 
             // notify back to telegram chat (submitter)
             $chatId = (string) $sub->telegram_chat_id;
-            $this->tg->sendMessage($chatId, $tpl->botApproved((string) $pi->no_faktur));
+            SendTelegramMessageJob::dispatch(
+                chatId: $chatId,
+                text: $tpl->botApproved((string) $pi->no_faktur),
+                dedupKey: 'bot_approved:'.$id,
+                metaJson: json_encode(['type' => 'bot_approved', 'submission_id' => $id], JSON_THROW_ON_ERROR),
+            )->onQueue('notifications');
         });
 
         return back();
@@ -189,7 +195,12 @@ final readonly class TelegramPaymentProofController
             ));
 
             $chatId = (string) $sub->telegram_chat_id;
-            $this->tg->sendMessage($chatId, $tpl->botRejected((string) $pi->no_faktur, $note));
+            SendTelegramMessageJob::dispatch(
+                chatId: $chatId,
+                text: $tpl->botRejected((string) $pi->no_faktur, $note),
+                dedupKey: 'bot_rejected:'.$id,
+                metaJson: json_encode(['type' => 'bot_rejected', 'submission_id' => $id], JSON_THROW_ON_ERROR),
+            )->onQueue('notifications');
         });
 
         return back();

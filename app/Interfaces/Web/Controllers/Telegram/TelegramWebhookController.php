@@ -5,25 +5,26 @@ declare(strict_types=1);
 namespace App\Interfaces\Web\Controllers\Telegram;
 
 use App\Application\Ports\Repositories\ProfitReportQueryPort;
+use App\Application\Ports\Services\ClockPort;
 use App\Application\Ports\Services\TelegramSenderPort;
 use App\Application\Services\TelegramOpsMessage;
+use App\Infrastructure\Notifications\Telegram\DownloadTelegramPaymentProofJob;
+use App\Infrastructure\Notifications\Telegram\SendTelegramMenuJob;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Storage;
 
 final readonly class TelegramWebhookController
 {
     public function __construct(
         private TelegramSenderPort $tg,
         private ProfitReportQueryPort $profit,
+        private ClockPort $clock,
     ) {}
 
     public function __invoke(Request $request): JsonResponse
     {
-        // Security: Telegram secret token
         $expected = (string) config('services.telegram_ops.webhook_secret', '');
         $got = (string) $request->header('X-Telegram-Bot-Api-Secret-Token', '');
         if ($expected === '' || ! hash_equals($expected, $got)) {
@@ -38,7 +39,6 @@ final readonly class TelegramWebhookController
         $payload = $request->all();
         $tpl = TelegramOpsMessage::fromConfig();
 
-        // Support: message + callback_query
         if (isset($payload['message'])) {
             $this->handleMessage($payload['message'], $tpl);
 
@@ -70,7 +70,7 @@ final readonly class TelegramWebhookController
         }
 
         if ($data === 'menu_unpaid') {
-            $this->sendUnpaidList($chatId, $tpl);
+            $this->sendUnpaidList($chatId);
 
             return;
         }
@@ -88,7 +88,7 @@ final readonly class TelegramWebhookController
             return;
         }
 
-        $this->tg->sendMessage($chatId, $tpl->botWelcome());
+        $this->dispatchMenu($chatId, $tpl);
     }
 
     private function handleMessage(array $msg, TelegramOpsMessage $tpl): void
@@ -100,7 +100,6 @@ final readonly class TelegramWebhookController
 
         $text = trim((string) ($msg['text'] ?? ''));
 
-        // Commands that do NOT require link: /start, /link
         if ($text === '/start') {
             $this->tg->sendMessage($chatId, $tpl->botWelcome());
 
@@ -113,7 +112,6 @@ final readonly class TelegramWebhookController
             return;
         }
 
-        // Linked admin required beyond this point
         if (! $this->isLinkedAdminChat($chatId)) {
             $this->tg->sendMessage($chatId, $tpl->botNotLinked());
 
@@ -121,13 +119,13 @@ final readonly class TelegramWebhookController
         }
 
         if ($text === '/menu') {
-            $this->sendMenu($chatId, $tpl);
+            $this->dispatchMenu($chatId, $tpl);
 
             return;
         }
 
         if ($text === '/purchases_unpaid') {
-            $this->sendUnpaidList($chatId, $tpl);
+            $this->sendUnpaidList($chatId);
 
             return;
         }
@@ -145,23 +143,40 @@ final readonly class TelegramWebhookController
             return;
         }
 
-        // Conversation flow: invoice no input
         $conv = $this->getConversation($chatId);
+
         if ($conv !== null && $conv['state'] === 'AWAIT_INVOICE_NO' && $text !== '') {
             $this->handleInvoiceNoInput($chatId, $text, $tpl);
 
             return;
         }
 
-        // File uploads for payment proof
         if ($conv !== null && $conv['state'] === 'AWAIT_PROOF_UPLOAD') {
-            $this->handleProofUpload($chatId, $msg, $conv['data'], $tpl);
+            $this->dispatchProofUploadJob($chatId, $msg, $conv['data'], $tpl);
 
             return;
         }
 
-        // default
         $this->tg->sendMessage($chatId, $tpl->botWelcome());
+    }
+
+    private function dispatchMenu(string $chatId, TelegramOpsMessage $tpl): void
+    {
+        SendTelegramMenuJob::dispatch(
+            chatId: $chatId,
+            text: $tpl->botWelcome(),
+            inlineKeyboard: [
+                [
+                    ['text' => '📦 Unpaid Supplier', 'callback_data' => 'menu_unpaid'],
+                ],
+                [
+                    ['text' => '📈 Profit Latest', 'callback_data' => 'menu_profit'],
+                ],
+                [
+                    ['text' => '🧾 Submit Bukti Bayar', 'callback_data' => 'menu_pay'],
+                ],
+            ],
+        )->onQueue('notifications');
     }
 
     private function handleLinkCommand(string $chatId, string $text, TelegramOpsMessage $tpl): void
@@ -194,7 +209,6 @@ final readonly class TelegramWebhookController
             return;
         }
 
-        // Link chat to user_id (admin user)
         DB::transaction(function () use ($row, $chatId): void {
             DB::table('telegram_pairing_tokens')
                 ->where('id', (int) $row->id)
@@ -214,37 +228,7 @@ final readonly class TelegramWebhookController
         $this->tg->sendMessage($chatId, $tpl->botLinkedOk());
     }
 
-    private function sendMenu(string $chatId, TelegramOpsMessage $tpl): void
-    {
-        $enabled = (bool) config('services.telegram_ops.enabled', false);
-        $token = (string) config('services.telegram_ops.bot_token', '');
-        if (! $enabled || trim($token) === '') {
-            return;
-        }
-
-        $url = 'https://api.telegram.org/bot'.$token.'/sendMessage';
-
-        // Inline keyboard menu
-        Http::timeout(10)->asJson()->post($url, [
-            'chat_id' => $chatId,
-            'text' => $tpl->botWelcome(),
-            'reply_markup' => [
-                'inline_keyboard' => [
-                    [
-                        ['text' => '📦 Unpaid Supplier', 'callback_data' => 'menu_unpaid'],
-                    ],
-                    [
-                        ['text' => '📈 Profit Latest', 'callback_data' => 'menu_profit'],
-                    ],
-                    [
-                        ['text' => '🧾 Submit Bukti Bayar', 'callback_data' => 'menu_pay'],
-                    ],
-                ],
-            ],
-        ]);
-    }
-
-    private function sendUnpaidList(string $chatId, TelegramOpsMessage $tpl): void
+    private function sendUnpaidList(string $chatId): void
     {
         $rows = DB::table('purchase_invoices')
             ->where(function ($q) {
@@ -276,9 +260,9 @@ final readonly class TelegramWebhookController
 
     private function sendProfitLatest(string $chatId, TelegramOpsMessage $tpl): void
     {
-        $today = CarbonImmutable::now('Asia/Makassar')->toDateString();
+        $now = CarbonImmutable::instance($this->clock->now());
+        $today = $now->setTimezone('Asia/Makassar')->toDateString();
 
-        // Use last completed business_date if exists, else today
         $last = DB::table('transactions')
             ->where('status', 'COMPLETED')
             ->where('business_date', '<=', $today)
@@ -312,7 +296,7 @@ final readonly class TelegramWebhookController
         $this->tg->sendMessage($chatId, $tpl->botAskUploadProof($noFaktur));
     }
 
-    private function handleProofUpload(string $chatId, array $msg, array $data, TelegramOpsMessage $tpl): void
+    private function dispatchProofUploadJob(string $chatId, array $msg, array $data, TelegramOpsMessage $tpl): void
     {
         $invoiceId = (int) ($data['purchase_invoice_id'] ?? 0);
         $noFaktur = (string) ($data['no_faktur'] ?? '');
@@ -324,7 +308,6 @@ final readonly class TelegramWebhookController
             return;
         }
 
-        // Get file_id from document or photo
         $fileId = null;
         $originalName = null;
 
@@ -345,35 +328,6 @@ final readonly class TelegramWebhookController
             return;
         }
 
-        $token = (string) config('services.telegram_ops.bot_token', '');
-        if (trim($token) === '') {
-            return;
-        }
-
-        // Resolve file_path via getFile
-        $getFileUrl = 'https://api.telegram.org/bot'.$token.'/getFile';
-        $resp = Http::timeout(10)->get($getFileUrl, ['file_id' => $fileId]);
-        if (! $resp->successful()) {
-            $this->tg->sendMessage($chatId, '❌ getFile failed');
-
-            return;
-        }
-
-        $filePath = (string) data_get($resp->json(), 'result.file_path', '');
-        if ($filePath === '') {
-            $this->tg->sendMessage($chatId, '❌ file_path empty');
-
-            return;
-        }
-
-        $downloadUrl = 'https://api.telegram.org/file/bot'.$token.'/'.$filePath;
-        $bin = Http::timeout(20)->get($downloadUrl);
-        if (! $bin->successful()) {
-            $this->tg->sendMessage($chatId, '❌ download failed');
-
-            return;
-        }
-
         $userId = $this->linkedUserId($chatId);
         if ($userId === null) {
             $this->tg->sendMessage($chatId, $tpl->botNotLinked());
@@ -381,36 +335,20 @@ final readonly class TelegramWebhookController
             return;
         }
 
-        $submissionId = (int) DB::table('telegram_payment_proof_submissions')->insertGetId([
-            'purchase_invoice_id' => $invoiceId,
-            'submitted_by_user_id' => $userId,
-            'telegram_chat_id' => $chatId,
-            'telegram_file_id' => $fileId,
-            'telegram_message_id' => isset($msg['message_id']) ? (string) $msg['message_id'] : null,
-            'stored_path' => 'private/telegram/proofs/pending.bin', // temp, updated after store
-            'original_filename' => $originalName,
-            'status' => 'PENDING',
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        $messageId = isset($msg['message_id']) ? (string) $msg['message_id'] : null;
 
-        $ext = $originalName !== null && str_contains($originalName, '.')
-            ? pathinfo($originalName, PATHINFO_EXTENSION)
-            : 'bin';
+        DownloadTelegramPaymentProofJob::dispatch(
+            chatId: $chatId,
+            invoiceId: $invoiceId,
+            noFaktur: $noFaktur,
+            submittedByUserId: $userId,
+            telegramFileId: $fileId,
+            telegramMessageId: $messageId,
+            originalFilename: $originalName,
+        )->onQueue('notifications');
 
-        $storePath = 'private/telegram/proofs/'.$submissionId.'_'.preg_replace('/[^a-zA-Z0-9_\-\.]/', '_', (string) ($originalName ?? ('proof.'.$ext)));
-        Storage::disk('local')->put($storePath, $bin->body());
-
-        DB::table('telegram_payment_proof_submissions')
-            ->where('id', $submissionId)
-            ->update([
-                'stored_path' => $storePath,
-                'updated_at' => now(),
-            ]);
-
-        $this->clearConversation($chatId);
-
-        $this->tg->sendMessage($chatId, $tpl->botProofSubmittedPending());
+        // immediate ack (fast)
+        $this->tg->sendMessage($chatId, '⏳ Upload diterima. Sedang diproses...');
     }
 
     private function isLinkedAdminChat(string $chatId): bool
@@ -420,10 +358,7 @@ final readonly class TelegramWebhookController
 
     private function linkedUserId(string $chatId): ?int
     {
-        $row = DB::table('telegram_links')
-            ->where('chat_id', $chatId)
-            ->first(['user_id']);
-
+        $row = DB::table('telegram_links')->where('chat_id', $chatId)->first(['user_id']);
         if ($row === null) {
             return null;
         }
@@ -446,10 +381,7 @@ final readonly class TelegramWebhookController
             }
         }
 
-        return [
-            'state' => (string) $row->state,
-            'data' => $data,
-        ];
+        return ['state' => (string) $row->state, 'data' => $data];
     }
 
     private function setConversation(string $chatId, string $state, ?array $data): void
