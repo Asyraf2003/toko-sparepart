@@ -13,49 +13,35 @@ use Mockery\MockInterface;
 
 uses(RefreshDatabase::class);
 
-final class FakeLowStockNotifier implements LowStockNotifierPort
-{
-    /** @var list<LowStockAlertMessage> */
-    public array $msgs = [];
-
-    public bool $throw = false;
-
-    public function notifyLowStock(LowStockAlertMessage $msg): void
+if (! function_exists('seedOneProductAndStock__notify_low_stock')) {
+    function seedOneProductAndStock__notify_low_stock(): array
     {
-        if ($this->throw) {
-            throw new RuntimeException('telegram send failed');
-        }
-        $this->msgs[] = $msg;
+        test()->seed(DevSampleProductsSeeder::class);
+        test()->seed(DevEnsureInventoryStocksSeeder::class);
+
+        $product = DB::table('products')->orderBy('id')->first(['id']);
+        expect($product)->not->toBeNull();
+
+        $pid = (int) $product->id;
+
+        $stock = DB::table('inventory_stocks')->where('product_id', $pid)->first(['product_id']);
+        expect($stock)->not->toBeNull();
+
+        return [$pid];
     }
 }
 
-function seedOneProductAndStock(): array
-{
-    // avoid assumptions about required columns by using your existing seeders
-    test()->seed(DevSampleProductsSeeder::class);
-    test()->seed(DevEnsureInventoryStocksSeeder::class);
-
-    $product = DB::table('products')->orderBy('id')->first(['id']);
-    expect($product)->not->toBeNull();
-
-    $pid = (int) $product->id;
-
-    // Ensure stock row exists
-    $stock = DB::table('inventory_stocks')->where('product_id', $pid)->first(['product_id']);
-    expect($stock)->not->toBeNull();
-
-    return [$pid];
-}
-
-function setClockNow(string $ts): void
-{
-    test()->mock(ClockPort::class, function (MockInterface $m) use ($ts): void {
-        $m->shouldReceive('now')->andReturn(new DateTimeImmutable($ts));
-    });
+if (! function_exists('setClockNow__notify_low_stock')) {
+    function setClockNow__notify_low_stock(string $ts): void
+    {
+        test()->mock(ClockPort::class, function (MockInterface $m) use ($ts): void {
+            $m->shouldReceive('now')->andReturn(new DateTimeImmutable($ts));
+        });
+    }
 }
 
 it('does nothing when product is inactive', function () {
-    [$pid] = seedOneProductAndStock();
+    [$pid] = seedOneProductAndStock__notify_low_stock();
 
     DB::table('products')->where('id', $pid)->update([
         'is_active' => 0,
@@ -67,10 +53,22 @@ it('does nothing when product is inactive', function () {
         'reserved_qty' => 0,
     ]);
 
-    $fake = new FakeLowStockNotifier;
+    $fake = new class implements LowStockNotifierPort {
+        /** @var list<LowStockAlertMessage> */
+        public array $msgs = [];
+        public bool $throw = false;
+
+        public function notifyLowStock(LowStockAlertMessage $msg): void
+        {
+            if ($this->throw) {
+                throw new RuntimeException('telegram send failed');
+            }
+            $this->msgs[] = $msg;
+        }
+    };
     app()->instance(LowStockNotifierPort::class, $fake);
 
-    setClockNow('2026-02-24 10:00:00');
+    setClockNow__notify_low_stock('2026-02-24 10:00:00');
     config()->set('services.telegram_low_stock.reset_on_recover', true);
     config()->set('services.telegram_low_stock.min_interval_seconds', 3600);
     config()->set('services.telegram_low_stock.throttle_on_failure', true);
@@ -86,14 +84,13 @@ it('does nothing when product is inactive', function () {
 });
 
 it('resets state on recover when available > threshold and reset_on_recover=true', function () {
-    [$pid] = seedOneProductAndStock();
+    [$pid] = seedOneProductAndStock__notify_low_stock();
 
     DB::table('products')->where('id', $pid)->update([
         'is_active' => 1,
         'min_stock_threshold' => 10,
     ]);
 
-    // existing state
     DB::table('low_stock_notification_states')->insert([
         'product_id' => $pid,
         'last_notified_at' => '2026-02-24 09:00:00',
@@ -102,16 +99,27 @@ it('resets state on recover when available > threshold and reset_on_recover=true
         'updated_at' => now(),
     ]);
 
-    // recovered stock
     DB::table('inventory_stocks')->where('product_id', $pid)->update([
         'on_hand_qty' => 50,
         'reserved_qty' => 0,
     ]);
 
-    $fake = new FakeLowStockNotifier;
+    $fake = new class implements LowStockNotifierPort {
+        /** @var list<LowStockAlertMessage> */
+        public array $msgs = [];
+        public bool $throw = false;
+
+        public function notifyLowStock(LowStockAlertMessage $msg): void
+        {
+            if ($this->throw) {
+                throw new RuntimeException('telegram send failed');
+            }
+            $this->msgs[] = $msg;
+        }
+    };
     app()->instance(LowStockNotifierPort::class, $fake);
 
-    setClockNow('2026-02-24 10:00:00');
+    setClockNow__notify_low_stock('2026-02-24 10:00:00');
     config()->set('services.telegram_low_stock.reset_on_recover', true);
 
     app(NotifyLowStockForProductUseCase::class)->handle(new NotifyLowStockForProductRequest(
@@ -125,7 +133,7 @@ it('resets state on recover when available > threshold and reset_on_recover=true
 });
 
 it('notifies and updates state when available <= threshold and state is empty', function () {
-    [$pid] = seedOneProductAndStock();
+    [$pid] = seedOneProductAndStock__notify_low_stock();
 
     DB::table('products')->where('id', $pid)->update([
         'is_active' => 1,
@@ -137,10 +145,22 @@ it('notifies and updates state when available <= threshold and state is empty', 
         'reserved_qty' => 0,
     ]);
 
-    $fake = new FakeLowStockNotifier;
+    $fake = new class implements LowStockNotifierPort {
+        /** @var list<LowStockAlertMessage> */
+        public array $msgs = [];
+        public bool $throw = false;
+
+        public function notifyLowStock(LowStockAlertMessage $msg): void
+        {
+            if ($this->throw) {
+                throw new RuntimeException('telegram send failed');
+            }
+            $this->msgs[] = $msg;
+        }
+    };
     app()->instance(LowStockNotifierPort::class, $fake);
 
-    setClockNow('2026-02-24 10:00:00');
+    setClockNow__notify_low_stock('2026-02-24 10:00:00');
     config()->set('services.telegram_low_stock.min_interval_seconds', 3600);
     config()->set('services.telegram_low_stock.throttle_on_failure', true);
 
@@ -157,12 +177,12 @@ it('notifies and updates state when available <= threshold and state is empty', 
         ->first(['last_notified_at', 'last_notified_available_qty']);
 
     expect($state)->not->toBeNull();
-    expect((string) $state->last_notified_available_qty)->toBe('5');
+    expect((int) $state->last_notified_available_qty)->toBe(5);
     expect((string) $state->last_notified_at)->toContain('2026-02-24');
 });
 
 it('does not notify if min interval not passed and not more critical', function () {
-    [$pid] = seedOneProductAndStock();
+    [$pid] = seedOneProductAndStock__notify_low_stock();
 
     DB::table('products')->where('id', $pid)->update([
         'is_active' => 1,
@@ -177,15 +197,27 @@ it('does not notify if min interval not passed and not more critical', function 
     DB::table('low_stock_notification_states')->insert([
         'product_id' => $pid,
         'last_notified_at' => '2026-02-24 09:50:00',
-        'last_notified_available_qty' => 7, // same => not more critical
+        'last_notified_available_qty' => 7,
         'created_at' => now(),
         'updated_at' => now(),
     ]);
 
-    $fake = new FakeLowStockNotifier;
+    $fake = new class implements LowStockNotifierPort {
+        /** @var list<LowStockAlertMessage> */
+        public array $msgs = [];
+        public bool $throw = false;
+
+        public function notifyLowStock(LowStockAlertMessage $msg): void
+        {
+            if ($this->throw) {
+                throw new RuntimeException('telegram send failed');
+            }
+            $this->msgs[] = $msg;
+        }
+    };
     app()->instance(LowStockNotifierPort::class, $fake);
 
-    setClockNow('2026-02-24 10:00:00');
+    setClockNow__notify_low_stock('2026-02-24 10:00:00');
     config()->set('services.telegram_low_stock.min_interval_seconds', 3600);
 
     app(NotifyLowStockForProductUseCase::class)->handle(new NotifyLowStockForProductRequest(
@@ -198,7 +230,7 @@ it('does not notify if min interval not passed and not more critical', function 
 });
 
 it('notifies immediately when more critical even if min interval not passed', function () {
-    [$pid] = seedOneProductAndStock();
+    [$pid] = seedOneProductAndStock__notify_low_stock();
 
     DB::table('products')->where('id', $pid)->update([
         'is_active' => 1,
@@ -212,16 +244,28 @@ it('notifies immediately when more critical even if min interval not passed', fu
 
     DB::table('low_stock_notification_states')->insert([
         'product_id' => $pid,
-        'last_notified_at' => '2026-02-24 09:59:55', // interval not passed
-        'last_notified_available_qty' => 7,          // was higher => now more critical
+        'last_notified_at' => '2026-02-24 09:59:55',
+        'last_notified_available_qty' => 7,
         'created_at' => now(),
         'updated_at' => now(),
     ]);
 
-    $fake = new FakeLowStockNotifier;
+    $fake = new class implements LowStockNotifierPort {
+        /** @var list<LowStockAlertMessage> */
+        public array $msgs = [];
+        public bool $throw = false;
+
+        public function notifyLowStock(LowStockAlertMessage $msg): void
+        {
+            if ($this->throw) {
+                throw new RuntimeException('telegram send failed');
+            }
+            $this->msgs[] = $msg;
+        }
+    };
     app()->instance(LowStockNotifierPort::class, $fake);
 
-    setClockNow('2026-02-24 10:00:00');
+    setClockNow__notify_low_stock('2026-02-24 10:00:00');
     config()->set('services.telegram_low_stock.min_interval_seconds', 3600);
 
     app(NotifyLowStockForProductUseCase::class)->handle(new NotifyLowStockForProductRequest(
@@ -235,7 +279,7 @@ it('notifies immediately when more critical even if min interval not passed', fu
 });
 
 it('throttle_on_failure controls whether state updates when notifier throws', function () {
-    [$pid] = seedOneProductAndStock();
+    [$pid] = seedOneProductAndStock__notify_low_stock();
 
     DB::table('products')->where('id', $pid)->update([
         'is_active' => 1,
@@ -255,11 +299,22 @@ it('throttle_on_failure controls whether state updates when notifier throws', fu
         'updated_at' => now(),
     ]);
 
-    $fake = new FakeLowStockNotifier;
-    $fake->throw = true;
+    $fake = new class implements LowStockNotifierPort {
+        /** @var list<LowStockAlertMessage> */
+        public array $msgs = [];
+        public bool $throw = true;
+
+        public function notifyLowStock(LowStockAlertMessage $msg): void
+        {
+            if ($this->throw) {
+                throw new RuntimeException('telegram send failed');
+            }
+            $this->msgs[] = $msg;
+        }
+    };
     app()->instance(LowStockNotifierPort::class, $fake);
 
-    setClockNow('2026-02-24 10:00:00');
+    setClockNow__notify_low_stock('2026-02-24 10:00:00');
     config()->set('services.telegram_low_stock.min_interval_seconds', 0);
 
     // Case 1: throttle_on_failure=false => state should NOT be updated
