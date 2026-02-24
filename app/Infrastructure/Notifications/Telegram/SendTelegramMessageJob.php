@@ -28,9 +28,8 @@ final class SendTelegramMessageJob implements ShouldQueue
 
     public function handle(TelegramSenderPort $tg): void
     {
-        // Idempotency (job-level): if already sent, do nothing.
-        $exists = DB::table('notification_states')->where('key', $this->dedupKey)->exists();
-        if ($exists) {
+        // Job-level idempotency: if already sent, do nothing.
+        if (DB::table('notification_states')->where('key', $this->dedupKey)->exists()) {
             return;
         }
 

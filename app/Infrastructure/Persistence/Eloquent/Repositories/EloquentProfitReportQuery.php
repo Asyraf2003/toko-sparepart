@@ -69,7 +69,7 @@ final class EloquentProfitReportQuery implements ProfitReportQueryPort
                 DB::raw('SUM(amount) as expenses_total'),
             ]);
 
-        // Payroll: for daily mode, we need overlapping periods to allocate into days.
+        // Payroll
         if ($granularity === 'daily') {
             $payrollWeekly = DB::table('payroll_periods as pp')
                 ->join('payroll_lines as pl', 'pl.payroll_period_id', '=', 'pp.id')
@@ -83,7 +83,6 @@ final class EloquentProfitReportQuery implements ProfitReportQueryPort
                     DB::raw('SUM(pl.gross_pay) as payroll_gross'),
                 ]);
         } else {
-            // existing policy (unchanged): filter by week_end inside range
             $payrollWeekly = DB::table('payroll_periods as pp')
                 ->join('payroll_lines as pl', 'pl.payroll_period_id', '=', 'pp.id')
                 ->whereBetween('pp.week_end', [$fromDate, $toDate])
@@ -202,7 +201,7 @@ final class EloquentProfitReportQuery implements ProfitReportQueryPort
 
             $key = $granularity === 'weekly'
                 ? $weekStart->toDateString()
-                : $weekEnd->format('Y-m'); // existing policy
+                : $weekEnd->format('Y-m');
 
             if (! isset($buckets[$key])) {
                 $buckets[$key] = [

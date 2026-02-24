@@ -20,9 +20,11 @@ use App\Application\Ports\Services\AuditLoggerPort;
 use App\Application\Ports\Services\ClockPort;
 use App\Application\Ports\Services\LowStockNotifierPort;
 use App\Application\Ports\Services\PdfRendererPort;
+use App\Application\Ports\Services\TelegramSenderPort;
 use App\Application\Ports\Services\TransactionManagerPort;
 use App\Infrastructure\Clock\SystemClock;
 use App\Infrastructure\Notifications\Telegram\TelegramLowStockNotifier;
+use App\Infrastructure\Notifications\Telegram\TelegramOpsSender;
 use App\Infrastructure\Pdf\DompdfPdfRenderer;
 use App\Infrastructure\Persistence\Eloquent\DatabaseTransactionManager;
 use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentAuditLogger;
@@ -63,8 +65,8 @@ final class AppServiceProvider extends ServiceProvider
 
         $this->app->singleton(PdfRendererPort::class, DompdfPdfRenderer::class);
         $this->app->singleton(LowStockNotifierPort::class, TelegramLowStockNotifier::class);
+        $this->app->singleton(TelegramSenderPort::class, TelegramOpsSender::class);
         $this->app->singleton(AuditLoggerPort::class, EloquentAuditLogger::class);
-
         $this->app->singleton(AuditLogQueryPort::class, EloquentAuditLogQuery::class);
     }
 

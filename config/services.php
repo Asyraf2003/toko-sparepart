@@ -33,7 +33,7 @@ return [
         'throttle_on_failure' => env('TELEGRAM_LOW_STOCK_THROTTLE_ON_FAILURE', true),
     ],
 
-    // Telegram ops: purchase due/overdue + profit daily (admin only)
+    // Telegram ops: purchase due/overdue + profit daily (admin-only recipients)
     'telegram_ops' => [
         'enabled' => env('TELEGRAM_OPS_ENABLED', false),
         'bot_token' => env('TELEGRAM_OPS_BOT_TOKEN', ''),
