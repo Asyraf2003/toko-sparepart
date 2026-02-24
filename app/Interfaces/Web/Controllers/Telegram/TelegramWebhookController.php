@@ -260,7 +260,7 @@ final readonly class TelegramWebhookController
             return;
         }
 
-        $lines = ["📦 UNPAID SUPPLIER (top 20)", ""];
+        $lines = ['📦 UNPAID SUPPLIER (top 20)', ''];
         foreach ($rows as $r) {
             $lines[] = implode(' | ', [
                 (string) $r->no_faktur,
