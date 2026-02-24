@@ -27,7 +27,7 @@ return new class extends Migration
 
             $table->timestamps();
 
-            $table->index(['purchase_invoice_id', 'status']);
+            $table->index(['purchase_invoice_id', 'status'], 'tppps_pi_status_idx');
         });
     }
 
