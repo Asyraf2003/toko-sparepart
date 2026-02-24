@@ -59,7 +59,7 @@ final class PurchaseInvoiceShowController
                 'l.disc_bps',
                 'l.line_total',
             ]);
-        
+
         $proofs = DB::table('telegram_payment_proof_submissions')
             ->where('purchase_invoice_id', $purchaseInvoiceId)
             ->orderByDesc('id')

@@ -32,6 +32,8 @@ use App\Interfaces\Web\Controllers\Admin\ProfitReportPdfController;
 use App\Interfaces\Web\Controllers\Admin\PurchaseInvoiceCreateController;
 use App\Interfaces\Web\Controllers\Admin\PurchaseInvoiceEditController;
 use App\Interfaces\Web\Controllers\Admin\PurchaseInvoiceIndexController;
+use App\Interfaces\Web\Controllers\Admin\PurchaseInvoiceMarkPaidController;
+use App\Interfaces\Web\Controllers\Admin\PurchaseInvoiceMarkUnpaidController;
 use App\Interfaces\Web\Controllers\Admin\PurchaseInvoiceShowController;
 use App\Interfaces\Web\Controllers\Admin\PurchaseInvoiceStoreController;
 use App\Interfaces\Web\Controllers\Admin\PurchaseInvoiceUpdateController;
@@ -41,8 +43,6 @@ use App\Interfaces\Web\Controllers\Admin\SalesReportIndexController;
 use App\Interfaces\Web\Controllers\Admin\SalesReportPdfController;
 use App\Interfaces\Web\Controllers\Admin\StockReportIndexController;
 use App\Interfaces\Web\Controllers\Admin\StockReportPdfController;
-use App\Interfaces\Web\Controllers\Admin\PurchaseInvoiceMarkPaidController;
-use App\Interfaces\Web\Controllers\Admin\PurchaseInvoiceMarkUnpaidController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'role:ADMIN'])->prefix('admin')->group(function (): void {
