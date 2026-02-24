@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\UseCases\Notifications\Telegram;
 
 use App\Application\Ports\Services\ClockPort;
+use App\Application\Services\TelegramOpsMessage;
 use App\Infrastructure\Notifications\Telegram\SendTelegramMessageJob;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
@@ -47,7 +48,8 @@ final readonly class SendPurchaseDueH5TelegramUseCase
             return;
         }
 
-        $text = $this->buildDigest($targetDue, $rows->all());
+        $tpl = TelegramOpsMessage::fromConfig();
+        $text = $tpl->purchaseDueH5Digest($targetDue, $rows->all());
 
         foreach ($chatIds as $chatId) {
             $dedupKey = 'purchase_due_digest:'.$sendDate.':'.$chatId;
@@ -62,29 +64,6 @@ final readonly class SendPurchaseDueH5TelegramUseCase
                 metaJson: json_encode(['type' => 'purchase_due_h5', 'send_date' => $sendDate, 'due_date' => $targetDue], JSON_THROW_ON_ERROR),
             )->onQueue('notifications');
         }
-    }
-
-    private function buildDigest(string $dueDate, array $rows): string
-    {
-        $money = fn (int $v): string => number_format($v, 0, ',', '.');
-
-        $lines = [
-            '⏳ JATUH TEMPO H-5',
-            'Due date: '.$dueDate,
-            'Jumlah: '.count($rows),
-            '',
-        ];
-
-        foreach ($rows as $r) {
-            $lines[] = implode(' | ', [
-                (string) $r->no_faktur,
-                (string) $r->supplier_name,
-                'Kirim: '.(string) $r->tgl_kirim,
-                'Total: Rp '.$money((int) $r->grand_total),
-            ]);
-        }
-
-        return implode("\n", $lines);
     }
 
     /**

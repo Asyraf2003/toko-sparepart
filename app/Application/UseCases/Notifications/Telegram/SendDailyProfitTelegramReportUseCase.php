@@ -6,6 +6,7 @@ namespace App\Application\UseCases\Notifications\Telegram;
 
 use App\Application\Ports\Repositories\ProfitReportQueryPort;
 use App\Application\Ports\Services\ClockPort;
+use App\Application\Services\TelegramOpsMessage;
 use App\Infrastructure\Notifications\Telegram\SendTelegramMessageJob;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
@@ -31,6 +32,7 @@ final readonly class SendDailyProfitTelegramReportUseCase
         }
 
         $today = CarbonImmutable::instance($this->clock->now())->toDateString();
+        $tpl = TelegramOpsMessage::fromConfig();
 
         foreach ($chatIds as $chatId) {
             $dedupKey = 'profit_daily:'.$today.':'.$chatId;
@@ -41,7 +43,7 @@ final readonly class SendDailyProfitTelegramReportUseCase
             $res = $this->profit->aggregate($today, $today, 'daily');
             $row = $res->rows[0] ?? null;
 
-            $text = $this->buildText($today, $row);
+            $text = $tpl->profitDaily($today, $row);
 
             SendTelegramMessageJob::dispatch(
                 chatId: $chatId,
@@ -50,36 +52,6 @@ final readonly class SendDailyProfitTelegramReportUseCase
                 metaJson: json_encode(['type' => 'profit_daily', 'date' => $today], JSON_THROW_ON_ERROR),
             )->onQueue('notifications');
         }
-    }
-
-    private function buildText(string $date, mixed $row): string
-    {
-        if ($row === null) {
-            return implode("\n", [
-                '📈 PROFIT HARIAN',
-                'Tanggal: '.$date,
-                'Data: (kosong)',
-            ]);
-        }
-
-        $money = fn (int $v): string => number_format($v, 0, ',', '.');
-
-        $lines = [
-            '📈 PROFIT HARIAN',
-            'Tanggal: '.$date,
-            'Revenue: Rp '.$money((int) $row->revenueTotal),
-            'COGS: Rp '.$money((int) $row->cogsTotal),
-            'Expenses: Rp '.$money((int) $row->expensesTotal),
-            'Payroll: Rp '.$money((int) $row->payrollGross),
-            'Net: Rp '.$money((int) $row->netProfit),
-        ];
-
-        $missing = (int) $row->missingCogsQty;
-        if ($missing > 0) {
-            $lines[] = '⚠️ Missing COGS Qty: '.$missing;
-        }
-
-        return implode("\n", $lines);
     }
 
     /**

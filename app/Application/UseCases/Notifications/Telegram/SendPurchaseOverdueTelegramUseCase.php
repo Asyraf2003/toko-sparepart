@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\UseCases\Notifications\Telegram;
 
 use App\Application\Ports\Services\ClockPort;
+use App\Application\Services\TelegramOpsMessage;
 use App\Infrastructure\Notifications\Telegram\SendTelegramMessageJob;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
@@ -46,7 +47,8 @@ final readonly class SendPurchaseOverdueTelegramUseCase
             return;
         }
 
-        $text = $this->buildDigest($todayStr, $rows->all());
+        $tpl = TelegramOpsMessage::fromConfig();
+        $text = $tpl->purchaseOverdueDigest($todayStr, $rows->all());
 
         foreach ($chatIds as $chatId) {
             $dedupKey = 'purchase_overdue_digest:'.$todayStr.':'.$chatId;
@@ -61,29 +63,6 @@ final readonly class SendPurchaseOverdueTelegramUseCase
                 metaJson: json_encode(['type' => 'purchase_overdue', 'date' => $todayStr], JSON_THROW_ON_ERROR),
             )->onQueue('notifications');
         }
-    }
-
-    private function buildDigest(string $today, array $rows): string
-    {
-        $money = fn (int $v): string => number_format($v, 0, ',', '.');
-
-        $lines = [
-            '🚨 OVERDUE PEMBELIAN',
-            'Tanggal: '.$today,
-            'Jumlah: '.count($rows),
-            '',
-        ];
-
-        foreach ($rows as $r) {
-            $lines[] = implode(' | ', [
-                (string) $r->no_faktur,
-                (string) $r->supplier_name,
-                'Due: '.(string) $r->due_date,
-                'Total: Rp '.$money((int) $r->grand_total),
-            ]);
-        }
-
-        return implode("\n", $lines);
     }
 
     /**

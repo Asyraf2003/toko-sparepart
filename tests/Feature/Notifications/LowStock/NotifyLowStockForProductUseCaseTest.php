@@ -5,6 +5,7 @@ use App\Application\Ports\Services\ClockPort;
 use App\Application\Ports\Services\LowStockNotifierPort;
 use App\Application\UseCases\Notifications\NotifyLowStockForProductRequest;
 use App\Application\UseCases\Notifications\NotifyLowStockForProductUseCase;
+use Database\Seeders\DefaultUsersSeeder;
 use Database\Seeders\DevEnsureInventoryStocksSeeder;
 use Database\Seeders\DevSampleProductsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -16,6 +17,9 @@ uses(RefreshDatabase::class);
 if (! function_exists('seedOneProductAndStock__notify_low_stock')) {
     function seedOneProductAndStock__notify_low_stock(): array
     {
+        // IMPORTANT: DevSampleProductsSeeder requires an admin user.
+        test()->seed(DefaultUsersSeeder::class);
+
         test()->seed(DevSampleProductsSeeder::class);
         test()->seed(DevEnsureInventoryStocksSeeder::class);
 
@@ -53,9 +57,11 @@ it('does nothing when product is inactive', function () {
         'reserved_qty' => 0,
     ]);
 
-    $fake = new class implements LowStockNotifierPort {
+    $fake = new class implements LowStockNotifierPort
+    {
         /** @var list<LowStockAlertMessage> */
         public array $msgs = [];
+
         public bool $throw = false;
 
         public function notifyLowStock(LowStockAlertMessage $msg): void
@@ -104,9 +110,11 @@ it('resets state on recover when available > threshold and reset_on_recover=true
         'reserved_qty' => 0,
     ]);
 
-    $fake = new class implements LowStockNotifierPort {
+    $fake = new class implements LowStockNotifierPort
+    {
         /** @var list<LowStockAlertMessage> */
         public array $msgs = [];
+
         public bool $throw = false;
 
         public function notifyLowStock(LowStockAlertMessage $msg): void
@@ -145,9 +153,11 @@ it('notifies and updates state when available <= threshold and state is empty', 
         'reserved_qty' => 0,
     ]);
 
-    $fake = new class implements LowStockNotifierPort {
+    $fake = new class implements LowStockNotifierPort
+    {
         /** @var list<LowStockAlertMessage> */
         public array $msgs = [];
+
         public bool $throw = false;
 
         public function notifyLowStock(LowStockAlertMessage $msg): void
@@ -202,9 +212,11 @@ it('does not notify if min interval not passed and not more critical', function 
         'updated_at' => now(),
     ]);
 
-    $fake = new class implements LowStockNotifierPort {
+    $fake = new class implements LowStockNotifierPort
+    {
         /** @var list<LowStockAlertMessage> */
         public array $msgs = [];
+
         public bool $throw = false;
 
         public function notifyLowStock(LowStockAlertMessage $msg): void
@@ -250,9 +262,11 @@ it('notifies immediately when more critical even if min interval not passed', fu
         'updated_at' => now(),
     ]);
 
-    $fake = new class implements LowStockNotifierPort {
+    $fake = new class implements LowStockNotifierPort
+    {
         /** @var list<LowStockAlertMessage> */
         public array $msgs = [];
+
         public bool $throw = false;
 
         public function notifyLowStock(LowStockAlertMessage $msg): void
@@ -299,9 +313,11 @@ it('throttle_on_failure controls whether state updates when notifier throws', fu
         'updated_at' => now(),
     ]);
 
-    $fake = new class implements LowStockNotifierPort {
+    $fake = new class implements LowStockNotifierPort
+    {
         /** @var list<LowStockAlertMessage> */
         public array $msgs = [];
+
         public bool $throw = true;
 
         public function notifyLowStock(LowStockAlertMessage $msg): void
