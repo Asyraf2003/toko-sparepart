@@ -166,7 +166,7 @@ final class EloquentProfitReportQuery implements ProfitReportQueryPort
             }
 
             if ($granularity === 'daily') {
-                $days = $weekStart->diffInDays($weekEnd) + 1;
+                $days = (int) $weekStart->diffInDays($weekEnd) + 1;
                 if ($days <= 0) {
                     continue;
                 }
