@@ -132,6 +132,26 @@
                 ],
             ],
         ],
+
+        // ✅ ADD: TELEGRAM OPS
+        [
+            'title' => 'TELEGRAM',
+            'items' => [
+                [
+                    'label' => 'Telegram Bot (Admin)',
+                    'url' => url('/admin/telegram'),
+                    'icon' => 'bi bi-telegram',
+                    'active' => ['admin/telegram'],
+                ],
+                [
+                    'label' => 'Bukti Bayar (Telegram)',
+                    'url' => url('/admin/telegram/payment-proofs'),
+                    'icon' => 'bi bi-file-earmark-check',
+                    'active' => ['admin/telegram/payment-proofs', 'admin/telegram/payment-proofs/*'],
+                ],
+            ],
+        ],
+
         [
             'title' => 'AUDIT',
             'items' => [
