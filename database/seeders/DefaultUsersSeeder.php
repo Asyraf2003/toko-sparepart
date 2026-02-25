@@ -15,7 +15,7 @@ final class DefaultUsersSeeder extends Seeder
     {
         $adminPassword = (string) env('DEFAULT_ADMIN_PASSWORD', '');
         if ($adminPassword === '') {
-            $adminPassword = Str::password(16); 
+            $adminPassword = Str::password(16);
         }
 
         $cashierPassword = (string) env('DEFAULT_CASHIER_PASSWORD', '');
