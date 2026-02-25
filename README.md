@@ -1,59 +1,253 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# APP KASIR
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Sistem Point of Sale (POS) + Manajemen Operasional Bengkel berbasis Laravel dengan arsitektur Hexagonal (Ports & Adapters), dirancang untuk skalabilitas, auditability, dan kontrol bisnis yang ketat.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+# 🎯 Tujuan Proyek
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+APP KASIR dibangun untuk:
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- Menjadi **source of truth transaksi bengkel**
+- Mengontrol arus kas, stok, dan pembelian
+- Menyediakan reporting yang konsisten & dapat diaudit
+- Siap dikembangkan ke skala multi-branch / cloud-native
+- Memiliki boundary arsitektur yang jelas (tidak spaghetti code)
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+# 🚀 Keunggulan (Advantages)
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## 1️⃣ Arsitektur Hexagonal (Ports & Adapters)
 
-## Laravel Sponsors
+- Business logic terisolasi di Application Layer
+- Controller hanya sebagai adapter (bukan tempat logika bisnis)
+- Mudah testing (unit & feature)
+- Mudah migrasi storage / transport layer (HTTP → API → Worker → dsb)
+- Mengurangi coupling antar layer
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+---
 
-### Premium Partners
+## 2️⃣ Audit Trail & Governance
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+- Perubahan transaksi memerlukan reason (controlled mutation)
+- Struktur audit-friendly
+- Error envelope konsisten
+- Debug route bisa digate via environment
 
-## Contributing
+Cocok untuk:
+- Bisnis yang butuh kontrol internal
+- Persiapan skala enterprise
+- Compliance internal
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+---
 
-## Code of Conduct
+## 3️⃣ Inventory Integrity
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+- Ledger-based stock tracking
+- COGS tercatat dari pembelian
+- Mutasi stok hanya lewat use case
+- Tidak ada manipulasi stok langsung di controller
 
-## Security Vulnerabilities
+Menghindari:
+- Stok minus misterius
+- Selisih tidak terlacak
+- Ketidaksesuaian laporan
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+---
 
-## License
+## 4️⃣ Modular & Expandable
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Dirancang dengan modul terpisah:
+
+- Sales
+- Purchasing
+- Inventory
+- Payroll
+- Expenses
+- Reporting
+- Telegram Integration
+
+Mudah ditambah:
+- Multi outlet
+- API mobile
+- Integrasi payment gateway
+- Integrasi marketplace
+
+---
+
+## 5️⃣ Reporting Siap Produksi
+
+- Sales Report (HTML + PDF)
+- Summary & detail terstruktur (DTO based)
+- Data konsisten dari domain layer
+- Bisa dikembangkan ke dashboard BI
+
+---
+
+## 6️⃣ Telegram Notification Integration
+
+- Low stock alert
+- Purchase notification
+- Ops webhook support
+- Dapat dikontrol via config
+
+Cocok untuk:
+- Owner yang ingin monitoring real-time
+- Alert jatuh tempo pembelian
+- Kontrol stok cepat
+
+---
+
+## 7️⃣ UI Kasir Fokus Efisiensi
+
+- Kasir-first design
+- Native JS (progressive enhancement)
+- Format rupiah konsisten (15.000)
+- Search produk support page + fetch
+- Shared layout base
+
+---
+
+# 📦 Fitur Utama (Core Features)
+
+## 🛒 Sales (Transaksi)
+
+- Buat transaksi
+- Tambah sparepart
+- Tambah jasa
+- Perhitungan subtotal part & service
+- Pembulatan (rounding)
+- Status pembayaran
+- Detail nota
+- Today transaction view
+- Audit edit transaksi (same-day control)
+
+---
+
+## 📦 Inventory
+
+- Master produk
+- Harga jual aktif
+- Average cost tracking
+- Inventory stock table
+- Stock ledger history
+- Low stock alert
+
+---
+
+## 🧾 Purchasing
+
+- Buat purchase invoice
+- Multiple line items
+- Due date support
+- Status: PAID / UNPAID
+- Integrasi ke inventory (COGS update)
+- Seed data untuk dev testing
+
+---
+
+## 💰 Expenses
+
+- Input pengeluaran
+- Tercatat sebagai biaya operasional
+
+---
+
+## 👥 Payroll (Basic)
+
+- Periode gaji
+- Employee loan
+- Kontrol payroll period
+- Edit periode
+
+---
+
+## 📊 Reporting
+
+- Sales report by period
+- Summary & row DTO
+- Export PDF
+- Business-date based reporting
+
+---
+
+## 🔔 Notification
+
+- Telegram low stock alert
+- Telegram purchase event
+- Config-based enable/disable
+
+---
+
+# 🧱 Struktur Arsitektur
+
+Layer utama:
+
+- Domain
+- Application (Use Cases)
+- Infrastructure
+- Interfaces (Web Controller)
+- Database (Eloquent sebagai adapter persistence)
+
+Boundary penting:
+
+- Controller tidak boleh berisi logika bisnis
+- Semua mutasi melalui UseCase
+- Presenter sebagai output formatter
+- DTO untuk transfer data
+
+---
+
+# 🧪 Testing Coverage
+
+- Feature tests
+- UseCase tests
+- Inventory integrity tests
+- Validation tests
+- HTTP sanity checks
+
+Semua perubahan besar harus hijau sebelum merge.
+
+---
+
+# 🛠 Tech Stack
+
+- Laravel
+- PHP 8+
+- MySQL
+- Blade
+- Native JS
+- Telegram Bot API
+- PDF generation (reporting)
+
+---
+
+# 🧠 Filosofi Desain
+
+- Kasir adalah pusat arus kas
+- Inventory harus akurat secara matematis
+- Pembelian mempengaruhi COGS
+- Reporting harus berasal dari domain, bukan query liar
+- Perubahan transaksi harus dapat dipertanggungjawabkan
+
+---
+
+# 🔮 Roadmap Potensial
+
+- Multi-branch
+- Role-based granular permission
+- Dashboard analytics
+- API versioning
+- Queue-based notification
+- Cloud deployment (AWS ready)
+- Automated scheduled reports
+
+---
+
+# 📌 Cocok Untuk
+
+- Bengkel motor / mobil
+- Workshop kecil-menengah
+- Bisnis sparepart
+- Operasional berbasis kasir
