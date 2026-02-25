@@ -125,7 +125,7 @@
         <div class="col-12 col-lg-4">
             <div class="card">
                 <div class="card-body">
-                    <div class="fw-bold mb-2">Item Stok Menipis (Top 10)</div>
+                    <div class="fw-bold mb-2">Beberapa Item Stok Menipis</div>
                     <div class="table-responsive">
                         <table class="table table-sm table-striped align-middle mb-0">
                             <thead>
@@ -160,7 +160,7 @@
         <div class="col-12 col-lg-4">
             <div class="card">
                 <div class="card-body">
-                    <div class="fw-bold mb-2">Pembelian Terbaru (Top 10)</div>
+                    <div class="fw-bold mb-2">10 Pembelian Terbaru</div>
                     <div class="table-responsive">
                         <table class="table table-sm table-striped align-middle mb-0">
                             <thead>
@@ -193,7 +193,7 @@
         <div class="col-12 col-lg-4">
             <div class="card">
                 <div class="card-body">
-                    <div class="fw-bold mb-2">Catatan Audit Terbaru (Top 10)</div>
+                    <div class="fw-bold mb-2">Catatan Audit Terbaru</div>
                     <div class="table-responsive">
                         <table class="table table-sm table-striped align-middle mb-0">
                             <thead>

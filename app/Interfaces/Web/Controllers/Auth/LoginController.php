@@ -19,7 +19,7 @@ final class LoginController
     public function login(Request $request): RedirectResponse
     {
         $credentials = $request->validate([
-            'email' => ['required', 'string', 'email'],
+            'name' => ['required', 'string'],
             'password' => ['required', 'string'],
         ]);
 
@@ -27,8 +27,8 @@ final class LoginController
 
         if (! Auth::attempt($credentials, $remember)) {
             return back()
-                ->withInput($request->only('email'))
-                ->withErrors(['email' => 'Email atau password salah.']);
+                ->withInput($request->only('name'))
+                ->withErrors(['name' => 'Nama atau password salah.']);
         }
 
         $request->session()->regenerate();
