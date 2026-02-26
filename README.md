@@ -28,6 +28,14 @@ APP KASIR dibangun untuk:
 
 ---
 
+## 🛡️ Data Integrity & Security
+
+- **Pessimistic Locking:** Menggunakan `FOR UPDATE` di level database untuk mencegah race condition pada stok.
+- **Transactional Consistency:** Seluruh rangkaian mutasi (Transaction -> Stock -> Ledger -> Audit) dibungkus dalam Database Transaction; gagal satu, batal semua.
+- **Operational Guarding:** Validasi Business Date untuk mencegah manipulasi data historis oleh user dengan role tertentu.
+
+---
+
 ## 2️⃣ Audit Trail & Governance
 
 - Perubahan transaksi memerlukan reason (controlled mutation)
