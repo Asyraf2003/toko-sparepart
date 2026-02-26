@@ -46,7 +46,7 @@
                     <h5 class="mb-2">Generate Pairing Token</h5>
 
                     @if($lastToken)
-                        <div class="alert alert-warning">
+                        <div class="border rounded p-3 bg-body-tertiary text-body">
                             <div class="fw-semibold">Token (sekali tampil):</div>
                             <div class="mt-1">
                                 <span class="fw-semibold">{{ $lastToken }}</span>
@@ -57,7 +57,7 @@
                         </div>
                     @endif
 
-                    <form method="post" action="{{ url('/admin/telegram/pairing-token') }}" class="d-flex gap-2">
+                    <form method="post" action="{{ url('/admin/telegram/pairing-token') }}" class="d-flex gap-2 mt-2">
                         @csrf
                         <button class="btn btn-primary" type="submit">Generate Token</button>
                         <a class="btn btn-outline-primary" href="{{ url('/admin/telegram/payment-proofs') }}">Bukti Bayar (PENDING)</a>
