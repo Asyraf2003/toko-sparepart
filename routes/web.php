@@ -9,7 +9,8 @@ Route::get('/__hex/ping', PingController::class);
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'show'])->name('login');
-    Route::post('/login', [LoginController::class, 'login']);
+    Route::post('/login', [LoginController::class, 'login'])
+    ->middleware('throttle:login');
 });
 
 Route::post('/logout', [LoginController::class, 'logout'])->middleware('auth');

@@ -40,6 +40,9 @@ use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentStockReportQuer
 use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentTransactionPartLineRepository;
 use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentTransactionRepository;
 use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentTransactionServiceLineRepository;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
 final class AppServiceProvider extends ServiceProvider
@@ -72,6 +75,13 @@ final class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        //
+        RateLimiter::for('login', function (Request $request) {
+            $name = (string) $request->input('name', '');
+            $ip = (string) $request->ip();
+
+            $key = 'login|'.mb_strtolower($name).'|'.$ip;
+
+            return Limit::perMinute(5)->by($key);
+        });
     }
 }
