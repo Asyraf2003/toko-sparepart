@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Interfaces\Web\Controllers\Cashier\CashierDashboardController;
 use App\Interfaces\Web\Controllers\Cashier\ProductSearchController;
 use App\Interfaces\Web\Controllers\Cashier\TransactionCompleteCashController;
